@@ -1,0 +1,259 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Microsoft Cloud Entra Collector Output",
+  "description": "Microsoft Entra trust posture output. Later slices add optional fields within schema version 1.x.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "collected_at",
+    "collected_at_level",
+    "tenant_id",
+    "org_domain",
+    "posture",
+    "users",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "collected_at": { "type": "string", "format": "date-time" },
+    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"] },
+    "tenant_id": { "type": "string" },
+    "org_domain": { "type": "string" },
+    "posture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mfa_coverage",
+        "mfa_phishing_resistant",
+        "mfa_weak_method_only",
+        "sspr_registered",
+        "sso_coverage",
+        "denominator_enabled_member_users"
+      ],
+      "properties": {
+        "mfa_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "mfa_phishing_resistant": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "mfa_weak_method_only": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "sspr_registered": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "sso_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "denominator_enabled_member_users": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "users": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_count",
+        "enabled_member_users_count",
+        "guest_pct",
+        "disabled_pct",
+        "inactive_pct",
+        "inactive_guest_pct"
+      ],
+      "properties": {
+        "total_count": { "type": "integer", "minimum": 0 },
+        "enabled_member_users_count": { "type": "integer", "minimum": 0 },
+        "guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "inactive_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "inactive_guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mfa_required",
+        "mfa_required_coverage_pct",
+        "admin_portals_mfa_required",
+        "all_cloud_apps_mfa_required",
+        "compliant_device_required",
+        "legacy_auth_blocked",
+        "policy_count"
+      ],
+      "properties": {
+        "mfa_required": { "type": ["boolean", "null"] },
+        "mfa_required_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "admin_portals_mfa_required": { "type": ["boolean", "null"] },
+        "all_cloud_apps_mfa_required": { "type": ["boolean", "null"] },
+        "compliant_device_required": { "type": ["boolean", "null"] },
+        "legacy_auth_blocked": { "type": ["boolean", "null"] },
+        "policy_count": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "security_defaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled"],
+      "properties": {
+        "enabled": { "type": "boolean" }
+      }
+    },
+    "privileged_access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "super_admin_count",
+        "privileged_users_count",
+        "privileged_mfa_coverage_pct",
+        "privileged_phishing_resistant_pct",
+        "pim_eligible_pct",
+        "standing_assignment_count",
+        "inactive_privileged_users_count",
+        "privileged_guest_count"
+      ],
+      "properties": {
+        "super_admin_count": { "type": "integer", "minimum": 0 },
+        "privileged_users_count": { "type": "integer", "minimum": 0 },
+        "privileged_mfa_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "privileged_phishing_resistant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "pim_eligible_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "standing_assignment_count": { "type": ["integer", "null"], "minimum": 0 },
+        "inactive_privileged_users_count": { "type": ["integer", "null"], "minimum": 0 },
+        "privileged_guest_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "apps": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled_enterprise_apps_count",
+        "assignment_required_pct",
+        "credentials_expiring_count",
+        "credentials_expired_count",
+        "credentials_over_365d_count",
+        "password_credentials_pct"
+      ],
+      "properties": {
+        "enabled_enterprise_apps_count": { "type": "integer", "minimum": 0 },
+        "assignment_required_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+        "credentials_expiring_count": { "type": "integer", "minimum": 0 },
+        "credentials_expired_count": { "type": "integer", "minimum": 0 },
+        "credentials_over_365d_count": { "type": "integer", "minimum": 0 },
+        "password_credentials_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+      }
+    },
+    "secure_score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["identity_pct"],
+      "properties": {
+        "identity_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+      }
+    },
+    "directory_activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lookback_hours",
+        "events_count",
+        "failure_count",
+        "delete_events_count",
+        "user_change_events_count",
+        "group_change_events_count",
+        "app_change_events_count",
+        "role_change_events_count",
+        "policy_change_events_count",
+        "pim_events_count"
+      ],
+      "properties": {
+        "lookback_hours": { "type": "integer", "minimum": 0 },
+        "events_count": { "type": "integer", "minimum": 0 },
+        "failure_count": { "type": "integer", "minimum": 0 },
+        "delete_events_count": { "type": "integer", "minimum": 0 },
+        "user_change_events_count": { "type": "integer", "minimum": 0 },
+        "group_change_events_count": { "type": "integer", "minimum": 0 },
+        "app_change_events_count": { "type": "integer", "minimum": 0 },
+        "role_change_events_count": { "type": "integer", "minimum": 0 },
+        "policy_change_events_count": { "type": "integer", "minimum": 0 },
+        "pim_events_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "sign_in_monitoring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lookback_hours",
+        "sign_ins_count",
+        "failure_count",
+        "unique_users_count",
+        "unique_apps_count",
+        "legacy_client_sign_ins_count",
+        "risky_sign_ins_count",
+        "conditional_access_success_count",
+        "conditional_access_failure_count",
+        "conditional_access_not_applied_count",
+        "applied_policies_count",
+        "applied_policy_evaluations_count",
+        "applied_policy_success_count",
+        "applied_policy_failure_count",
+        "applied_policy_not_applied_count",
+        "applied_policy_report_only_fail_count",
+        "top_failure_codes"
+      ],
+      "properties": {
+        "lookback_hours": { "type": "integer", "minimum": 0 },
+        "sign_ins_count": { "type": "integer", "minimum": 0 },
+        "failure_count": { "type": "integer", "minimum": 0 },
+        "unique_users_count": { "type": "integer", "minimum": 0 },
+        "unique_apps_count": { "type": "integer", "minimum": 0 },
+        "legacy_client_sign_ins_count": { "type": "integer", "minimum": 0 },
+        "risky_sign_ins_count": { "type": "integer", "minimum": 0 },
+        "conditional_access_success_count": { "type": "integer", "minimum": 0 },
+        "conditional_access_failure_count": { "type": "integer", "minimum": 0 },
+        "conditional_access_not_applied_count": { "type": "integer", "minimum": 0 },
+        "applied_policies_count": { "type": "integer", "minimum": 0 },
+        "applied_policy_evaluations_count": { "type": "integer", "minimum": 0 },
+        "applied_policy_success_count": { "type": "integer", "minimum": 0 },
+        "applied_policy_failure_count": { "type": "integer", "minimum": 0 },
+        "applied_policy_not_applied_count": { "type": "integer", "minimum": 0 },
+        "applied_policy_report_only_fail_count": { "type": "integer", "minimum": 0 },
+        "top_failure_codes": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["code", "count"],
+            "properties": {
+              "code": { "type": "integer" },
+              "count": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
+      "properties": {
+        "tenant_errors": { "type": "array", "items": { "type": "string" } },
+        "subscription_errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "truncation": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["truncated", "dropped_count"],
+            "properties": {
+              "truncated": { "type": "boolean" },
+              "dropped_count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entra_tier", "capabilities_unavailable"],
+          "properties": {
+            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"] },
+            "capabilities_unavailable": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}

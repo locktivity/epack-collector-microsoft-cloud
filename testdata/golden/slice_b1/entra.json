@@ -1,0 +1,66 @@
+{
+  "schema_version": "1.0.0",
+  "collected_at": "2026-05-26T14:12:09Z",
+  "collected_at_level": "trust",
+  "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+  "org_domain": "contoso.com",
+  "posture": {
+    "mfa_coverage": 50,
+    "mfa_phishing_resistant": 50,
+    "mfa_weak_method_only": 0,
+    "sspr_registered": 50,
+    "sso_coverage": 100,
+    "denominator_enabled_member_users": 2
+  },
+  "users": {
+    "total_count": 4,
+    "enabled_member_users_count": 2,
+    "guest_pct": 25,
+    "disabled_pct": 25,
+    "inactive_pct": 67,
+    "inactive_guest_pct": 100
+  },
+  "policy": {
+    "mfa_required": true,
+    "mfa_required_coverage_pct": 100,
+    "admin_portals_mfa_required": true,
+    "all_cloud_apps_mfa_required": true,
+    "compliant_device_required": true,
+    "legacy_auth_blocked": true,
+    "policy_count": 4
+  },
+  "security_defaults": {
+    "enabled": false
+  },
+  "privileged_access": {
+    "super_admin_count": 1,
+    "privileged_users_count": 3,
+    "privileged_mfa_coverage_pct": 67,
+    "privileged_phishing_resistant_pct": 33,
+    "pim_eligible_pct": 25,
+    "standing_assignment_count": 3,
+    "inactive_privileged_users_count": 2,
+    "privileged_guest_count": 1
+  },
+  "apps": {
+    "enabled_enterprise_apps_count": 2,
+    "assignment_required_pct": 50,
+    "credentials_expiring_count": 2,
+    "credentials_expired_count": 2,
+    "credentials_over_365d_count": 3,
+    "password_credentials_pct": 67
+  },
+  "secure_score": {
+    "identity_pct": 74
+  },
+  "diagnostics": {
+    "tenant_errors": [],
+    "subscription_errors": [],
+    "warnings": [],
+    "truncation": {},
+    "license": {
+      "entra_tier": "unknown",
+      "capabilities_unavailable": []
+    }
+  }
+}

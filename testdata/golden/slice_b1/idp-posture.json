@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "collected_at": "2026-05-26T14:12:09Z",
+  "provider": "entra",
+  "org_domain": "contoso.com",
+  "user_security": {
+    "mfa_coverage_pct": 50,
+    "mfa_phishing_resistant_pct": 50,
+    "inactive_pct": 67
+  },
+  "app_security": {
+    "sso_coverage_pct": 100
+  },
+  "privileged_access": {
+    "privileged_users_count": 3,
+    "super_admin_count": 1,
+    "privileged_mfa_coverage_pct": 67
+  },
+  "lifecycle": {
+    "suspended_pct": 25
+  },
+  "policy": {
+    "mfa_required": true,
+    "mfa_required_coverage_pct": 100,
+    "legacy_auth_blocked": true
+  }
+}

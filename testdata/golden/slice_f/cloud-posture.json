@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0.0",
+  "collected_at": "2026-05-26T14:12:09Z",
+  "provider": "azure",
+  "accounts": [
+    {
+      "account_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "iam": {
+        "mfa_coverage_pct": 50,
+        "root_mfa_enabled": true
+      },
+      "storage": {
+        "encryption_pct": 50,
+        "public_access_blocked_pct": 50
+      },
+      "backup": {
+        "retention_days_min": 30
+      },
+      "network": {
+        "ssh_open_to_world_pct": 50,
+        "rdp_open_to_world_pct": 0
+      }
+    }
+  ]
+}

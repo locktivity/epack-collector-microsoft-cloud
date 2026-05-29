@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "collected_at": "2026-05-26T14:12:09Z",
+  "collected_at_level": "trust",
+  "accounts": [
+    {
+      "account_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+      "defender": {
+        "secure_score_pct": 70,
+        "unpatched_pct": 50
+      },
+      "rbac": {
+        "owner_count": 2,
+        "owner_service_principal_count": 1
+      },
+      "policy": {
+        "assignments_count": 2,
+        "compliant_pct": 75,
+        "noncompliant_resources_count": 2
+      },
+      "storage": {
+        "storage_accounts_count": 2,
+        "https_only_pct": 50,
+        "min_tls12_pct": 50,
+        "encryption_cmk_pct": 50,
+        "infrastructure_encryption_pct": 50,
+        "public_access_blocked_pct": 50
+      },
+      "keyvault": {
+        "vaults_count": 2,
+        "purge_protection_pct": 50,
+        "rbac_authorization_pct": 50
+      },
+      "sql": {
+        "servers_count": 1,
+        "databases_count": 2,
+        "tde_enabled_pct": 50,
+        "min_tls12_pct": 100,
+        "public_access_disabled_pct": 100
+      },
+      "compute": {
+        "virtual_machines_count": 2,
+        "disk_encryption_pct": 50,
+        "public_ip_pct": 50
+      },
+      "backup": {
+        "retention_days_min": 30,
+        "protected_resource_pct": 50,
+        "latest_successful_backup_age_hours_max": 144,
+        "failed_jobs_7d_count": 1,
+        "vault_soft_delete_pct": 50,
+        "vault_immutability_pct": 50
+      },
+      "network": {
+        "network_security_groups_count": 2,
+        "public_ip_addresses_count": 1,
+        "ssh_open_to_world_pct": 50,
+        "rdp_open_to_world_pct": 0
+      },
+      "logging": {
+        "subscription_diagnostic_settings_enabled": true,
+        "diagnostic_settings_coverage_pct": 56,
+        "monitored_resources_count": 9,
+        "resources_without_diagnostics_count": 4
+      }
+    }
+  ],
+  "diagnostics": {
+    "tenant_errors": [],
+    "subscription_errors": [],
+    "warnings": [],
+    "truncation": {},
+    "license": {
+      "entra_tier": "unknown",
+      "capabilities_unavailable": []
+    }
+  }
+}

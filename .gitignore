@@ -1,0 +1,5 @@
+bin/
+epack-collector-microsoft-cloud
+/epack-collector-microsoft-cloud-*
+*.test
+*.out

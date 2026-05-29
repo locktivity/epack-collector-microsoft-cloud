@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0.0",
+  "collected_at": "2026-05-26T14:12:09Z",
+  "collected_at_level": "internal",
+  "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+  "org_domain": "contoso.com",
+  "posture": {
+    "mfa_coverage": 50,
+    "mfa_phishing_resistant": 50,
+    "mfa_weak_method_only": 0,
+    "sspr_registered": 50,
+    "sso_coverage": 100,
+    "denominator_enabled_member_users": 2
+  },
+  "users": {
+    "total_count": 4,
+    "enabled_member_users_count": 2,
+    "guest_pct": 25,
+    "disabled_pct": 25,
+    "inactive_pct": 67,
+    "inactive_guest_pct": 100
+  },
+  "policy": {
+    "mfa_required": true,
+    "mfa_required_coverage_pct": 100,
+    "admin_portals_mfa_required": true,
+    "all_cloud_apps_mfa_required": true,
+    "compliant_device_required": false,
+    "legacy_auth_blocked": false,
+    "policy_count": 1
+  },
+  "security_defaults": {
+    "enabled": false
+  },
+  "privileged_access": {
+    "super_admin_count": 1,
+    "privileged_users_count": 3,
+    "privileged_mfa_coverage_pct": 67,
+    "privileged_phishing_resistant_pct": 33,
+    "pim_eligible_pct": 25,
+    "standing_assignment_count": 3,
+    "inactive_privileged_users_count": 2,
+    "privileged_guest_count": 1
+  },
+  "apps": {
+    "enabled_enterprise_apps_count": 2,
+    "assignment_required_pct": 50,
+    "credentials_expiring_count": 2,
+    "credentials_expired_count": 2,
+    "credentials_over_365d_count": 3,
+    "password_credentials_pct": 67
+  },
+  "secure_score": {
+    "identity_pct": 74
+  },
+  "directory_activity": {
+    "lookback_hours": 168,
+    "events_count": 6,
+    "failure_count": 2,
+    "delete_events_count": 1,
+    "user_change_events_count": 1,
+    "group_change_events_count": 1,
+    "app_change_events_count": 1,
+    "role_change_events_count": 2,
+    "policy_change_events_count": 1,
+    "pim_events_count": 1
+  },
+  "sign_in_monitoring": {
+    "lookback_hours": 168,
+    "sign_ins_count": 4,
+    "failure_count": 2,
+    "unique_users_count": 3,
+    "unique_apps_count": 2,
+    "legacy_client_sign_ins_count": 1,
+    "risky_sign_ins_count": 2,
+    "conditional_access_success_count": 2,
+    "conditional_access_failure_count": 1,
+    "conditional_access_not_applied_count": 1,
+    "applied_policies_count": 3,
+    "applied_policy_evaluations_count": 4,
+    "applied_policy_success_count": 1,
+    "applied_policy_failure_count": 1,
+    "applied_policy_not_applied_count": 1,
+    "applied_policy_report_only_fail_count": 1,
+    "top_failure_codes": [
+      {
+        "code": 50053,
+        "count": 1
+      },
+      {
+        "code": 50126,
+        "count": 1
+      }
+    ]
+  },
+  "diagnostics": {
+    "tenant_errors": [],
+    "subscription_errors": [],
+    "warnings": [],
+    "truncation": {},
+    "license": {
+      "entra_tier": "unknown",
+      "capabilities_unavailable": []
+    }
+  }
+}

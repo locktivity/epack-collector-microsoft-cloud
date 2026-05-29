@@ -1,0 +1,227 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Microsoft Cloud Azure Collector Output",
+  "description": "Microsoft Azure trust posture output.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "collected_at",
+    "collected_at_level",
+    "accounts",
+    "diagnostics"
+  ],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0.0" },
+    "collected_at": { "type": "string", "format": "date-time" },
+    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"] },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["account_id", "defender", "rbac", "policy", "storage", "keyvault", "sql", "compute", "backup", "network", "logging"],
+        "properties": {
+          "account_id": { "type": "string" },
+          "defender": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["secure_score_pct", "unpatched_pct"],
+            "properties": {
+              "secure_score_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "unpatched_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "rbac": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["owner_count", "owner_service_principal_count"],
+            "properties": {
+              "owner_count": { "type": "integer", "minimum": 0 },
+              "owner_service_principal_count": { "type": "integer", "minimum": 0 }
+            }
+          },
+          "policy": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["assignments_count", "compliant_pct", "noncompliant_resources_count"],
+            "properties": {
+              "assignments_count": { "type": "integer", "minimum": 0 },
+              "compliant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "noncompliant_resources_count": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          },
+          "storage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "storage_accounts_count",
+              "https_only_pct",
+              "min_tls12_pct",
+              "encryption_cmk_pct",
+              "infrastructure_encryption_pct",
+              "public_access_blocked_pct"
+            ],
+            "properties": {
+              "storage_accounts_count": { "type": "integer", "minimum": 0 },
+              "https_only_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "encryption_cmk_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "infrastructure_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "public_access_blocked_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "keyvault": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["vaults_count", "purge_protection_pct", "rbac_authorization_pct"],
+            "properties": {
+              "vaults_count": { "type": "integer", "minimum": 0 },
+              "purge_protection_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "rbac_authorization_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "sql": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["servers_count", "databases_count", "tde_enabled_pct", "min_tls12_pct", "public_access_disabled_pct"],
+            "properties": {
+              "servers_count": { "type": "integer", "minimum": 0 },
+              "databases_count": { "type": "integer", "minimum": 0 },
+              "tde_enabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "public_access_disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "compute": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["virtual_machines_count", "disk_encryption_pct", "public_ip_pct"],
+            "properties": {
+              "virtual_machines_count": { "type": "integer", "minimum": 0 },
+              "disk_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "public_ip_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "backup": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "retention_days_min",
+              "protected_resource_pct",
+              "latest_successful_backup_age_hours_max",
+              "failed_jobs_7d_count",
+              "vault_soft_delete_pct",
+              "vault_immutability_pct"
+            ],
+            "properties": {
+              "retention_days_min": { "type": ["integer", "null"], "minimum": 0 },
+              "protected_resource_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "latest_successful_backup_age_hours_max": { "type": ["integer", "null"], "minimum": 0 },
+              "failed_jobs_7d_count": { "type": ["integer", "null"], "minimum": 0 },
+              "vault_soft_delete_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "vault_immutability_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "network": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "network_security_groups_count",
+              "public_ip_addresses_count",
+              "ssh_open_to_world_pct",
+              "rdp_open_to_world_pct"
+            ],
+            "properties": {
+              "network_security_groups_count": { "type": "integer", "minimum": 0 },
+              "public_ip_addresses_count": { "type": "integer", "minimum": 0 },
+              "ssh_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "rdp_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
+            }
+          },
+          "logging": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "subscription_diagnostic_settings_enabled",
+              "diagnostic_settings_coverage_pct",
+              "monitored_resources_count",
+              "resources_without_diagnostics_count"
+            ],
+            "properties": {
+              "subscription_diagnostic_settings_enabled": { "type": ["boolean", "null"] },
+              "diagnostic_settings_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "monitored_resources_count": { "type": "integer", "minimum": 0 },
+              "resources_without_diagnostics_count": { "type": ["integer", "null"], "minimum": 0 }
+            }
+          },
+          "inventory": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "resources_count",
+              "resource_groups_count",
+              "regions_count",
+              "owner_tag_coverage_pct",
+              "environment_tag_coverage_pct",
+              "production_resources_pct",
+              "top_resource_types"
+            ],
+            "properties": {
+              "resources_count": { "type": "integer", "minimum": 0 },
+              "resource_groups_count": { "type": "integer", "minimum": 0 },
+              "regions_count": { "type": "integer", "minimum": 0 },
+              "owner_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "environment_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "production_resources_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "top_resource_types": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type", "count"],
+                  "properties": {
+                    "type": { "type": "string" },
+                    "count": { "type": "integer", "minimum": 1 }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
+      "properties": {
+        "tenant_errors": { "type": "array", "items": { "type": "string" } },
+        "subscription_errors": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "truncation": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["truncated", "dropped_count"],
+            "properties": {
+              "truncated": { "type": "boolean" },
+              "dropped_count": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "license": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["entra_tier", "capabilities_unavailable"],
+          "properties": {
+            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"] },
+            "capabilities_unavailable": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  }
+}
