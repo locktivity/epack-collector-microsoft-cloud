@@ -65,11 +65,18 @@ collectors:
 
 ## Required Microsoft Permissions
 
-Grant admin consent for the Microsoft Graph application permissions needed by your chosen level:
+Grant admin consent for these Microsoft Graph application permissions:
 
-- Trust: `Organization.Read.All`, `User.Read.All`, `AuditLog.Read.All`, `Policy.Read.All`, `RoleManagement.Read.Directory`, `RoleEligibilitySchedule.Read.Directory`, `Application.Read.All`, `SecurityEvents.Read.All`
-- Audit: the trust permission set
-- Internal: the audit permission set
+- `Organization.Read.All`
+- `User.Read.All`
+- `AuditLog.Read.All`
+- `Policy.Read.All`
+- `RoleManagement.Read.Directory`
+- `RoleEligibilitySchedule.Read.Directory`
+- `Application.Read.All`
+- `SecurityEvents.Read.All`
+
+In v0.1.0, `trust`, `audit`, and `internal` use the same Graph permission set. Higher levels change how much aggregate evidence the collector emits, not which Microsoft Graph application permissions are required.
 
 Azure collection also requires the Azure Reader role on each listed subscription. Some Entra features require Microsoft Entra ID P1 or P2 licensing. When a licensed surface is unavailable, the collector emits `null` for the affected metrics and records the missing capability in diagnostics.
 
