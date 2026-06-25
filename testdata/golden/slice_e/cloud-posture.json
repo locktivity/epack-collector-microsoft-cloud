@@ -7,7 +7,8 @@
       "account_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       "iam": {
         "mfa_coverage_pct": 50,
-        "root_mfa_enabled": true
+        "root_mfa_enabled": true,
+        "root_access_protected": true
       },
       "storage": {
         "encryption_pct": 50,

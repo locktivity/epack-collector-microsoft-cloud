@@ -52,5 +52,6 @@ func testConfig() Config {
 		ClientSecret:    "secret",
 		GraphClient:     fakeGraphClient(),
 		ARMClient:       fakeARMClient(),
+		Clock:           FixedClock{Time: goldenTime},
 	}
 }

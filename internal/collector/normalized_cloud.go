@@ -16,8 +16,9 @@ type CloudPostureAccount struct {
 }
 
 type CloudPostureIAM struct {
-	MFACoveragePct *int  `json:"mfa_coverage_pct,omitempty"`
-	RootMFAEnabled *bool `json:"root_mfa_enabled,omitempty"`
+	MFACoveragePct      *int  `json:"mfa_coverage_pct,omitempty"`
+	RootMFAEnabled      *bool `json:"root_mfa_enabled,omitempty"`
+	RootAccessProtected *bool `json:"root_access_protected,omitempty"`
 }
 
 type CloudPostureStorage struct {
@@ -66,8 +67,9 @@ func cloudPostureIAM(entra *EntraArtifact) *CloudPostureIAM {
 	}
 	if entra.PrivilegedAccess != nil && entra.PrivilegedAccess.RootMFAEnabled != nil {
 		iam.RootMFAEnabled = entra.PrivilegedAccess.RootMFAEnabled
+		iam.RootAccessProtected = entra.PrivilegedAccess.RootMFAEnabled
 	}
-	if iam.MFACoveragePct == nil && iam.RootMFAEnabled == nil {
+	if iam.MFACoveragePct == nil && iam.RootMFAEnabled == nil && iam.RootAccessProtected == nil {
 		return nil
 	}
 	return iam

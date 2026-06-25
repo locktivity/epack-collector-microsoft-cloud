@@ -34,6 +34,9 @@ func TestNormalizedCloudSliceC(t *testing.T) {
 	if cloud.Accounts[0].IAM.RootMFAEnabled == nil || !*cloud.Accounts[0].IAM.RootMFAEnabled {
 		t.Fatalf("unexpected root MFA mapping: %#v", cloud.Accounts[0].IAM)
 	}
+	if cloud.Accounts[0].IAM.RootAccessProtected == nil || !*cloud.Accounts[0].IAM.RootAccessProtected {
+		t.Fatalf("unexpected root access protection mapping: %#v", cloud.Accounts[0].IAM)
+	}
 }
 
 func TestNormalizedCloudOmitsRootMFAWithoutMFAReport(t *testing.T) {
@@ -52,6 +55,9 @@ func TestNormalizedCloudOmitsRootMFAWithoutMFAReport(t *testing.T) {
 	}
 	if result.AzureCloudPosture.Accounts[0].IAM != nil && result.AzureCloudPosture.Accounts[0].IAM.RootMFAEnabled != nil {
 		t.Fatalf("expected root MFA omitted without MFA report, got %#v", result.AzureCloudPosture.Accounts[0].IAM)
+	}
+	if result.AzureCloudPosture.Accounts[0].IAM != nil && result.AzureCloudPosture.Accounts[0].IAM.RootAccessProtected != nil {
+		t.Fatalf("expected root access protection omitted without MFA report, got %#v", result.AzureCloudPosture.Accounts[0].IAM)
 	}
 }
 
