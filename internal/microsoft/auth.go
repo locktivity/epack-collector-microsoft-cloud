@@ -172,7 +172,37 @@ func (s *TokenSource) exchangeOIDCAssertion(ctx context.Context, assertion strin
 	form.Set("grant_type", "client_credentials")
 	form.Set("client_assertion_type", clientAssertionTypeJWTBearer)
 	form.Set("client_assertion", assertion)
-	return s.tokenRequest(ctx, form, assertion)
+	token, expiresIn, err := s.tokenRequest(ctx, form, assertion)
+	if err != nil {
+		return "", 0, describeFederatedCredentialMismatch(err, assertion)
+	}
+	return token, expiresIn, nil
+}
+
+// isFederatedCredentialMismatch reports whether Entra rejected the exchange
+// because no federated credential matches the assertion.
+func isFederatedCredentialMismatch(err error) bool {
+	msg := err.Error()
+	return strings.Contains(msg, "AADSTS70021") || strings.Contains(msg, "No matching federated identity record")
+}
+
+// describeFederatedCredentialMismatch prepends the fix when Entra rejects the
+// exchange because no federated credential matches the assertion. The subject
+// claim is repository and branch names, safe to print; the assertion itself
+// never is.
+func describeFederatedCredentialMismatch(err error, assertion string) error {
+	if !isFederatedCredentialMismatch(err) {
+		return err
+	}
+	claims, claimsErr := decodeJWTClaims(assertion)
+	if claimsErr != nil {
+		return err
+	}
+	sub, _ := claims["sub"].(string)
+	if sub == "" {
+		return err
+	}
+	return fmt.Errorf("the GitHub token's subject is %q and Entra has no federated credential matching it. On the app registration, create or edit a federated credential whose subject is exactly this value. The portal form expects GitHub's immutable subject format; a repository that still sends the name-based format needs the Edit (optional) override on the Subject identifier field: %w", sub, err)
 }
 
 func (s *TokenSource) exchangeClientSecret(ctx context.Context) (string, int, error) {

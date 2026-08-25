@@ -52,6 +52,19 @@ For this mode, set `auth_mode: oidc`.
 
 Common OIDC setup failure: the federated credential subject is too narrow. For example, a credential for the `main` branch will not work on pull request workflows unless a matching pull request or environment subject is also configured.
 
+#### Subject format during GitHub's immutable-subject rollout
+
+The credential matches the subject claim of the token GitHub sends, and GitHub is moving that claim to a format with immutable IDs:
+
+- Name-based: `repo:<owner>/<repo>:ref:refs/heads/<branch>`
+- Immutable: `repo:<owner>@<owner_id>/<repo>@<repo_id>:ref:refs/heads/<branch>`
+
+Repositories created, renamed, or transferred after July 15, 2026 send the immutable format. Older repositories keep the name-based format until they opt in. The Entra portal form builds the immutable format, so a credential created through the form cannot match an older repository's token. When the formats disagree, the run fails at the token exchange and the error prints the token's exact subject.
+
+To match an older repository, select **Edit (optional)** on the **Subject identifier** field and paste the name-based subject, for example `repo:my-org/my-repo:ref:refs/heads/main`.
+
+To move to the immutable format instead, follow Microsoft's zero-downtime recipe: read the owner and repository IDs from the GitHub API, create a second federated credential with the immutable subject, opt the repository in under its OIDC settings, confirm the run succeeds, then delete the name-based credential.
+
 ## 3. Grant Microsoft Graph Application Permissions
 
 In the app registration:
@@ -169,3 +182,4 @@ EPACK_COLLECTOR_CONFIG=/tmp/microsoft-cloud-config.json ./epack-collector-micros
 | PIM metrics are `null` | Missing Entra ID P2 or Entra ID Governance license. | Accept the diagnostic or enable the required license. |
 | MFA registration metrics are `null` | MFA registration report is unavailable for the tenant or app. | Confirm `AuditLog.Read.All`, admin consent, and licensing. |
 | OIDC works on `main` but fails on PRs | Federated credential subject only matches `main`. | Add a federated credential for the pull request or environment subject. |
+| `AADSTS70021`, no matching federated identity record | The credential subject does not match the token. Common for repositories created before July 15, 2026, because the portal form builds the immutable subject format and older repositories send the name-based format. | The error prints the token's subject. Paste that exact value into the credential's Subject identifier, using the Edit (optional) override on the form. |

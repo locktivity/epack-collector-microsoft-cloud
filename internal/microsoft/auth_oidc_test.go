@@ -79,6 +79,52 @@ func TestOIDC(t *testing.T) {
 	}
 }
 
+func TestOIDCFederatedCredentialMismatchNamesSubject(t *testing.T) {
+	subject := "repo:locktivity/repo:ref:refs/heads/main"
+	assertion := signedJWT(map[string]any{"sub": subject})
+
+	client := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		switch r.URL.Path {
+		case "/oidc":
+			return jsonResponse(http.StatusOK, map[string]string{"value": assertion}), nil
+		case "/" + testTenantID + "/oauth2/v2.0/token":
+			return jsonResponse(http.StatusBadRequest, map[string]string{
+				"error":             "invalid_request",
+				"error_description": "AADSTS700213: No matching federated identity record found for presented assertion subject.",
+			}), nil
+		default:
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+		return nil, nil
+	})}
+
+	source, err := NewTokenSource(Credentials{
+		TenantID:          testTenantID,
+		ClientID:          testClientID,
+		AuthMode:          "oidc",
+		OIDCRequestURL:    "https://actions.test/oidc",
+		OIDCRequestToken:  "github-request-token",
+		TokenEndpointBase: "https://login.test",
+		HTTPClient:        client,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = source.AccessToken(context.Background())
+	if err == nil {
+		t.Fatal("AccessToken() error = nil, want federated credential guidance")
+	}
+	if !strings.Contains(err.Error(), subject) {
+		t.Errorf("AccessToken() error = %q, want the token subject", err)
+	}
+	if !strings.Contains(err.Error(), "Edit (optional)") {
+		t.Errorf("AccessToken() error = %q, want the portal override guidance", err)
+	}
+	if strings.Contains(err.Error(), assertion) {
+		t.Error("AccessToken() error must not contain the assertion")
+	}
+}
+
 func TestOIDCRejectsDelegatedToken(t *testing.T) {
 	if err := validateAppOnlyToken(signedJWT(map[string]any{
 		"tid": testTenantID,
