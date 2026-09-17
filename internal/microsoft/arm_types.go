@@ -248,7 +248,9 @@ type DiagnosticSettingProperties struct {
 }
 
 type DiagnosticLogSetting struct {
-	Enabled bool `json:"enabled"`
+	Category      string `json:"category"`
+	CategoryGroup string `json:"categoryGroup"`
+	Enabled       bool   `json:"enabled"`
 }
 
 type DiagnosticMetricSetting struct {

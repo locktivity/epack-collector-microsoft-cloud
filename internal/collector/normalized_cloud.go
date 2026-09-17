@@ -11,6 +11,7 @@ type CloudPostureAccount struct {
 	AccountID string               `json:"account_id"`
 	IAM       *CloudPostureIAM     `json:"iam,omitempty"`
 	Storage   *CloudPostureStorage `json:"storage,omitempty"`
+	Logging   *CloudPostureLogging `json:"logging,omitempty"`
 	Backup    *CloudPostureBackup  `json:"backup,omitempty"`
 	Network   *CloudPostureNetwork `json:"network,omitempty"`
 }
@@ -24,6 +25,11 @@ type CloudPostureIAM struct {
 type CloudPostureStorage struct {
 	EncryptionPct          *int `json:"encryption_pct,omitempty"`
 	PublicAccessBlockedPct *int `json:"public_access_blocked_pct,omitempty"`
+}
+
+type CloudPostureLogging struct {
+	CloudTrailEnabled     *bool `json:"cloudtrail_enabled,omitempty"`
+	CloudTrailMultiregion *bool `json:"cloudtrail_multiregion,omitempty"`
 }
 
 type CloudPostureBackup struct {
@@ -50,6 +56,7 @@ func (a *AzureArtifact) ToCloudPosture(entra *EntraArtifact) *CloudPosture {
 			AccountID: account.AccountID,
 			IAM:       cloudPostureIAM(entra),
 			Storage:   cloudPostureStorage(account.Storage),
+			Logging:   cloudPostureLogging(account.Logging),
 			Backup:    cloudPostureBackup(account.Backup),
 			Network:   cloudPostureNetwork(account.Network),
 		})
@@ -90,6 +97,18 @@ func cloudPostureStorage(storage *AzureStorage) *CloudPostureStorage {
 		return nil
 	}
 	return out
+}
+
+// The Activity Log is one subscription-wide stream with no region scope, so an
+// export that exists covers every region and both fields carry the same value.
+func cloudPostureLogging(logging *AzureLogging) *CloudPostureLogging {
+	if logging == nil || logging.ActivityLogAdministrativeExported == nil {
+		return nil
+	}
+	return &CloudPostureLogging{
+		CloudTrailEnabled:     logging.ActivityLogAdministrativeExported,
+		CloudTrailMultiregion: logging.ActivityLogAdministrativeExported,
+	}
 }
 
 func cloudPostureBackup(backup *AzureBackup) *CloudPostureBackup {

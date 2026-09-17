@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"strings"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
@@ -11,6 +12,7 @@ func (c *Collector) collectLogging(ctx context.Context, subscriptionID string, r
 	subscriptionSettings, err := c.arm.SubscriptionDiagnosticSettings(ctx, subscriptionID)
 	if err == nil {
 		out.SubscriptionDiagnosticSettingsEnabled = boolPtr(diagnosticSettingsEnabled(subscriptionSettings))
+		out.ActivityLogAdministrativeExported = boolPtr(activityLogAdministrativeExported(subscriptionSettings))
 	} else if surfaceUnavailable(err) {
 		diagnostics.Warn("Subscription diagnostic settings unavailable for subscription " + subscriptionID)
 	} else {
@@ -87,6 +89,26 @@ func diagnosticSettingsEnabled(settings []microsoft.DiagnosticSetting) bool {
 		}
 		for _, metricSetting := range setting.Properties.Metrics {
 			if metricSetting.Enabled {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// The Administrative category is the control-plane write log, the part of
+// the Activity Log an audit trail needs; a setting that exports only health or
+// alert categories does not count.
+func activityLogAdministrativeExported(settings []microsoft.DiagnosticSetting) bool {
+	for _, setting := range settings {
+		if !diagnosticSettingHasDestination(setting) {
+			continue
+		}
+		for _, logSetting := range setting.Properties.Logs {
+			if !logSetting.Enabled {
+				continue
+			}
+			if strings.EqualFold(logSetting.Category, "Administrative") || strings.EqualFold(logSetting.CategoryGroup, "allLogs") {
 				return true
 			}
 		}

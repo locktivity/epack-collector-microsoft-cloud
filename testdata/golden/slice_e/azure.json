@@ -59,6 +59,7 @@
       },
       "logging": {
         "subscription_diagnostic_settings_enabled": true,
+        "activity_log_administrative_exported": true,
         "diagnostic_settings_coverage_pct": 56,
         "monitored_resources_count": 9,
         "resources_without_diagnostics_count": 4

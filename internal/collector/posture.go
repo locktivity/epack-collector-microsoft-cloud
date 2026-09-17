@@ -201,6 +201,7 @@ type AzureNetwork struct {
 
 type AzureLogging struct {
 	SubscriptionDiagnosticSettingsEnabled *bool `json:"subscription_diagnostic_settings_enabled"`
+	ActivityLogAdministrativeExported     *bool `json:"activity_log_administrative_exported"`
 	DiagnosticSettingsCoveragePct         *int  `json:"diagnostic_settings_coverage_pct"`
 	MonitoredResourcesCount               int   `json:"monitored_resources_count"`
 	ResourcesWithoutDiagnosticsCount      *int  `json:"resources_without_diagnostics_count"`

@@ -257,7 +257,7 @@ func fakeARMClient() *fakeARM {
 		return microsoft.DiagnosticSetting{
 			Properties: microsoft.DiagnosticSettingProperties{
 				WorkspaceID: "/subscriptions/" + subscriptionID + "/resourceGroups/monitor/providers/Microsoft.OperationalInsights/workspaces/law-a",
-				Logs:        []microsoft.DiagnosticLogSetting{{Enabled: true}},
+				Logs:        []microsoft.DiagnosticLogSetting{{Category: "Administrative", Enabled: true}},
 			},
 		}
 	}

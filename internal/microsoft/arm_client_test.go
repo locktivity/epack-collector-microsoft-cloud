@@ -369,7 +369,13 @@ func TestARMMonitoringNetworkRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2021-05-01-preview" {
 				t.Fatalf("unexpected subscription diagnostics api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "subdiag-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{
+				"id": "subdiag-a",
+				"properties": map[string]any{
+					"workspaceId": "law-a",
+					"logs":        []map[string]any{{"category": "Administrative", "enabled": true}},
+				},
+			}}}), nil
 		case "/subscriptions/sub-1/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/storagea/providers/Microsoft.Insights/diagnosticSettings":
 			if r.Method != http.MethodGet {
 				t.Fatalf("unexpected resource diagnostics method: %s", r.Method)
@@ -398,6 +404,9 @@ func TestARMMonitoringNetworkRoutes(t *testing.T) {
 	}
 	if len(subscriptionSettings) != 1 {
 		t.Fatalf("expected one subscription diagnostic setting, got %d", len(subscriptionSettings))
+	}
+	if logs := subscriptionSettings[0].Properties.Logs; len(logs) != 1 || logs[0].Category != "Administrative" || !logs[0].Enabled {
+		t.Fatalf("unexpected subscription diagnostic logs: %#v", logs)
 	}
 	settings, err := client.DiagnosticSettings(context.Background(), resourceID)
 	if err != nil {

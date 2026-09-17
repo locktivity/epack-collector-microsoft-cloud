@@ -144,12 +144,14 @@
             "additionalProperties": false,
             "required": [
               "subscription_diagnostic_settings_enabled",
+              "activity_log_administrative_exported",
               "diagnostic_settings_coverage_pct",
               "monitored_resources_count",
               "resources_without_diagnostics_count"
             ],
             "properties": {
               "subscription_diagnostic_settings_enabled": { "type": ["boolean", "null"] },
+              "activity_log_administrative_exported": { "type": ["boolean", "null"] },
               "diagnostic_settings_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
               "monitored_resources_count": { "type": "integer", "minimum": 0 },
               "resources_without_diagnostics_count": { "type": ["integer", "null"], "minimum": 0 }

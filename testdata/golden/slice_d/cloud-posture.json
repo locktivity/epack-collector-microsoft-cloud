@@ -14,6 +14,10 @@
         "encryption_pct": 50,
         "public_access_blocked_pct": 50
       },
+      "logging": {
+        "cloudtrail_enabled": true,
+        "cloudtrail_multiregion": true
+      },
       "backup": {
         "retention_days_min": 30
       },
