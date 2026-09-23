@@ -73,6 +73,7 @@ jobs:
       go-version-file: go.mod
       config-file: .slsa-goreleaser/epack-collector-microsoft-cloud-${{ matrix.os }}-${{ matrix.arch }}.yml
       evaluated-envs: "VERSION:${{ needs.args.outputs.version }},COMMIT:${{ needs.args.outputs.commit }}"
+      upload-assets: false
 
   release:
     needs: [args, build]
