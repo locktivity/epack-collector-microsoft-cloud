@@ -96,9 +96,8 @@ func diagnosticSettingsEnabled(settings []microsoft.DiagnosticSetting) bool {
 	return false
 }
 
-// The Administrative category is the control-plane write log, the part of
-// the Activity Log an audit trail needs; a setting that exports only health or
-// alert categories does not count.
+// Only the Administrative category records control-plane writes, so a setting
+// that exports other categories does not count as an Activity Log export.
 func activityLogAdministrativeExported(settings []microsoft.DiagnosticSetting) bool {
 	for _, setting := range settings {
 		if !diagnosticSettingHasDestination(setting) {

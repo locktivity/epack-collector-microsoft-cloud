@@ -204,8 +204,11 @@ func (c *GraphClient) do(ctx context.Context, method, route string, body []byte)
 				return respBody, nil
 			}
 			lastErr = graphAPIError(resp.StatusCode, route, respBody)
-			if !retryableStatus(resp.StatusCode) || attempt == maxAttempts {
+			if !retryableStatus(resp.StatusCode) {
 				return nil, lastErr
+			}
+			if attempt == maxAttempts {
+				break
 			}
 			if err := c.sleep(ctx, retryDelay(resp, attempt)); err != nil {
 				return nil, err
@@ -220,7 +223,7 @@ func (c *GraphClient) do(ctx context.Context, method, route string, body []byte)
 			return nil, err
 		}
 	}
-	return nil, lastErr
+	return nil, exhausted(ctx, lastErr)
 }
 
 func (c *GraphClient) newRequest(ctx context.Context, method, route string, body io.Reader) (*http.Request, error) {

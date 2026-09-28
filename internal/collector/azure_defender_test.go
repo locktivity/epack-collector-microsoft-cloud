@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"testing"
@@ -87,6 +88,47 @@ func TestDefenderSecureScore(t *testing.T) {
 	}
 	if len(artifact.Diagnostics.Warnings) == 0 {
 		t.Fatal("expected defender warning")
+	}
+}
+
+func TestDefenderExhaustedRetriesReportNotCollected(t *testing.T) {
+	subscriptionID := "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+	arm := fakeARMClient()
+	arm.secureScoreErrs[subscriptionID] = microsoft.RetriesExhaustedError{Err: errors.New("connection reset")}
+	arm.defenderAssessmentErrs[subscriptionID] = microsoft.RetriesExhaustedError{Err: &microsoft.APIError{Service: "arm", StatusCode: http.StatusInternalServerError, Route: "/assessments"}}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+
+	artifact := collectTestAzureArtifact(t, cfg)
+	account := artifact.Accounts[0]
+	if account.Defender == nil || account.Defender.SecureScorePct != nil || account.Defender.UnpatchedPct != nil {
+		t.Fatalf("expected null defender metrics, got %#v", account.Defender)
+	}
+	if account.RBAC == nil || account.RBAC.OwnerCount == 0 || account.Logging == nil {
+		t.Fatalf("expected the rest of the subscription to be collected, got %#v", account)
+	}
+	for _, expected := range []string{
+		"Defender secure score request failed after retries (no response) for subscription " + subscriptionID + ", defender.secure_score_pct reported as not_collected",
+		"Defender assessments request failed after retries (status 500) for subscription " + subscriptionID + ", defender.unpatched_pct reported as not_collected",
+	} {
+		if !containsString(artifact.Diagnostics.Warnings, expected) {
+			t.Fatalf("expected warning %q, got %#v", expected, artifact.Diagnostics.Warnings)
+		}
+	}
+}
+
+func TestDefenderBadRequestFailsCollection(t *testing.T) {
+	arm := fakeARMClient()
+	arm.defenderAssessmentErrs["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusBadRequest, Route: "/assessments"}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Collect(context.Background(), componentsdk.LevelTrust); err == nil {
+		t.Fatal("expected a 400 from Defender to fail collection")
 	}
 }
 

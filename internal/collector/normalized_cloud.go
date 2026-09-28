@@ -99,8 +99,8 @@ func cloudPostureStorage(storage *AzureStorage) *CloudPostureStorage {
 	return out
 }
 
-// The Activity Log is one subscription-wide stream with no region scope, so an
-// export that exists covers every region and both fields carry the same value.
+// The Activity Log has no region scope, so one export covers every region and
+// both fields carry the same value.
 func cloudPostureLogging(logging *AzureLogging) *CloudPostureLogging {
 	if logging == nil || logging.ActivityLogAdministrativeExported == nil {
 		return nil

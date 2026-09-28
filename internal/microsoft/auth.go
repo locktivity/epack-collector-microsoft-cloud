@@ -179,17 +179,13 @@ func (s *TokenSource) exchangeOIDCAssertion(ctx context.Context, assertion strin
 	return token, expiresIn, nil
 }
 
-// isFederatedCredentialMismatch reports whether Entra rejected the exchange
-// because no federated credential matches the assertion.
 func isFederatedCredentialMismatch(err error) bool {
 	msg := err.Error()
 	return strings.Contains(msg, "AADSTS70021") || strings.Contains(msg, "No matching federated identity record")
 }
 
-// describeFederatedCredentialMismatch prepends the fix when Entra rejects the
-// exchange because no federated credential matches the assertion. The subject
-// claim is repository and branch names, safe to print; the assertion itself
-// never is.
+// The error includes the token's subject claim, which holds only repository
+// and branch names. The assertion is a credential and must not be printed.
 func describeFederatedCredentialMismatch(err error, assertion string) error {
 	if !isFederatedCredentialMismatch(err) {
 		return err

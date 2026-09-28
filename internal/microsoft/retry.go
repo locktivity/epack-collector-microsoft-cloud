@@ -2,12 +2,30 @@ package microsoft
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
 )
 
 const maxAttempts = 5
+
+type RetriesExhaustedError struct{ Err error }
+
+func (e RetriesExhaustedError) Error() string { return e.Err.Error() }
+func (e RetriesExhaustedError) Unwrap() error { return e.Err }
+
+func RetriesExhausted(err error) bool {
+	var target RetriesExhaustedError
+	return errors.As(err, &target)
+}
+
+func exhausted(ctx context.Context, err error) error {
+	if ctx.Err() != nil {
+		return err
+	}
+	return RetriesExhaustedError{Err: err}
+}
 
 type sleeper func(context.Context, time.Duration) error
 

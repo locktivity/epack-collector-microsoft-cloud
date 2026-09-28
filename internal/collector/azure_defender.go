@@ -131,6 +131,8 @@ func (c *Collector) collectDefender(ctx context.Context, subscriptionID string, 
 		out.SecureScorePct = defenderSecureScorePct(score)
 	} else if surfaceUnavailable(err) {
 		diagnostics.Warn("Defender secure score unavailable for subscription " + subscriptionID)
+	} else if microsoft.RetriesExhausted(err) {
+		diagnostics.Warn(notCollectedAfterRetries("Defender secure score", subscriptionID, "defender.secure_score_pct", err))
 	} else {
 		return nil, err
 	}
@@ -140,10 +142,21 @@ func (c *Collector) collectDefender(ctx context.Context, subscriptionID string, 
 		out.UnpatchedPct = defenderUnpatchedPct(assessments)
 	} else if surfaceUnavailable(err) {
 		diagnostics.Warn("Defender assessments unavailable for subscription " + subscriptionID)
+	} else if microsoft.RetriesExhausted(err) {
+		diagnostics.Warn(notCollectedAfterRetries("Defender assessments", subscriptionID, "defender.unpatched_pct", err))
 	} else {
 		return nil, err
 	}
 	return out, nil
+}
+
+func notCollectedAfterRetries(surface, subscriptionID, metric string, err error) string {
+	reason := "no response"
+	var apiErr *microsoft.APIError
+	if errors.As(err, &apiErr) {
+		reason = fmt.Sprintf("status %d", apiErr.StatusCode)
+	}
+	return fmt.Sprintf("%s request failed after retries (%s) for subscription %s, %s reported as not_collected", surface, reason, subscriptionID, metric)
 }
 
 func defenderSecureScorePct(score *microsoft.ARMSecureScore) *int {
