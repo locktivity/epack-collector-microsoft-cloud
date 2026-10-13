@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -21,6 +22,11 @@ const (
 	clientAssertionTypeJWTBearer = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
 	defaultTokenEndpointBase     = "https://login.microsoftonline.com"
 	defaultOIDCAudience          = "api://AzureADTokenExchange"
+
+	// FederatedTokenFileEnv names the file a CI job or a workload identity
+	// writes the run's identity token to, the variable Azure's own SDKs read
+	// for the same purpose.
+	FederatedTokenFileEnv = "AZURE_FEDERATED_TOKEN_FILE"
 )
 
 type AuthError struct{ Err error }
@@ -29,15 +35,20 @@ func (e AuthError) Error() string { return e.Err.Error() }
 func (e AuthError) Unwrap() error { return e.Err }
 
 type Credentials struct {
-	TenantID          string
-	ClientID          string
-	AuthMode          string
-	ClientSecret      string
-	OIDCRequestURL    string
-	OIDCRequestToken  string
-	Scope             string
-	TokenEndpointBase string
-	HTTPClient        *http.Client
+	TenantID         string
+	ClientID         string
+	AuthMode         string
+	ClientSecret     string
+	OIDCRequestURL   string
+	OIDCRequestToken string
+	// FederatedTokenFile names a file holding an identity token from an
+	// issuer the app registration trusts, such as a GitLab job's ID token.
+	// OIDC mode reads it outside GitHub Actions, on every exchange, so a job
+	// that refreshes the file is picked up.
+	FederatedTokenFile string
+	Scope              string
+	TokenEndpointBase  string
+	HTTPClient         *http.Client
 }
 
 type AccessTokenSource interface {
@@ -73,8 +84,8 @@ func NewTokenSource(credentials Credentials) (*TokenSource, error) {
 
 	switch credentials.AuthMode {
 	case "oidc":
-		if credentials.OIDCRequestURL == "" || credentials.OIDCRequestToken == "" {
-			return nil, AuthError{Err: errors.New("oidc authentication requires ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN")}
+		if !credentials.githubOIDC() && credentials.FederatedTokenFile == "" {
+			return nil, AuthError{Err: fmt.Errorf("oidc authentication requires ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN in GitHub Actions, or %s naming a token file elsewhere", FederatedTokenFileEnv)}
 		}
 	case "client_secret":
 		if credentials.ClientSecret == "" {
@@ -112,16 +123,34 @@ func (s *TokenSource) AccessToken(ctx context.Context) (string, error) {
 func (s *TokenSource) acquire(ctx context.Context) (string, int, error) {
 	switch s.credentials.AuthMode {
 	case "oidc":
-		assertion, err := s.githubOIDCToken(ctx)
+		assertion, err := s.oidcAssertion(ctx)
 		if err != nil {
 			return "", 0, err
 		}
-		return s.exchangeOIDCAssertion(ctx, assertion)
+		token, expiresIn, err := s.exchangeOIDCAssertion(ctx, assertion)
+		if err != nil {
+			return "", 0, RedactError(err, assertion)
+		}
+		return token, expiresIn, nil
 	case "client_secret":
 		return s.exchangeClientSecret(ctx)
 	default:
 		return "", 0, fmt.Errorf("unsupported auth_mode %q", s.credentials.AuthMode)
 	}
+}
+
+// oidcAssertion returns the identity token to exchange: GitHub's when the
+// workflow exposes its token endpoint, otherwise the one in the file
+// AZURE_FEDERATED_TOKEN_FILE names.
+func (s *TokenSource) oidcAssertion(ctx context.Context) (string, error) {
+	if s.credentials.githubOIDC() {
+		return s.githubOIDCToken(ctx)
+	}
+	return s.federatedTokenFromFile()
+}
+
+func (c Credentials) githubOIDC() bool {
+	return c.OIDCRequestURL != "" && c.OIDCRequestToken != ""
 }
 
 func (s *TokenSource) githubOIDCToken(ctx context.Context) (string, error) {
@@ -165,6 +194,19 @@ func (s *TokenSource) githubOIDCToken(ctx context.Context) (string, error) {
 	return payload.Value, nil
 }
 
+func (s *TokenSource) federatedTokenFromFile() (string, error) {
+	path := s.credentials.FederatedTokenFile
+	token, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("reading federated token file %s (%s): %w", path, FederatedTokenFileEnv, err)
+	}
+	assertion := strings.TrimSpace(string(token))
+	if assertion == "" {
+		return "", fmt.Errorf("federated token file %s (%s) is empty", path, FederatedTokenFileEnv)
+	}
+	return assertion, nil
+}
+
 func (s *TokenSource) exchangeOIDCAssertion(ctx context.Context, assertion string) (string, int, error) {
 	form := url.Values{}
 	form.Set("client_id", s.credentials.ClientID)
@@ -174,7 +216,7 @@ func (s *TokenSource) exchangeOIDCAssertion(ctx context.Context, assertion strin
 	form.Set("client_assertion", assertion)
 	token, expiresIn, err := s.tokenRequest(ctx, form, assertion)
 	if err != nil {
-		return "", 0, describeFederatedCredentialMismatch(err, assertion)
+		return "", 0, describeFederatedCredentialMismatch(err, assertion, s.credentials.githubOIDC())
 	}
 	return token, expiresIn, nil
 }
@@ -186,7 +228,7 @@ func isFederatedCredentialMismatch(err error) bool {
 
 // The error includes the token's subject claim, which holds only repository
 // and branch names. The assertion is a credential and must not be printed.
-func describeFederatedCredentialMismatch(err error, assertion string) error {
+func describeFederatedCredentialMismatch(err error, assertion string, githubToken bool) error {
 	if !isFederatedCredentialMismatch(err) {
 		return err
 	}
@@ -197,6 +239,9 @@ func describeFederatedCredentialMismatch(err error, assertion string) error {
 	sub, _ := claims["sub"].(string)
 	if sub == "" {
 		return err
+	}
+	if !githubToken {
+		return fmt.Errorf("the token's subject is %q and Entra has no federated credential matching it. On the app registration, create or edit a federated credential with the Other issuer scenario whose subject is exactly this value: %w", sub, err)
 	}
 	return fmt.Errorf("the GitHub token's subject is %q and Entra has no federated credential matching it. On the app registration, create or edit a federated credential whose subject is exactly this value. The portal form expects GitHub's immutable subject format; a repository that still sends the name-based format needs the Edit (optional) override on the Subject identifier field: %w", sub, err)
 }

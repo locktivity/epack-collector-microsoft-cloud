@@ -28,16 +28,17 @@ func main() {
 func run(ctx componentsdk.CollectorContext) error {
 	cfg := ctx.Config()
 	config := collector.Config{
-		TenantID:         getString(cfg, "tenant_id"),
-		ClientID:         getString(cfg, "client_id"),
-		AuthMode:         getString(cfg, "auth_mode"),
-		SubscriptionIDs:  getStringSlice(cfg, "subscription_ids"),
-		AzureEnvironment: getString(cfg, "azure_environment"),
-		ClientSecret:     ctx.Secret("AZURE_CLIENT_SECRET"),
-		OIDCRequestURL:   ctx.Secret("ACTIONS_ID_TOKEN_REQUEST_URL"),
-		OIDCRequestToken: ctx.Secret("ACTIONS_ID_TOKEN_REQUEST_TOKEN"),
-		OnStatus:         ctx.Status,
-		OnProgress:       ctx.Progress,
+		TenantID:           getString(cfg, "tenant_id"),
+		ClientID:           getString(cfg, "client_id"),
+		AuthMode:           getString(cfg, "auth_mode"),
+		SubscriptionIDs:    getStringSlice(cfg, "subscription_ids"),
+		AzureEnvironment:   getString(cfg, "azure_environment"),
+		ClientSecret:       ctx.Secret("AZURE_CLIENT_SECRET"),
+		OIDCRequestURL:     ctx.Secret("ACTIONS_ID_TOKEN_REQUEST_URL"),
+		OIDCRequestToken:   ctx.Secret("ACTIONS_ID_TOKEN_REQUEST_TOKEN"),
+		FederatedTokenFile: ctx.Secret(microsoft.FederatedTokenFileEnv),
+		OnStatus:           ctx.Status,
+		OnProgress:         ctx.Progress,
 	}
 
 	c, err := collector.New(config)

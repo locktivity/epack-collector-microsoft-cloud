@@ -19,9 +19,10 @@ type Config struct {
 	SubscriptionIDs  []string
 	AzureEnvironment string
 
-	ClientSecret     string
-	OIDCRequestURL   string
-	OIDCRequestToken string
+	ClientSecret       string
+	OIDCRequestURL     string
+	OIDCRequestToken   string
+	FederatedTokenFile string
 
 	TokenEndpointBase string
 	GraphBaseURL      string
@@ -78,15 +79,16 @@ func (c Config) graphClient() (GraphAPI, error) {
 		return c.GraphClient, nil
 	}
 	tokenSource, err := microsoft.NewTokenSource(microsoft.Credentials{
-		TenantID:          c.TenantID,
-		ClientID:          c.ClientID,
-		AuthMode:          c.AuthMode,
-		ClientSecret:      c.ClientSecret,
-		OIDCRequestURL:    c.OIDCRequestURL,
-		OIDCRequestToken:  c.OIDCRequestToken,
-		Scope:             microsoft.GraphScope,
-		TokenEndpointBase: c.TokenEndpointBase,
-		HTTPClient:        c.HTTPClient,
+		TenantID:           c.TenantID,
+		ClientID:           c.ClientID,
+		AuthMode:           c.AuthMode,
+		ClientSecret:       c.ClientSecret,
+		OIDCRequestURL:     c.OIDCRequestURL,
+		OIDCRequestToken:   c.OIDCRequestToken,
+		FederatedTokenFile: c.FederatedTokenFile,
+		Scope:              microsoft.GraphScope,
+		TokenEndpointBase:  c.TokenEndpointBase,
+		HTTPClient:         c.HTTPClient,
 	})
 	if err != nil {
 		return nil, err
@@ -107,15 +109,16 @@ func (c Config) armClient() (ARMAPI, error) {
 		return c.ARMClient, nil
 	}
 	tokenSource, err := microsoft.NewTokenSource(microsoft.Credentials{
-		TenantID:          c.TenantID,
-		ClientID:          c.ClientID,
-		AuthMode:          c.AuthMode,
-		ClientSecret:      c.ClientSecret,
-		OIDCRequestURL:    c.OIDCRequestURL,
-		OIDCRequestToken:  c.OIDCRequestToken,
-		Scope:             microsoft.ARMScope,
-		TokenEndpointBase: c.TokenEndpointBase,
-		HTTPClient:        c.HTTPClient,
+		TenantID:           c.TenantID,
+		ClientID:           c.ClientID,
+		AuthMode:           c.AuthMode,
+		ClientSecret:       c.ClientSecret,
+		OIDCRequestURL:     c.OIDCRequestURL,
+		OIDCRequestToken:   c.OIDCRequestToken,
+		FederatedTokenFile: c.FederatedTokenFile,
+		Scope:              microsoft.ARMScope,
+		TokenEndpointBase:  c.TokenEndpointBase,
+		HTTPClient:         c.HTTPClient,
 	})
 	if err != nil {
 		return nil, err

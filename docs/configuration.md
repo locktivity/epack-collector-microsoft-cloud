@@ -20,7 +20,7 @@ Record these values:
 
 ## 2. Choose an Auth Mode
 
-The collector supports two auth modes.
+The collector supports two auth modes, `client_secret` and `oidc`. OIDC takes its token from GitHub Actions in a workflow, or from a file elsewhere.
 
 ### Client Secret
 
@@ -64,6 +64,35 @@ Repositories created, renamed, or transferred after July 15, 2026 send the immut
 To match an older repository, select **Edit (optional)** on the **Subject identifier** field and paste the name-based subject, for example `repo:my-org/my-repo:ref:refs/heads/main`.
 
 To move to the immutable format instead, follow Microsoft's zero-downtime recipe: read the owner and repository IDs from the GitHub API, create a second federated credential with the immutable subject, opt the repository in under its OIDC settings, confirm the run succeeds, then delete the name-based credential.
+
+### OIDC with a Token from a File
+
+Outside GitHub Actions, OIDC mode reads the token from the file named by `AZURE_FEDERATED_TOKEN_FILE`. Use this for any issuer Entra can trust, such as a GitLab job's ID token or Azure workload identity on Kubernetes.
+
+In the app registration:
+
+1. Open **Certificates & secrets**.
+2. Select **Federated credentials**.
+3. Select **Add credential**.
+4. Choose the **Other issuer** scenario.
+5. Enter the token's issuer URL and its exact subject claim.
+6. Set the audience to `api://AzureADTokenExchange`.
+
+Set `auth_mode: oidc` and list `AZURE_FEDERATED_TOKEN_FILE` under `secrets`.
+
+#### Example: GitLab CI
+
+The federated credential's issuer is `https://gitlab.com`, or your self-managed host, and its subject is `project_path:your-group/your-project:ref_type:branch:ref:main`. The job requests an ID token with the audience above and writes it to the file:
+
+```yaml
+  id_tokens:
+    AZURE_ID_TOKEN:
+      aud: api://AzureADTokenExchange
+  script:
+    - umask 077
+    - printf '%s' "$AZURE_ID_TOKEN" > "$CI_PROJECT_DIR/.azure-federated-token"
+    - export AZURE_FEDERATED_TOKEN_FILE="$CI_PROJECT_DIR/.azure-federated-token"
+```
 
 ## 3. Grant Microsoft Graph Application Permissions
 
@@ -149,7 +178,7 @@ collectors:
 |-----|----------|-------------|
 | `tenant_id` | Yes | Concrete Microsoft Entra tenant GUID. Do not use `common` or `organizations`. |
 | `client_id` | Yes | Application client ID for the app registration. |
-| `auth_mode` | Yes | `client_secret` or `oidc`. |
+| `auth_mode` | Yes | `oidc` or `client_secret`. |
 | `subscription_ids` | Yes | Azure subscription GUIDs to collect. |
 | `level` | No | `trust`, `audit`, or `internal`. Defaults to `trust`. |
 | `azure_environment` | No | Reserved for future sovereign cloud support. |
