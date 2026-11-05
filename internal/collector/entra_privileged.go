@@ -2,125 +2,148 @@ package collector
 
 import (
 	"context"
-	"errors"
-	"net/http"
+	"strings"
 	"time"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectPrivilegedAccess(
-	ctx context.Context,
-	diagnostics *Diagnostics,
-	users []microsoft.User,
-	signInUsers []microsoft.User,
-	signInAvailable bool,
-	registrations []microsoft.UserRegistrationDetail,
-	registrationAvailable bool,
-) (*PrivilegedAccess, error) {
-	assignments, assignmentsAvailable, err := c.roleAssignments(ctx, diagnostics)
-	if err != nil {
-		return nil, err
-	}
-	if !assignmentsAvailable {
-		return nil, nil
+type privilegedSources struct {
+	users             []microsoft.User
+	usersMiss         *missing
+	signInUsers       []microsoft.User
+	signInMiss        *missing
+	registrations     []microsoft.UserRegistrationDetail
+	registrationsMiss *missing
+}
+
+func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Diagnostics, in privilegedSources) *PrivilegedAccess {
+	assignments, assignmentsMiss := c.roleAssignments(ctx, diagnostics)
+	if why := firstMissing(assignmentsMiss, in.usersMiss); why != nil {
+		c.gaps.leaveOut(entraPath, why, "/privileged_access")
+		return nil
 	}
 
-	userByID := usersByID(users)
+	userByID := usersByID(in.users)
 	privilegedUserIDs := map[string]struct{}{}
 	superAdminIDs := map[string]struct{}{}
 	privilegedAssignmentCount := 0
+	var groupHeld, groupHeldGlobalAdmin bool
 	for _, assignment := range assignments {
 		roleTemplateID := roleTemplateIDFromAssignment(assignment)
 		if !isPrivilegedRoleTemplateID(roleTemplateID) {
 			continue
 		}
-		if _, ok := userByID[assignment.PrincipalID]; !ok {
+		if assignedToGroup(assignment) {
+			groupHeld = true
+			groupHeldGlobalAdmin = groupHeldGlobalAdmin || roleTemplateID == globalAdministratorTemplateID
+			continue
+		}
+		user, ok := userByID[assignment.PrincipalID]
+		if !ok {
 			continue
 		}
 		privilegedAssignmentCount++
+		// A disabled account cannot sign in, so it is not a privileged user.
+		// Its assignment still counts toward the PIM values.
+		if user.Disabled() {
+			continue
+		}
 		privilegedUserIDs[assignment.PrincipalID] = struct{}{}
 		if roleTemplateID == globalAdministratorTemplateID {
 			superAdminIDs[assignment.PrincipalID] = struct{}{}
 		}
 	}
 
-	out := &PrivilegedAccess{
-		SuperAdminCount:      len(superAdminIDs),
-		PrivilegedUsersCount: len(privilegedUserIDs),
-		PrivilegedGuestCount: privilegedGuestCount(privilegedUserIDs, userByID),
+	// A role assigned to a group is held by each of its members, and group
+	// members are not read. The values over privileged users are then left
+	// out. The Global Administrator count is left out too when that role is
+	// assigned to a group.
+	var membersUnread, globalAdminsUnread *missing
+	if groupHeld {
+		membersUnread = notRead(groupRoleMembersUnread)
 	}
-	if registrationAvailable {
-		out.PrivilegedMFACoveragePct = privilegedMFACoverage(privilegedUserIDs, registrations)
-		out.PrivilegedPhishingResistantPct = privilegedPhishingResistantCoverage(privilegedUserIDs, registrations)
-		out.RootMFAEnabled = rootMFAEnabled(superAdminIDs, registrations)
-	}
-	if signInAvailable {
-		out.InactivePrivilegedUsersCount = inactivePrivilegedUsersCount(privilegedUserIDs, signInUsers, c.clock.Now())
+	if groupHeldGlobalAdmin {
+		globalAdminsUnread = membersUnread
 	}
 
-	schedules, pimAvailable, err := c.roleEligibilitySchedules(ctx, diagnostics)
-	if err != nil {
-		return nil, err
+	out := &PrivilegedAccess{}
+	if globalAdminsUnread == nil {
+		out.SuperAdminCount = intPtr(len(superAdminIDs))
 	}
-	if pimAvailable {
+	c.gaps.leaveOut(entraPath, globalAdminsUnread, "/privileged_access/super_admin_count")
+	if membersUnread == nil {
+		out.PrivilegedUsersCount = intPtr(len(privilegedUserIDs))
+		out.PrivilegedGuestCount = intPtr(privilegedGuestCount(privilegedUserIDs, userByID))
+	}
+	c.gaps.leaveOut(entraPath, membersUnread, "/privileged_access/privileged_users_count", "/privileged_access/privileged_guest_count")
+
+	if why := firstMissing(in.registrationsMiss, membersUnread); why == nil {
+		mfa, phishingResistant := privilegedRegistrations(privilegedUserIDs, in.registrations)
+		out.PrivilegedMFACoveragePct = PercentInt(mfa, len(privilegedUserIDs))
+		out.PrivilegedPhishingResistantPct = PercentInt(phishingResistant, len(privilegedUserIDs))
+		out.mfaRegisteredCount = intPtr(mfa)
+		out.phishingResistantCount = intPtr(phishingResistant)
+	} else {
+		c.gaps.leaveOut(entraPath, why,
+			"/privileged_access/privileged_mfa_coverage_pct", "/privileged_access/privileged_phishing_resistant_pct")
+	}
+
+	if why := firstMissing(in.signInMiss, membersUnread); why == nil {
+		out.InactivePrivilegedUsersCount = inactivePrivilegedUsersCount(privilegedUserIDs, in.signInUsers, c.clock.Now())
+	} else {
+		c.gaps.leaveOut(entraPath, why, "/privileged_access/inactive_privileged_users_count")
+	}
+
+	schedules, schedulesMiss := c.roleEligibilitySchedules(ctx, diagnostics)
+	if schedulesMiss == nil {
 		eligibleCount := privilegedEligibilityScheduleCount(schedules)
 		out.PIMEligiblePct = PercentInt(eligibleCount, eligibleCount+privilegedAssignmentCount)
 		out.StandingAssignmentCount = intPtr(privilegedAssignmentCount)
 	}
-	return out, nil
+	c.gaps.leaveOut(entraPath, schedulesMiss, "/privileged_access/pim_eligible_pct", "/privileged_access/standing_assignment_count")
+	return out
 }
 
-func rootMFAEnabled(superAdminIDs map[string]struct{}, registrations []microsoft.UserRegistrationDetail) *bool {
-	registeredByID := map[string]bool{}
-	for _, registration := range registrations {
-		registeredByID[registration.ID] = registration.IsMFARegistered
-	}
-	enabled := true
-	for id := range superAdminIDs {
-		if !registeredByID[id] {
-			enabled = false
-			break
-		}
-	}
-	return boolPtr(enabled)
+// groupRoleMembersUnread is the detail of the gap on the values over
+// privileged users when a privileged role is assigned to a group.
+const groupRoleMembersUnread = "A privileged directory role is assigned to a group, and the users in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
+
+// assignedToGroup reports whether a role assignment's principal is a group.
+func assignedToGroup(assignment microsoft.UnifiedRoleAssignment) bool {
+	return assignment.Principal != nil && strings.EqualFold(assignment.Principal.ODataType, "#microsoft.graph.group")
 }
 
-func (c *Collector) roleAssignments(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.UnifiedRoleAssignment, bool, error) {
+func (c *Collector) roleAssignments(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.UnifiedRoleAssignment, *missing) {
 	assignments, err := c.graph.RoleAssignments(ctx)
-	if err == nil {
-		return assignments, true, nil
-	}
-
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusForbidden {
+	switch {
+	case err == nil:
+		return assignments, nil
+	case permissionDenied(err):
 		diagnostics.Warn("graph permission RoleManagement.Read.Directory not granted, privileged access skipped")
 		diagnostics.MarkCapabilityUnavailable("privileged_access")
-		return nil, false, nil
+	default:
+		diagnostics.warnNotCollected("Entra role assignments", err)
 	}
-	return nil, false, err
+	return nil, failed(err)
 }
 
-func (c *Collector) roleEligibilitySchedules(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.UnifiedRoleEligibilitySchedule, bool, error) {
+func (c *Collector) roleEligibilitySchedules(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.UnifiedRoleEligibilitySchedule, *missing) {
 	schedules, err := c.graph.RoleEligibilitySchedules(ctx)
-	if err == nil {
-		return schedules, true, nil
+	switch {
+	case err == nil:
+		return schedules, nil
+	case microsoft.IsPremiumLicenseError(err):
+		diagnostics.Warn("Entra ID P2 not licensed, pim reported as license_absent")
+		diagnostics.MarkCapabilityUnavailable("pim")
+		return nil, unlicensed("PIM eligibility schedules require Entra ID P2 or Entra ID Governance.")
+	case permissionDenied(err):
+		diagnostics.Warn("graph permission RoleEligibilitySchedule.Read.Directory not granted, PIM skipped")
+		diagnostics.MarkCapabilityUnavailable("pim")
+	default:
+		diagnostics.warnNotCollected("PIM eligibility schedules", err)
 	}
-
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) {
-		if microsoft.IsPremiumLicenseError(err) {
-			diagnostics.Warn("Entra ID P2 not licensed, pim reported as license_absent")
-			diagnostics.MarkCapabilityUnavailable("pim")
-			return nil, false, nil
-		}
-		if apiErr.StatusCode == http.StatusForbidden {
-			diagnostics.Warn("graph permission RoleEligibilitySchedule.Read.Directory not granted, PIM skipped")
-			diagnostics.MarkCapabilityUnavailable("pim")
-			return nil, false, nil
-		}
-	}
-	return nil, false, err
+	return nil, failed(err)
 }
 
 func usersByID(users []microsoft.User) map[string]microsoft.User {
@@ -159,30 +182,23 @@ func privilegedGuestCount(privilegedUserIDs map[string]struct{}, userByID map[st
 	return count
 }
 
-func privilegedMFACoverage(privilegedUserIDs map[string]struct{}, registrations []microsoft.UserRegistrationDetail) *int {
-	if len(privilegedUserIDs) == 0 {
-		return nil
-	}
-	registered := 0
+// privilegedRegistrations counts the privileged users the registration
+// report shows registered for MFA, and those registered for a
+// phishing-resistant method. A privileged user the report does not list
+// counts as registered for neither.
+func privilegedRegistrations(privilegedUserIDs map[string]struct{}, registrations []microsoft.UserRegistrationDetail) (mfa, phishingResistant int) {
 	for _, registration := range registrations {
-		if _, ok := privilegedUserIDs[registration.ID]; ok && registration.IsMFARegistered {
-			registered++
+		if _, ok := privilegedUserIDs[registration.ID]; !ok {
+			continue
+		}
+		if registration.IsMFARegistered {
+			mfa++
+		}
+		if hasPhishingResistantMethod(registration.MethodsRegistered) {
+			phishingResistant++
 		}
 	}
-	return PercentInt(registered, len(privilegedUserIDs))
-}
-
-func privilegedPhishingResistantCoverage(privilegedUserIDs map[string]struct{}, registrations []microsoft.UserRegistrationDetail) *int {
-	if len(privilegedUserIDs) == 0 {
-		return nil
-	}
-	registered := 0
-	for _, registration := range registrations {
-		if _, ok := privilegedUserIDs[registration.ID]; ok && hasPhishingResistantMethod(registration.MethodsRegistered) {
-			registered++
-		}
-	}
-	return PercentInt(registered, len(privilegedUserIDs))
+	return mfa, phishingResistant
 }
 
 func inactivePrivilegedUsersCount(privilegedUserIDs map[string]struct{}, users []microsoft.User, now time.Time) *int {
@@ -191,15 +207,9 @@ func inactivePrivilegedUsersCount(privilegedUserIDs map[string]struct{}, users [
 	}
 	byID := usersByID(users)
 	inactive := 0
-	cutoff := now.AddDate(0, 0, -90)
+	cutoff := inactiveCutoff(now)
 	for id := range privilegedUserIDs {
-		user, ok := byID[id]
-		if !ok || user.SignInActivity == nil || user.SignInActivity.LastSignInDateTime == "" {
-			inactive++
-			continue
-		}
-		lastSignIn, err := time.Parse(time.RFC3339, user.SignInActivity.LastSignInDateTime)
-		if err != nil || lastSignIn.Before(cutoff) {
+		if user, ok := byID[id]; !ok || !signedInSince(user, cutoff) {
 			inactive++
 		}
 	}

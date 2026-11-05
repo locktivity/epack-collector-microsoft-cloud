@@ -3,9 +3,10 @@ package collector
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"net"
 	"net/http"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -19,6 +20,7 @@ func TestSubscriptionProbe(t *testing.T) {
 	arm.roleAssignments["bbbbbbbb-1111-2222-3333-cccccccccccc"] = nil
 	arm.subscriptionErrs["cccccccc-1111-2222-3333-dddddddddddd"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/subscriptions/cccccccc-1111-2222-3333-dddddddddddd"}
 
+	rec := &componentsdk.Recorder{}
 	cfg := testConfig()
 	cfg.SubscriptionIDs = []string{
 		"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
@@ -26,6 +28,7 @@ func TestSubscriptionProbe(t *testing.T) {
 		"cccccccc-1111-2222-3333-dddddddddddd",
 	}
 	cfg.ARMClient = arm
+	cfg.Recorder = rec
 
 	c, err := New(cfg)
 	if err != nil {
@@ -35,20 +38,34 @@ func TestSubscriptionProbe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Azure == nil || len(result.Azure.Accounts) != 2 {
-		t.Fatalf("expected two successful Azure accounts, got %#v", result.Azure)
+	if result.Azure == nil || len(result.Azure.Accounts) != 3 {
+		t.Fatalf("expected an account for each configured subscription, got %#v", result.Azure)
+	}
+	if result.Azure.Accounts[1].Defender == nil || result.Azure.Accounts[1].RBAC == nil {
+		t.Fatalf("expected the readable subscriptions to be collected, got %#v", result.Azure.Accounts[1])
+	}
+	unreadable := result.Azure.Accounts[2]
+	if unreadable.AccountID != "cccccccc-1111-2222-3333-dddddddddddd" || unreadable.Defender != nil || unreadable.Storage != nil || unreadable.Logging != nil {
+		t.Fatalf("expected the unreadable subscription to carry only its ID, got %#v", unreadable)
 	}
 	if len(result.Azure.Diagnostics.SubscriptionErrors) != 1 {
 		t.Fatalf("expected one subscription error, got %#v", result.Azure.Diagnostics.SubscriptionErrors)
 	}
+	assertGap(t, rec, azurePath, "/accounts/2/storage", componentsdk.CodePermissionDenied)
+	assertGap(t, rec, cloudPosturePath, "/accounts/2/storage", componentsdk.CodePermissionDenied)
+	if cloud := result.AzureCloudPosture.Accounts[2]; cloud.Storage != nil || cloud.Network != nil {
+		t.Fatalf("expected the unreadable subscription's cloud posture to carry only its ID, got %#v", cloud)
+	}
 }
 
-func TestSubscriptionProbeErrorsAreEmittedWithoutAccounts(t *testing.T) {
+func TestUnreadableSubscriptionKeepsItsAccountEntry(t *testing.T) {
 	subscriptionID := "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 	arm := fakeARMClient()
-	arm.subscriptionErrs[subscriptionID] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/subscriptions/" + subscriptionID, Code: "AuthorizationFailed", Message: "denied"}
+	arm.subscriptionErrs[subscriptionID] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusNotFound, Route: "/subscriptions/" + subscriptionID, Code: "SubscriptionNotFound", Message: "not found"}
+	rec := &componentsdk.Recorder{}
 	cfg := testConfig()
 	cfg.ARMClient = arm
+	cfg.Recorder = rec
 
 	c, err := New(cfg)
 	if err != nil {
@@ -58,17 +75,18 @@ func TestSubscriptionProbeErrorsAreEmittedWithoutAccounts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if result.Azure == nil {
-		t.Fatal("expected Azure artifact with subscription diagnostics")
-	}
-	if len(result.Azure.Accounts) != 0 {
-		t.Fatalf("expected no Azure accounts, got %#v", result.Azure.Accounts)
+	if result.Azure == nil || len(result.Azure.Accounts) != 1 || result.Azure.Accounts[0].Defender != nil {
+		t.Fatalf("expected one account carrying only its ID, got %#v", result.Azure)
 	}
 	if len(result.Azure.Diagnostics.SubscriptionErrors) != 1 {
 		t.Fatalf("expected Azure subscription error, got %#v", result.Azure.Diagnostics.SubscriptionErrors)
 	}
 	if len(result.Entra.Diagnostics.SubscriptionErrors) != 1 {
 		t.Fatalf("expected final diagnostics on Entra artifact, got %#v", result.Entra.Diagnostics.SubscriptionErrors)
+	}
+	gap := assertGap(t, rec, azurePath, "/accounts/0/defender", componentsdk.CodeConfigInvalid)
+	if gap.VendorCode != "SubscriptionNotFound" {
+		t.Fatalf("expected the ARM error code on the gap, got %#v", gap)
 	}
 }
 
@@ -94,10 +112,12 @@ func TestDefenderSecureScore(t *testing.T) {
 func TestDefenderExhaustedRetriesReportNotCollected(t *testing.T) {
 	subscriptionID := "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 	arm := fakeARMClient()
-	arm.secureScoreErrs[subscriptionID] = microsoft.RetriesExhaustedError{Err: errors.New("connection reset")}
-	arm.defenderAssessmentErrs[subscriptionID] = microsoft.RetriesExhaustedError{Err: &microsoft.APIError{Service: "arm", StatusCode: http.StatusInternalServerError, Route: "/assessments"}}
+	arm.secureScoreErrs[subscriptionID] = &microsoft.RequestError{Service: "arm", Route: "/secureScores/ascScore", Err: &net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET}}
+	arm.defenderAssessmentErrs[subscriptionID] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusInternalServerError, Route: "/assessments"}
+	rec := &componentsdk.Recorder{}
 	cfg := testConfig()
 	cfg.ARMClient = arm
+	cfg.Recorder = rec
 
 	artifact := collectTestAzureArtifact(t, cfg)
 	account := artifact.Accounts[0]
@@ -115,21 +135,23 @@ func TestDefenderExhaustedRetriesReportNotCollected(t *testing.T) {
 			t.Fatalf("expected warning %q, got %#v", expected, artifact.Diagnostics.Warnings)
 		}
 	}
+	assertGap(t, rec, azurePath, "/accounts/0/defender/secure_score_pct", componentsdk.CodeVendorError)
+	assertGap(t, rec, azurePath, "/accounts/0/defender/unpatched_pct", componentsdk.CodeVendorError)
 }
 
-func TestDefenderBadRequestFailsCollection(t *testing.T) {
+func TestDefenderBadRequestLeavesMetricOut(t *testing.T) {
 	arm := fakeARMClient()
 	arm.defenderAssessmentErrs["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusBadRequest, Route: "/assessments"}
+	rec := &componentsdk.Recorder{}
 	cfg := testConfig()
 	cfg.ARMClient = arm
+	cfg.Recorder = rec
 
-	c, err := New(cfg)
-	if err != nil {
-		t.Fatal(err)
+	artifact := collectTestAzureArtifact(t, cfg)
+	if artifact.Accounts[0].Defender.UnpatchedPct != nil {
+		t.Fatalf("expected null unpatched percentage, got %#v", artifact.Accounts[0].Defender)
 	}
-	if _, err := c.Collect(context.Background(), componentsdk.LevelTrust); err == nil {
-		t.Fatal("expected a 400 from Defender to fail collection")
-	}
+	assertGap(t, rec, azurePath, "/accounts/0/defender/unpatched_pct", componentsdk.CodeInvalidResponse)
 }
 
 func TestSliceCGolden(t *testing.T) {

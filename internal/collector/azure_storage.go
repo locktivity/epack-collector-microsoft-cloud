@@ -7,14 +7,13 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectStorage(ctx context.Context, subscriptionID string, diagnostics *Diagnostics) (*AzureStorage, []microsoft.StorageAccount, error) {
-	accounts, err := c.arm.StorageAccounts(ctx, subscriptionID)
+func (c *Collector) collectStorage(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureStorage, []microsoft.StorageAccount, *missing) {
+	accounts, err := c.arm.StorageAccounts(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Storage accounts unavailable for subscription " + subscriptionID)
-			return &AzureStorage{}, nil, nil
-		}
-		return nil, nil, err
+		diagnostics.warnSubscription("Storage accounts", scope.id, err)
+		why := failed(err)
+		c.gaps.leaveOut(azurePath, why, scope.pointer("storage"))
+		return nil, nil, why
 	}
 	return storagePosture(accounts), accounts, nil
 }
@@ -30,6 +29,7 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 	cmk := 0
 	infrastructureEncryption := 0
 	publicAccessBlocked := 0
+	networkRestricted := 0
 	for _, account := range accounts {
 		props := account.Properties
 		if props.SupportsHTTPSTrafficOnly != nil && *props.SupportsHTTPSTrafficOnly {
@@ -44,8 +44,13 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 		if props.Encryption.RequireInfrastructureEncryption != nil && *props.Encryption.RequireInfrastructureEncryption {
 			infrastructureEncryption++
 		}
-		if props.AllowBlobPublicAccess != nil && !*props.AllowBlobPublicAccess && strings.EqualFold(props.PublicNetworkAccess, "Disabled") {
+		// allowBlobPublicAccess false turns off anonymous access for every
+		// container in the account. An account without the setting allows it.
+		if props.AllowBlobPublicAccess != nil && !*props.AllowBlobPublicAccess {
 			publicAccessBlocked++
+		}
+		if networkRestrictedAccount(props) {
+			networkRestricted++
 		}
 	}
 	out.HTTPSOnlyPct = PercentInt(httpsOnly, len(accounts))
@@ -53,7 +58,20 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 	out.EncryptionCMKPct = PercentInt(cmk, len(accounts))
 	out.InfrastructureEncryptionPct = PercentInt(infrastructureEncryption, len(accounts))
 	out.PublicAccessBlockedPct = PercentInt(publicAccessBlocked, len(accounts))
+	out.NetworkRestrictedPct = PercentInt(networkRestricted, len(accounts))
+	out.cmkCount = cmk
+	out.publicAccessBlockedCount = publicAccessBlocked
 	return out
+}
+
+// networkRestrictedAccount reports whether the account refuses public
+// network traffic, either with public network access disabled or with a
+// firewall that denies by default.
+func networkRestrictedAccount(props microsoft.StorageAccountProperties) bool {
+	if strings.EqualFold(props.PublicNetworkAccess, "Disabled") {
+		return true
+	}
+	return props.NetworkACLs != nil && strings.EqualFold(props.NetworkACLs.DefaultAction, "Deny")
 }
 
 func storageUsesCMK(encryption microsoft.StorageEncryption) bool {

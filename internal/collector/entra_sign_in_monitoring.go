@@ -3,7 +3,6 @@ package collector
 import (
 	"context"
 	"errors"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
@@ -14,38 +13,70 @@ import (
 
 const signInMonitoringLookback = 7 * 24 * time.Hour
 
-func (c *Collector) collectSignInMonitoring(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) (*SignInMonitoring, error) {
+func (c *Collector) collectSignInMonitoring(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) *SignInMonitoring {
 	if !level.AtLeast(componentsdk.LevelInternal) {
-		return nil, nil
+		return nil
 	}
 
 	signIns, err := c.graph.SignIns(ctx, c.clock.Now().Add(-signInMonitoringLookback))
-	if err == nil {
-		return summarizeSignIns(signIns, int(signInMonitoringLookback.Hours())), nil
-	}
-
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) {
-		if microsoft.IsPremiumLicenseError(err) {
-			diagnostics.Warn("Entra ID P1 not licensed, sign-in monitoring skipped")
-			diagnostics.MarkCapabilityUnavailable("sign_in_logs")
-			return nil, nil
+	why := failed(err)
+	switch {
+	case err == nil:
+		out, unrated, policiesOmitted := summarizeSignIns(signIns, int(signInMonitoringLookback.Hours()))
+		if unrated {
+			c.gaps.leaveOut(entraPath, unlicensed(riskLevelsHidden), "/sign_in_monitoring/risky_sign_ins_count")
 		}
-		if apiErr.StatusCode == http.StatusForbidden {
-			diagnostics.Warn("graph permission AuditLog.Read.All not granted, sign-in monitoring skipped")
-			diagnostics.MarkCapabilityUnavailable("sign_in_logs")
-			return nil, nil
+		if policiesOmitted {
+			c.gaps.leaveOut(entraPath, failed(errAppliedPoliciesOmitted), appliedPolicyFields...)
 		}
+		return out
+	case microsoft.IsPremiumLicenseError(err):
+		diagnostics.Warn("Entra ID P1 not licensed, sign-in monitoring skipped")
+		diagnostics.MarkCapabilityUnavailable("sign_in_logs")
+		why = unlicensed("Sign-in logs require Entra ID P1 or P2.")
+	case permissionDenied(err):
+		diagnostics.Warn("graph permission AuditLog.Read.All not granted, sign-in monitoring skipped")
+		diagnostics.MarkCapabilityUnavailable("sign_in_logs")
+	default:
+		diagnostics.warnNotCollected("Sign-in monitoring", err)
 	}
-	return nil, err
+	c.gaps.leaveOut(entraPath, why, "/sign_in_monitoring")
+	return nil
 }
 
-func summarizeSignIns(signIns []microsoft.SignIn, lookbackHours int) *SignInMonitoring {
-	out := &SignInMonitoring{LookbackHours: lookbackHours, SignInsCount: len(signIns)}
+// riskLevelsHidden is the detail of the gap on the risky sign-in count when
+// a sign-in's risk level is hidden. Sign-in risk is rated only for tenants
+// with Entra ID P2.
+// https://learn.microsoft.com/en-us/graph/api/resources/signin
+const riskLevelsHidden = "Sign-in risk levels require Entra ID P2. At least one sign-in has a hidden risk level."
+
+// errAppliedPoliciesOmitted is why the applied policy counts are left out
+// when the sign-ins have no appliedConditionalAccessPolicies. The property is
+// left out for an app that cannot read Conditional Access data.
+// https://learn.microsoft.com/en-us/graph/api/signin-list#permissions
+var errAppliedPoliciesOmitted = componentsdk.CodeError(componentsdk.CodePermissionDenied,
+	errors.New("sign-ins have no appliedConditionalAccessPolicies, which needs the Policy.Read.All permission"))
+
+// appliedPolicyFields are the counts taken from appliedConditionalAccessPolicies.
+var appliedPolicyFields = []string{
+	"/sign_in_monitoring/applied_policies_count",
+	"/sign_in_monitoring/applied_policy_evaluations_count",
+	"/sign_in_monitoring/applied_policy_success_count",
+	"/sign_in_monitoring/applied_policy_failure_count",
+	"/sign_in_monitoring/applied_policy_not_applied_count",
+	"/sign_in_monitoring/applied_policy_report_only_fail_count",
+}
+
+// summarizeSignIns counts the sign-ins. unrated is true when a sign-in has a
+// hidden risk level, and policiesOmitted when a sign-in has no
+// appliedConditionalAccessPolicies. The counts those make unknown are nil.
+func summarizeSignIns(signIns []microsoft.SignIn, lookbackHours int) (out *SignInMonitoring, unrated, policiesOmitted bool) {
+	out = &SignInMonitoring{LookbackHours: lookbackHours, SignInsCount: len(signIns)}
 	userIDs := map[string]struct{}{}
 	appIDs := map[string]struct{}{}
 	policyIDs := map[string]struct{}{}
 	failureCodes := map[int]int{}
+	var risky, evaluations, successes, failures, notApplied, reportOnlyFailures int
 
 	for _, signIn := range signIns {
 		if signIn.UserID != "" {
@@ -63,8 +94,11 @@ func summarizeSignIns(signIns []microsoft.SignIn, lookbackHours int) *SignInMoni
 		if legacyClientApp(signIn.ClientAppUsed) {
 			out.LegacyClientSignInsCount++
 		}
-		if riskySignIn(signIn) {
-			out.RiskySignInsCount++
+		switch {
+		case riskySignIn(signIn):
+			risky++
+		case riskHidden(signIn):
+			unrated = true
 		}
 		switch normalizedPolicyResult(signIn.ConditionalAccessStatus) {
 		case "success":
@@ -74,48 +108,85 @@ func summarizeSignIns(signIns []microsoft.SignIn, lookbackHours int) *SignInMoni
 		case "notapplied":
 			out.ConditionalAccessNotAppliedCount++
 		}
+		if signIn.AppliedConditionalAccessPolicies == nil {
+			policiesOmitted = true
+		}
 		for _, policy := range signIn.AppliedConditionalAccessPolicies {
 			if policy.ID != "" {
 				policyIDs[policy.ID] = struct{}{}
 			}
-			out.AppliedPolicyEvaluationsCount++
+			evaluations++
 			switch normalizedPolicyResult(policy.Result) {
 			case "success":
-				out.AppliedPolicySuccessCount++
+				successes++
 			case "failure":
-				out.AppliedPolicyFailureCount++
+				failures++
 			case "notapplied", "notenabled":
-				out.AppliedPolicyNotAppliedCount++
+				notApplied++
 			case "reportonlyfailure":
-				out.AppliedPolicyReportOnlyFailCount++
+				reportOnlyFailures++
 			}
 		}
 	}
 
 	out.UniqueUsersCount = len(userIDs)
 	out.UniqueAppsCount = len(appIDs)
-	out.AppliedPoliciesCount = len(policyIDs)
 	out.TopFailureCodes = topFailureCodes(failureCodes, 10)
-	return out
+	if !unrated {
+		out.RiskySignInsCount = intPtr(risky)
+	}
+	if !policiesOmitted {
+		out.AppliedPoliciesCount = intPtr(len(policyIDs))
+		out.AppliedPolicyEvaluationsCount = intPtr(evaluations)
+		out.AppliedPolicySuccessCount = intPtr(successes)
+		out.AppliedPolicyFailureCount = intPtr(failures)
+		out.AppliedPolicyNotAppliedCount = intPtr(notApplied)
+		out.AppliedPolicyReportOnlyFailCount = intPtr(reportOnlyFailures)
+	}
+	return out, unrated, policiesOmitted
 }
 
 func signInFailed(signIn microsoft.SignIn) bool {
 	return signIn.Status.ErrorCode != 0
 }
 
+// legacyClients are the clientAppUsed names of Exchange ActiveSync and of the
+// protocols behind the Other clients condition.
+// https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-conditions
+var legacyClients = []string{
+	"other clients",
+	"exchange activesync",
+	"imap",
+	"pop",
+	"smtp",
+	"mapi",
+	"autodiscover",
+	"exchange web services",
+	"exchange online powershell",
+	"offline address book",
+	"outlook anywhere",
+	"outlook service",
+	"reporting web services",
+}
+
 func legacyClientApp(clientAppUsed string) bool {
 	normalized := strings.ToLower(clientAppUsed)
-	return strings.Contains(normalized, "other clients") ||
-		strings.Contains(normalized, "exchange activesync") ||
-		strings.Contains(normalized, "imap") ||
-		strings.Contains(normalized, "pop") ||
-		strings.Contains(normalized, "smtp") ||
-		strings.Contains(normalized, "mapi") ||
-		strings.Contains(normalized, "autodiscover")
+	for _, client := range legacyClients {
+		if strings.Contains(normalized, client) {
+			return true
+		}
+	}
+	return false
 }
 
 func riskySignIn(signIn microsoft.SignIn) bool {
 	return riskyLevel(signIn.RiskLevelAggregated) || riskyLevel(signIn.RiskLevelDuringSignIn)
+}
+
+// riskHidden reports whether a risk level of the sign-in is hidden. The
+// sign-in was then not enabled for Entra ID Protection.
+func riskHidden(signIn microsoft.SignIn) bool {
+	return strings.EqualFold(signIn.RiskLevelAggregated, "hidden") || strings.EqualFold(signIn.RiskLevelDuringSignIn, "hidden")
 }
 
 func riskyLevel(level string) bool {

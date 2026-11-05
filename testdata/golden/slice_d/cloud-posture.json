@@ -4,17 +4,14 @@
   "provider": "azure",
   "accounts": [
     {
-      "account_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
-      "iam": {
-        "mfa_coverage_pct": 50,
-        "root_mfa_enabled": true,
-        "root_access_protected": true
-      },
       "storage": {
+        "storage_resources_present": true,
         "encryption_pct": 50,
         "public_access_blocked_pct": 50
       },
       "logging": {
+        "audit_log_enabled": true,
+        "audit_log_all_regions": true,
         "cloudtrail_enabled": true,
         "cloudtrail_multiregion": true
       },
@@ -22,6 +19,7 @@
         "retention_days_min": 30
       },
       "network": {
+        "security_groups_present": true,
         "ssh_open_to_world_pct": 50,
         "rdp_open_to_world_pct": 0
       }

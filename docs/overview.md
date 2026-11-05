@@ -9,22 +9,37 @@ The collector emits aggregate evidence only. It does not emit usernames, email a
 Every successful run emits the detailed Entra artifact:
 
 - `artifacts/microsoft-cloud.entra.json`
+- Schema: `microsoft-cloud/entra@v1`
 
 When normalized identity posture fields are available, the collector also emits:
 
 - `artifacts/microsoft-cloud.idp-posture.json`
 - Schema: `evidencepack/idp-posture@v1`
 
-When `subscription_ids` are configured and at least one Azure subscription can be read, the collector also emits:
+Every run also emits the Azure artifacts, with one entry in `accounts` for each subscription in `subscription_ids`, in the configured order. A subscription the collector cannot read keeps its entry with only `account_id`.
 
 - `artifacts/microsoft-cloud.azure.json`
+- Schema: `microsoft-cloud/azure@v1`
 - `artifacts/microsoft-cloud.cloud-posture.json`
 - Normalized cloud schema: `evidencepack/cloud-posture@v1`
+- `artifacts/microsoft-cloud.access-posture.json`
+- Normalized access schema: `evidencepack/access-posture@v1`
+
+When the collector is configured under another name in `epack.yaml`, such as `microsoft-cloud-prod`, its files take that name, such as `artifacts/microsoft-cloud-prod.entra.json`.
+
+Every run also emits a collector result, which lists each value the collector could not read and why, the API calls it made, and the identity it signed in as:
+
+- `artifacts/microsoft-cloud.collector-result.json`
+- Schema: `evidencepack/collector-result@v1`
 
 The detailed schema files live in:
 
 - `docs/schema/microsoft-cloud.entra.v1.0.0.json`
 - `docs/schema/microsoft-cloud.azure.v1.0.0.json`
+
+Each field in the detailed schemas has a label and a summary for readers of the pack. Each value a trust run writes also has an `x-epack-method` sentence on how the collector measures it. The methods for the normalized artifacts are in `docs/schema/methods.json`.
+
+When the collector emits, it checks the detailed artifacts against these schemas and the normalized artifacts against epack's schemas for their types. Anything that does not hold, such as a percentage over a population of zero, is listed in the collector result under `checks`. A check finding never fails the run.
 
 ## Collection Levels
 
@@ -37,6 +52,37 @@ The optional `level` config controls collection depth. Levels are cumulative.
 | `internal` | Audit plus aggregate Entra directory activity and sign-in monitoring counts for the last 7 days. | Raw audit events, raw sign-in rows, usernames, emails, IP addresses, device details. |
 
 If `level` is omitted, the collector runs at `trust`.
+
+The normalized artifacts write the counts behind their percentages, the privileged and Global Administrator counts, each subscription's `account_id`, and the access posture's `scopes` from the `audit` level. At `trust`, flags such as `users_present` and `privileged_users_present` say whether each population has any members. A percentage over an empty population is `null`.
+
+## Choosing What to Collect
+
+The optional `collect` config key lists the kinds of evidence to collect. The kinds are `idp-posture`, `cloud-posture`, `access-posture`, `entra` and `azure`:
+
+```yaml
+config:
+  collect: [cloud-posture, access-posture, idp-posture, azure, entra]
+```
+
+Without the key, the collector collects every kind. A kind left out of the list is not written, and it gets a `not_shared` gap in the collector result.
+
+## Access Posture
+
+The access posture counts the people and service principals with an Azure role assignment on each configured subscription. The counts cover assignments on the subscription and on the management groups above it. Assignments on resource groups and resources are not read.
+
+People sign in to Azure through Microsoft Entra ID, so `sign_in.sso_configured` and `sso_required` are true in every subscription. No one can sign in to Azure without Entra ID, so the members' and admins' local values are false, 0, or null. MFA for Entra ID sign-ins is in `idp-posture`.
+
+Members are the enabled users in the tenant's user list who hold a role. A disabled user is not a member, and neither is a user deleted after the role was assigned. Guests count as external members. A member is inactive when their last successful sign-in was more than 90 days before the run. Admins are the members with the Owner or User Access Administrator role.
+
+Credentials are the service principals that hold a role. One counts as never expiring when an active client secret or certificate has no end date or ends more than 50 years after the run. Secrets created with the Azure portal's former Never option end in 2299. One is overdue for rotation when an active client secret or certificate became valid more than 90 days before the run. A client secret becomes valid when it is added, unless whoever adds it picks another start date. A certificate becomes valid on its own start date. The credentials checked are the service principal's own and those of the application with its appId, so a managed identity never counts. When the service principal or application list cannot be read, the never-expiring and rotation values are left out with that read's gap.
+
+A service principal with any role other than Reader, Security Reader, Monitoring Reader, Billing Reader, Cost Management Reader, or Log Analytics Reader counts as having write access. When no service principal holds such a role, the unrestricted values are 0, since read-only roles are narrower than full access. Otherwise they are left out with a `not_read` gap. Custom role definitions and the location conditions of Conditional Access policies for service principals are not read. The unused values are left out with a `not_read` gap too, since Microsoft Graph reports service principal sign-ins only in its beta API. Each gap's detail says why.
+
+When a role is assigned to a group, the counts and percentages over everyone with a role are left out with a `not_read` gap, since group members are not read. The admin values are left out too when the group holds the Owner or User Access Administrator role.
+
+Azure has no root account, so `root` is left out with an `unsupported` gap. `connected_apps` is left out with a `not_read` gap. Microsoft Graph lists the apps with delegated access to Azure Resource Manager in its delegated permission grants, which are not read.
+
+The sections hold totals across the configured subscriptions, and a principal with roles in several subscriptions counts once. From the `audit` level, `scopes` lists each subscription with its own sections.
 
 ## Microsoft APIs
 
@@ -53,6 +99,17 @@ Common examples:
 - MFA registration report unavailable without the right Entra licensing.
 - `signInActivity` unavailable without the right Entra licensing.
 - PIM eligibility schedules unavailable without Entra ID P2 or Entra ID Governance.
+- Sign-in risk levels unavailable without Entra ID P2.
+
+The same holds for any value the collector cannot read, such as one behind a missing permission or an API that keeps failing. The value is `null` or absent, and the collector result records it with a code such as `not_licensed`, `permission_denied`, or `vendor_error`. A percentage over items the collector read only in part is left out the same way. Only invalid configuration or a failed sign-in fails the run.
+
+The MFA registration percentages come from Microsoft's registration report, which Microsoft refreshes on its own schedule rather than live. They cover the enabled member users the report lists, and `posture.denominator_enabled_member_users` counts those users. A member created since the report's last refresh is not counted until the report lists them, so this count can be lower than `users.enabled_member_users_count`. When the report cannot be read, the count is `null` along with the percentages.
+
+The normalized artifacts count the tenant's enabled member users in `user_count`. When none of them are in the report yet, their MFA percentages are left out with a `vendor_error` gap, since their registration is unknown. Microsoft does not report locked-out users or password strength, so those `idp-posture` values are left out with an `unsupported` gap.
+
+A disabled account is not counted as a privileged user or a Global Administrator. Its role assignment still counts toward `pim_eligible_pct` and `standing_assignment_count`.
+
+Group members are not read. When a privileged role is assigned to a group, the counts and percentages over privileged users are left out with a `not_read` gap. MFA policy coverage is left out the same way when an MFA policy excludes a group or a role.
 
 ## Privacy Boundary
 

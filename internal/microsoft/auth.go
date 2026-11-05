@@ -13,14 +13,17 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/locktivity/epack/componentsdk"
 )
 
 const (
 	GraphScope = "https://graph.microsoft.com/.default"
 	ARMScope   = "https://management.azure.com/.default"
 
+	DefaultTokenEndpointBase = "https://login.microsoftonline.com"
+
 	clientAssertionTypeJWTBearer = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-	defaultTokenEndpointBase     = "https://login.microsoftonline.com"
 	defaultOIDCAudience          = "api://AzureADTokenExchange"
 
 	// FederatedTokenFileEnv names the file a CI job or a workload identity
@@ -29,10 +32,71 @@ const (
 	FederatedTokenFileEnv = "AZURE_FEDERATED_TOKEN_FILE"
 )
 
+// AuthError is a failure to get a usable access token. It unwraps to the
+// cause, so componentsdk.Classify codes it by the token endpoint's status, a
+// transport failure, or the code the token source chose.
 type AuthError struct{ Err error }
 
 func (e AuthError) Error() string { return e.Err.Error() }
 func (e AuthError) Unwrap() error { return e.Err }
+
+// TokenError is an error response from a token endpoint.
+type TokenError struct {
+	Endpoint   string
+	StatusCode int
+	Header     http.Header
+	OAuthCode  string
+	Body       string
+	// rejects400 marks the Entra token endpoint, which answers credentials
+	// it rejects, such as a federated subject it does not trust, with 400.
+	rejects400 bool
+}
+
+func newTokenError(endpoint string, resp *http.Response, body []byte, rejects400 bool) *TokenError {
+	return &TokenError{
+		Endpoint:   endpoint,
+		StatusCode: resp.StatusCode,
+		Header:     resp.Header,
+		OAuthCode:  oauthErrorCode(body),
+		Body:       string(body),
+		rejects400: rejects400,
+	}
+}
+
+func (e *TokenError) Error() string {
+	return fmt.Sprintf("%s request failed: status=%d body=%s", e.Endpoint, e.StatusCode, e.Body)
+}
+
+func (e *TokenError) HTTPStatus() int         { return e.StatusCode }
+func (e *TokenError) HTTPHeader() http.Header { return e.Header }
+func (e *TokenError) VendorCode() string      { return e.OAuthCode }
+
+func (e *TokenError) CollectionCode() componentsdk.Code {
+	if e.rejects400 && e.StatusCode == http.StatusBadRequest {
+		return componentsdk.CodeAuthFailed
+	}
+	return ""
+}
+
+// oauthErrorCode reads the error code from an OAuth error, which carries it
+// as a string, or from a Graph-style error object.
+func oauthErrorCode(body []byte) string {
+	var oauth struct {
+		Error string `json:"error"`
+	}
+	if json.Unmarshal(body, &oauth) == nil && oauth.Error != "" {
+		return oauth.Error
+	}
+	var graph struct {
+		Error struct {
+			Code string `json:"code"`
+		} `json:"error"`
+	}
+	if json.Unmarshal(body, &graph) == nil {
+		return graph.Error.Code
+	}
+	return ""
+}
 
 type Credentials struct {
 	TenantID         string
@@ -67,6 +131,7 @@ type TokenSource struct {
 
 	mu        sync.Mutex
 	token     string
+	roles     []string
 	expiresAt time.Time
 }
 
@@ -75,7 +140,7 @@ func NewTokenSource(credentials Credentials) (*TokenSource, error) {
 		credentials.Scope = GraphScope
 	}
 	if credentials.TokenEndpointBase == "" {
-		credentials.TokenEndpointBase = defaultTokenEndpointBase
+		credentials.TokenEndpointBase = DefaultTokenEndpointBase
 	}
 	client := credentials.HTTPClient
 	if client == nil {
@@ -85,14 +150,14 @@ func NewTokenSource(credentials Credentials) (*TokenSource, error) {
 	switch credentials.AuthMode {
 	case "oidc":
 		if !credentials.githubOIDC() && credentials.FederatedTokenFile == "" {
-			return nil, AuthError{Err: fmt.Errorf("oidc authentication requires ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN in GitHub Actions, or %s naming a token file elsewhere", FederatedTokenFileEnv)}
+			return nil, authFailed(fmt.Errorf("oidc authentication requires ACTIONS_ID_TOKEN_REQUEST_URL and ACTIONS_ID_TOKEN_REQUEST_TOKEN in GitHub Actions, or %s naming a token file elsewhere", FederatedTokenFileEnv))
 		}
 	case "client_secret":
 		if credentials.ClientSecret == "" {
-			return nil, AuthError{Err: errors.New("client_secret authentication requires AZURE_CLIENT_SECRET")}
+			return nil, authFailed(errors.New("client_secret authentication requires AZURE_CLIENT_SECRET"))
 		}
 	default:
-		return nil, AuthError{Err: fmt.Errorf("unsupported auth_mode %q", credentials.AuthMode)}
+		return nil, authFailed(fmt.Errorf("unsupported auth_mode %q", credentials.AuthMode))
 	}
 
 	return &TokenSource{credentials: credentials, client: client}, nil
@@ -116,8 +181,20 @@ func (s *TokenSource) AccessToken(ctx context.Context) (string, error) {
 	}
 
 	s.token = token
+	s.roles = tokenRoles(token)
 	s.expiresAt = time.Now().Add(time.Duration(expiresIn) * time.Second)
 	return s.token, nil
+}
+
+// Roles returns the application roles in the last token acquired.
+func (s *TokenSource) Roles() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.roles...)
+}
+
+func authFailed(err error) error {
+	return AuthError{Err: componentsdk.CodeError(componentsdk.CodeAuthFailed, err)}
 }
 
 func (s *TokenSource) acquire(ctx context.Context) (string, int, error) {
@@ -156,7 +233,7 @@ func (c Credentials) githubOIDC() bool {
 func (s *TokenSource) githubOIDCToken(ctx context.Context) (string, error) {
 	requestURL, err := url.Parse(s.credentials.OIDCRequestURL)
 	if err != nil {
-		return "", fmt.Errorf("invalid OIDC request URL: %w", err)
+		return "", componentsdk.CodeError(componentsdk.CodeConfigInvalid, errors.New("ACTIONS_ID_TOKEN_REQUEST_URL is not a valid URL"))
 	}
 	q := requestURL.Query()
 	if q.Get("audience") == "" {
@@ -164,6 +241,7 @@ func (s *TokenSource) githubOIDCToken(ctx context.Context) (string, error) {
 		requestURL.RawQuery = q.Encode()
 	}
 
+	ctx = componentsdk.WithOperation(ctx, componentsdk.Operation{Name: "github.id_token.get", Permission: "id-token:write"})
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, requestURL.String(), nil)
 	if err != nil {
 		return "", err
@@ -173,23 +251,26 @@ func (s *TokenSource) githubOIDCToken(ctx context.Context) (string, error) {
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return "", err
+		return "", &RequestError{Service: "GitHub OIDC token", Err: err}
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return "", &RequestError{Service: "GitHub OIDC token", Err: err}
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", fmt.Errorf("GitHub OIDC token request failed: status=%d body=%s", resp.StatusCode, body)
+		return "", newTokenError("GitHub OIDC token", resp, body, false)
 	}
 
 	var payload struct {
 		Value string `json:"value"`
 	}
 	if err := json.Unmarshal(body, &payload); err != nil {
-		return "", err
+		return "", fmt.Errorf("decoding the GitHub OIDC token response: %w", err)
 	}
 	if payload.Value == "" {
-		return "", errors.New("GitHub OIDC token response missing value")
+		return "", componentsdk.CodeError(componentsdk.CodeInvalidResponse, errors.New("GitHub OIDC token response missing value"))
 	}
 	return payload.Value, nil
 }
@@ -198,11 +279,11 @@ func (s *TokenSource) federatedTokenFromFile() (string, error) {
 	path := s.credentials.FederatedTokenFile
 	token, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("reading federated token file %s (%s): %w", path, FederatedTokenFileEnv, err)
+		return "", componentsdk.CodeError(componentsdk.CodeAuthFailed, fmt.Errorf("reading federated token file %s (%s): %w", path, FederatedTokenFileEnv, err))
 	}
 	assertion := strings.TrimSpace(string(token))
 	if assertion == "" {
-		return "", fmt.Errorf("federated token file %s (%s) is empty", path, FederatedTokenFileEnv)
+		return "", componentsdk.CodeError(componentsdk.CodeAuthFailed, fmt.Errorf("federated token file %s (%s) is empty", path, FederatedTokenFileEnv))
 	}
 	return assertion, nil
 }
@@ -257,6 +338,7 @@ func (s *TokenSource) exchangeClientSecret(ctx context.Context) (string, int, er
 
 func (s *TokenSource) tokenRequest(ctx context.Context, form url.Values, secrets ...string) (string, int, error) {
 	endpoint := strings.TrimRight(s.credentials.TokenEndpointBase, "/") + "/" + url.PathEscape(s.credentials.TenantID) + "/oauth2/v2.0/token"
+	ctx = componentsdk.WithOperation(ctx, componentsdk.Operation{Name: "login.token.create", Safe: true})
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(form.Encode()))
 	if err != nil {
 		return "", 0, err
@@ -266,13 +348,16 @@ func (s *TokenSource) tokenRequest(ctx context.Context, form url.Values, secrets
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return "", 0, err
+		return "", 0, &RequestError{Service: "token", Err: err}
 	}
 	defer func() { _ = resp.Body.Close() }()
 
-	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return "", 0, &RequestError{Service: "token", Err: err}
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return "", 0, RedactError(fmt.Errorf("token request failed: status=%d body=%s", resp.StatusCode, body), secrets...)
+		return "", 0, RedactError(newTokenError("token", resp, body, true), secrets...)
 	}
 
 	var payload struct {
@@ -281,13 +366,13 @@ func (s *TokenSource) tokenRequest(ctx context.Context, form url.Values, secrets
 		TokenType   string `json:"token_type"`
 	}
 	if err := json.Unmarshal(body, &payload); err != nil {
-		return "", 0, err
+		return "", 0, fmt.Errorf("decoding the token response: %w", err)
 	}
 	if payload.AccessToken == "" {
-		return "", 0, errors.New("token response missing access_token")
+		return "", 0, componentsdk.CodeError(componentsdk.CodeInvalidResponse, errors.New("token response missing access_token"))
 	}
 	if !strings.EqualFold(payload.TokenType, "Bearer") && payload.TokenType != "" {
-		return "", 0, fmt.Errorf("unexpected token_type %q", payload.TokenType)
+		return "", 0, componentsdk.CodeError(componentsdk.CodeInvalidResponse, fmt.Errorf("unexpected token_type %q", payload.TokenType))
 	}
 	if payload.ExpiresIn <= 0 {
 		payload.ExpiresIn = 3600
@@ -298,22 +383,37 @@ func (s *TokenSource) tokenRequest(ctx context.Context, form url.Values, secrets
 func validateAppOnlyToken(token, tenantID, scope string) error {
 	claims, err := decodeJWTClaims(token)
 	if err != nil {
-		return err
+		return componentsdk.CodeError(componentsdk.CodeAuthFailed, err)
 	}
 	if scp, ok := claims["scp"].(string); ok && scp != "" {
-		return errors.New("delegated Microsoft Graph tokens are not supported")
+		return componentsdk.CodeError(componentsdk.CodeAuthFailed, errors.New("delegated Microsoft Graph tokens are not supported"))
 	}
 	if tid, ok := claims["tid"].(string); ok && tenantID != "" && !strings.EqualFold(tid, tenantID) {
-		return fmt.Errorf("access token tenant %q did not match configured tenant", tid)
+		return componentsdk.CodeError(componentsdk.CodeAuthFailed, fmt.Errorf("access token tenant %q did not match configured tenant", tid))
 	}
 	if scope == ARMScope {
 		return nil
 	}
 	roles, ok := claims["roles"].([]any)
 	if !ok || len(roles) == 0 {
-		return errors.New("access token is missing application roles")
+		return componentsdk.CodeError(componentsdk.CodePermissionDenied, errors.New("access token is missing application roles"))
 	}
 	return nil
+}
+
+func tokenRoles(token string) []string {
+	claims, err := decodeJWTClaims(token)
+	if err != nil {
+		return nil
+	}
+	raw, _ := claims["roles"].([]any)
+	roles := make([]string, 0, len(raw))
+	for _, role := range raw {
+		if name, ok := role.(string); ok && name != "" {
+			roles = append(roles, name)
+		}
+	}
+	return roles
 }
 
 func decodeJWTClaims(token string) (map[string]any, error) {

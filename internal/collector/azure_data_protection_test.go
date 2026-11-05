@@ -2,7 +2,9 @@ package collector
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"strings"
 	"testing"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -21,6 +23,45 @@ func TestStorageTrust(t *testing.T) {
 	assertPtrInt(t, "CMK encryption", storage.EncryptionCMKPct, 50)
 	assertPtrInt(t, "infrastructure encryption", storage.InfrastructureEncryptionPct, 50)
 	assertPtrInt(t, "public access blocked", storage.PublicAccessBlockedPct, 50)
+	assertPtrInt(t, "network restricted", storage.NetworkRestrictedPct, 50)
+}
+
+// Anonymous access and network access are separate settings. An account
+// reachable from the internet still refuses anonymous reads when
+// allowBlobPublicAccess is false. An account without allowBlobPublicAccess
+// allows anonymous access.
+func TestStorageCountsAnonymousAccessApartFromNetworkAccess(t *testing.T) {
+	falseValue, trueValue := false, true
+	account := func(name string, allow *bool, publicNetwork, defaultAction string) microsoft.StorageAccount {
+		props := microsoft.StorageAccountProperties{AllowBlobPublicAccess: allow, PublicNetworkAccess: publicNetwork}
+		if defaultAction != "" {
+			props.NetworkACLs = &microsoft.StorageNetworkACLs{DefaultAction: defaultAction}
+		}
+		return microsoft.StorageAccount{ID: "/subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/" + name, Name: name, Properties: props}
+	}
+	arm := fakeARMClient()
+	arm.storageAccounts["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = []microsoft.StorageAccount{
+		account("open", &falseValue, "Enabled", ""),
+		account("firewalled", &falseValue, "Enabled", "Deny"),
+		account("unset", nil, "Disabled", ""),
+		account("anonymous", &trueValue, "Enabled", "Allow"),
+		account("legacy", &falseValue, "", ""),
+	}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	storage := result.Azure.Accounts[0].Storage
+	assertPtrInt(t, "public access blocked", storage.PublicAccessBlockedPct, 60)
+	assertPtrInt(t, "network restricted", storage.NetworkRestrictedPct, 40)
+	assertPtrInt(t, "normalized public access blocked", result.AzureCloudPosture.Accounts[0].Storage.PublicAccessBlockedPct.Value, 60)
 }
 
 func TestStorageTrustZeroDenominator(t *testing.T) {
@@ -57,7 +98,7 @@ func TestSQLTrust(t *testing.T) {
 		t.Fatal("expected SQL posture")
 	}
 	assertInt(t, "server count", sql.ServersCount, 1)
-	assertInt(t, "database count", sql.DatabasesCount, 2)
+	assertPtrInt(t, "database count", sql.DatabasesCount, 2)
 	assertPtrInt(t, "TDE enabled", sql.TDEEnabledPct, 50)
 	assertPtrInt(t, "minimum TLS 1.2", sql.MinTLS12Pct, 100)
 	assertPtrInt(t, "public access disabled", sql.PublicAccessDisabledPct, 100)
@@ -125,12 +166,172 @@ func TestNormalizedCloudSliceD(t *testing.T) {
 	if account.Storage == nil {
 		t.Fatal("expected normalized storage")
 	}
-	assertPtrInt(t, "normalized storage encryption", account.Storage.EncryptionPct, 50)
-	assertPtrInt(t, "normalized storage public access", account.Storage.PublicAccessBlockedPct, 50)
+	assertPtrInt(t, "normalized storage encryption", account.Storage.EncryptionPct.Value, 50)
+	assertPtrInt(t, "normalized storage public access", account.Storage.PublicAccessBlockedPct.Value, 50)
 	if account.Backup == nil {
 		t.Fatal("expected normalized backup")
 	}
-	assertPtrInt(t, "normalized backup retention", account.Backup.RetentionDaysMin, 30)
+	assertPtrInt(t, "normalized backup retention", account.Backup.RetentionDaysMin.Value, 30)
+}
+
+// With no Recovery Services vault, no backup policy sets a retention period.
+// The cloud-posture schema has null for that.
+func TestNormalizedBackupRetentionIsNullWithoutVaults(t *testing.T) {
+	arm := fakeARMClient()
+	arm.recoveryVaults[kitSubscriptionID] = nil
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	cfg.Recorder = rec
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(result.AzureCloudPosture.Accounts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	var account struct {
+		Backup map[string]any `json:"backup"`
+	}
+	if err := json.Unmarshal(raw, &account); err != nil {
+		t.Fatal(err)
+	}
+	if value, ok := account.Backup["retention_days_min"]; !ok || value != nil {
+		t.Fatalf("backup = %s, want retention_days_min null", raw)
+	}
+	for _, gap := range rec.Gaps() {
+		if gap.Path == cloudPosturePath {
+			t.Fatalf("unexpected cloud-posture gap %#v", gap)
+		}
+	}
+}
+
+func TestNormalizedBackupRetentionLeftOutWhenPoliciesAreUnread(t *testing.T) {
+	arm := fakeARMClient()
+	arm.backupPolicyErrs["/subscriptions/"+kitSubscriptionID+"/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-b"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/backupPolicies"}
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	cfg.Recorder = rec
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if backup := result.AzureCloudPosture.Accounts[0].Backup; backup != nil {
+		t.Fatalf("expected the normalized backup left out, got %#v", backup)
+	}
+	assertGap(t, rec, cloudPosturePath, "/accounts/0/backup/retention_days_min", componentsdk.CodePermissionDenied)
+}
+
+// Every vault lists its built-in DefaultPolicy, whether or not a protected
+// item uses it. The retention comes from the policies the items use.
+func TestBackupRetentionCountsOnlyPoliciesInUse(t *testing.T) {
+	const vaultID = "/subscriptions/" + kitSubscriptionID + "/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a"
+	policy := func(name string, days int) microsoft.BackupPolicy {
+		return microsoft.BackupPolicy{
+			ID:   vaultID + "/backupPolicies/" + name,
+			Name: name,
+			Properties: map[string]any{
+				"backupManagementType": "AzureIaasVM",
+				"retentionPolicy": map[string]any{
+					"retentionPolicyType": "LongTermRetentionPolicy",
+					"dailySchedule": map[string]any{
+						"retentionDuration": map[string]any{"count": float64(days), "durationType": "Days"},
+					},
+				},
+			},
+		}
+	}
+	item := func(vm, policyID string) microsoft.BackupProtectedItem {
+		return microsoft.BackupProtectedItem{
+			ID: vaultID + "/backupFabrics/Azure/protectionContainers/iaasvmcontainer;" + vm + "/protectedItems/vm;" + vm,
+			Properties: microsoft.BackupProtectedItemProperties{
+				SourceResourceID: "/subscriptions/" + kitSubscriptionID + "/resourceGroups/compute/providers/Microsoft.Compute/virtualMachines/" + vm,
+				PolicyID:         policyID,
+				ProtectionState:  "Protected",
+			},
+		}
+	}
+	cases := []struct {
+		name     string
+		policies []microsoft.BackupPolicy
+		items    []microsoft.BackupProtectedItem
+		want     *int
+	}{
+		{"unused shorter policy", []microsoft.BackupPolicy{policy("DefaultPolicy", 30), policy("prod", 365)},
+			[]microsoft.BackupProtectedItem{item("vm-a", vaultID+"/backupPolicies/prod"), item("vm-b", vaultID+"/backupPolicies/prod")}, intPtr(365)},
+		{"shortest policy in use", []microsoft.BackupPolicy{policy("DefaultPolicy", 30), policy("short", 14), policy("prod", 365)},
+			[]microsoft.BackupProtectedItem{item("vm-a", vaultID+"/backupPolicies/short"), item("vm-b", vaultID+"/backupPolicies/prod")}, intPtr(14)},
+		{"policy ID in another case", []microsoft.BackupPolicy{policy("DefaultPolicy", 30), policy("prod", 365)},
+			[]microsoft.BackupProtectedItem{item("vm-a", strings.ToLower(vaultID+"/backupPolicies/prod"))}, intPtr(365)},
+		{"nothing protected", []microsoft.BackupPolicy{policy("DefaultPolicy", 30)}, nil, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			arm := fakeARMClient()
+			arm.recoveryVaults[kitSubscriptionID] = []microsoft.RecoveryServicesVault{{ID: vaultID, Name: "vault-a"}}
+			arm.backupPolicies = map[string][]microsoft.BackupPolicy{vaultID: tc.policies}
+			arm.backupProtectedItems = map[string][]microsoft.BackupProtectedItem{vaultID: tc.items}
+			cfg := testConfig()
+			cfg.ARMClient = arm
+			c, err := New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+			if err != nil {
+				t.Fatal(err)
+			}
+			got := result.Azure.Accounts[0].Backup.RetentionDaysMin
+			normalized := result.AzureCloudPosture.Accounts[0].Backup.RetentionDaysMin
+			if !normalized.Read {
+				t.Fatal("normalized retention_days_min is left out, want it written")
+			}
+			if tc.want == nil {
+				if got != nil || normalized.Value != nil {
+					t.Fatalf("retention_days_min = %v and normalized %v, want null", got, normalized.Value)
+				}
+				return
+			}
+			assertPtrInt(t, "retention_days_min", got, *tc.want)
+			assertPtrInt(t, "normalized retention_days_min", normalized.Value, *tc.want)
+		})
+	}
+}
+
+// The policies in use are known only from the protected items.
+func TestNormalizedBackupRetentionLeftOutWhenProtectedItemsAreUnread(t *testing.T) {
+	arm := fakeARMClient()
+	arm.backupProtectedItemErrs["/subscriptions/"+kitSubscriptionID+"/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-b"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/backupProtectedItems"}
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	cfg.Recorder = rec
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := result.Azure.Accounts[0].Backup.RetentionDaysMin; got != nil {
+		t.Fatalf("retention_days_min = %d, want it left out", *got)
+	}
+	if backup := result.AzureCloudPosture.Accounts[0].Backup; backup != nil {
+		t.Fatalf("expected the normalized backup left out, got %#v", backup)
+	}
+	assertGap(t, rec, azurePath, "/accounts/0/backup/retention_days_min", componentsdk.CodePermissionDenied)
+	assertGap(t, rec, cloudPosturePath, "/accounts/0/backup/retention_days_min", componentsdk.CodePermissionDenied)
 }
 
 func TestSliceDGolden(t *testing.T) {

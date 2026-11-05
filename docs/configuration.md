@@ -110,15 +110,15 @@ Required Microsoft Graph application permissions:
 | Permission | Used for |
 |------------|----------|
 | `Organization.Read.All` | Tenant identity and verified domains. |
-| `User.Read.All` | User posture denominator and account status. |
+| `User.Read.All` | User counts and account status, including for the users who hold Azure roles. |
 | `AuditLog.Read.All` | MFA registration report, sign-in activity, sign-in monitoring, and directory activity. |
 | `Policy.Read.All` | Conditional Access policies and security defaults. |
 | `RoleManagement.Read.Directory` | Directory role assignments. |
 | `RoleEligibilitySchedule.Read.Directory` | PIM eligibility schedules. |
-| `Application.Read.All` | Enterprise app and app credential hygiene posture. |
+| `Application.Read.All` | Enterprise app and app credential hygiene posture, and the credentials of the service principals that hold Azure roles. |
 | `SecurityEvents.Read.All` | Identity secure score. |
 
-If a permission or license is missing for a non-blocking surface, the collector records a warning and continues.
+If a permission or license is missing for a non-blocking surface, the collector records a warning and continues. For a missing permission, the collector result names it on each value left out.
 
 ## 4. Assign Azure Reader on Each Subscription
 
@@ -137,6 +137,8 @@ In the Azure portal:
 9. Select **Review + assign**.
 
 Repeat this for each subscription in `subscription_ids`.
+
+Reader also includes permission to list the subscription's role assignments, which the access posture counts. Without it, the access posture's role holders are left out with a `permission_denied` gap that names Reader.
 
 ## 5. Configure epack.yaml
 
@@ -181,6 +183,7 @@ collectors:
 | `auth_mode` | Yes | `oidc` or `client_secret`. |
 | `subscription_ids` | Yes | Azure subscription GUIDs to collect. |
 | `level` | No | `trust`, `audit`, or `internal`. Defaults to `trust`. |
+| `collect` | No | The kinds of evidence to collect, from `idp-posture`, `cloud-posture`, `access-posture`, `entra` and `azure`. Defaults to all of them. |
 | `azure_environment` | No | Reserved for future sovereign cloud support. |
 
 ## Local Test

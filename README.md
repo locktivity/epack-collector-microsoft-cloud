@@ -4,10 +4,12 @@ Microsoft Entra ID and Azure posture collector for [epack](https://github.com/lo
 
 This collector gathers Microsoft Entra ID and Azure security posture metrics for continuous monitoring and posture drift detection. It emits vendor-detail artifacts plus normalized artifacts for downstream evidence profiles:
 
-- `artifacts/microsoft-cloud.entra.json`
-- `artifacts/microsoft-cloud.idp-posture.json`
-- `artifacts/microsoft-cloud.azure.json`, when `subscription_ids` are configured
-- `artifacts/microsoft-cloud.cloud-posture.json`, when Azure posture is collected
+- `artifacts/microsoft-cloud.entra.json`, with schema `microsoft-cloud/entra@v1`
+- `artifacts/microsoft-cloud.idp-posture.json`, with schema `evidencepack/idp-posture@v1`
+- `artifacts/microsoft-cloud.azure.json`, with schema `microsoft-cloud/azure@v1`, when `subscription_ids` are configured
+- `artifacts/microsoft-cloud.cloud-posture.json`, with schema `evidencepack/cloud-posture@v1`, when Azure posture is collected
+- `artifacts/microsoft-cloud.access-posture.json`, with schema `evidencepack/access-posture@v1`, which counts who holds Azure roles on the subscriptions
+- `artifacts/microsoft-cloud.collector-result.json`, which lists each value the collector could not read and why
 
 The collector uses Microsoft Graph v1.0 only. See `docs/graph-endpoints.md` for the endpoint contract.
 
@@ -24,6 +26,8 @@ Set the optional `level` config key to control evidence depth:
 - `trust` (default): aggregate tenant, identity, app, policy, and Azure posture.
 - `audit`: trust plus aggregate Azure inventory and ownership tag posture.
 - `internal`: audit plus aggregate Entra directory and sign-in monitoring activity.
+
+The optional `collect` key lists the kinds of evidence to collect, such as `[cloud-posture, access-posture, idp-posture, azure, entra]`. Without it, the collector collects every kind.
 
 Higher levels are cumulative. The collector never emits usernames, email addresses, raw resource names, raw tags, sign-in rows, or policy bodies.
 

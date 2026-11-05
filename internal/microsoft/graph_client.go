@@ -11,9 +11,13 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/locktivity/epack/componentsdk"
 )
 
-const defaultGraphBaseURL = "https://graph.microsoft.com/v1.0"
+const DefaultGraphBaseURL = "https://graph.microsoft.com/v1.0"
+
+const maxResponseBytes = 4 << 20
 
 type APIError struct {
 	Service    string
@@ -22,6 +26,7 @@ type APIError struct {
 	Code       string
 	Message    string
 	Body       string
+	Header     http.Header
 }
 
 func (e *APIError) Error() string {
@@ -38,11 +43,16 @@ func (e *APIError) Error() string {
 	return fmt.Sprintf("%s request %s failed: status=%d body=%s", service, route, e.StatusCode, SanitizeErrorText(e.Body))
 }
 
+// These let componentsdk.Classify read the status and throttle headers, and
+// give records the Graph or ARM error code.
+func (e *APIError) HTTPStatus() int         { return e.StatusCode }
+func (e *APIError) HTTPHeader() http.Header { return e.Header }
+func (e *APIError) VendorCode() string      { return e.Code }
+
 type GraphClient struct {
 	baseURL     string
 	tokenSource AccessTokenSource
 	httpClient  *http.Client
-	sleep       sleeper
 }
 
 type GraphOption func(*GraphClient)
@@ -63,20 +73,11 @@ func WithGraphHTTPClient(client *http.Client) GraphOption {
 	}
 }
 
-func WithRetrySleeper(s sleeper) GraphOption {
-	return func(c *GraphClient) {
-		if s != nil {
-			c.sleep = s
-		}
-	}
-}
-
 func NewGraphClient(tokenSource AccessTokenSource, opts ...GraphOption) *GraphClient {
 	c := &GraphClient{
-		baseURL:     defaultGraphBaseURL,
+		baseURL:     DefaultGraphBaseURL,
 		tokenSource: tokenSource,
 		httpClient:  &http.Client{Timeout: 30 * time.Second},
-		sleep:       defaultSleeper,
 	}
 	for _, opt := range opts {
 		opt(c)
@@ -85,60 +86,65 @@ func NewGraphClient(tokenSource AccessTokenSource, opts ...GraphOption) *GraphCl
 }
 
 func (c *GraphClient) Organization(ctx context.Context) (*Organization, error) {
-	var page struct {
-		Value []Organization `json:"value"`
-	}
-	if err := c.getJSON(ctx, "/organization?$select=id,verifiedDomains", &page); err != nil {
+	route := "/organization?$select=id,verifiedDomains"
+	orgs, err := getPaged[Organization](ctx, c, "graph.organization.get", route)
+	if err != nil {
 		return nil, err
 	}
-	if len(page.Value) == 0 {
-		return nil, &APIError{StatusCode: http.StatusNotFound, Route: "/organization", Message: "no organization returned"}
+	if len(orgs) == 0 || orgs[0].ID == "" {
+		return nil, invalidResponse("graph", route, "has no organization")
 	}
-	return &page.Value[0], nil
+	return &orgs[0], nil
 }
 
 func (c *GraphClient) Users(ctx context.Context) ([]User, error) {
-	return getPaged[User](ctx, c, "/users?$select=id,accountEnabled,userType&$top=999")
+	return getPaged[User](ctx, c, "graph.users.list", "/users?$select=id,accountEnabled,userType&$top=999")
 }
 
 func (c *GraphClient) UsersWithSignInActivity(ctx context.Context) ([]User, error) {
-	return getPaged[User](ctx, c, "/users?$select=id,accountEnabled,userType,signInActivity&$top=999")
+	return getPaged[User](ctx, c, "graph.users.sign_in_activity.list", "/users?$select=id,accountEnabled,userType,signInActivity&$top=999")
 }
 
 func (c *GraphClient) UserRegistrationDetails(ctx context.Context) ([]UserRegistrationDetail, error) {
-	return getPaged[UserRegistrationDetail](ctx, c, "/reports/authenticationMethods/userRegistrationDetails")
+	return getPaged[UserRegistrationDetail](ctx, c, "graph.user_registration_details.list", "/reports/authenticationMethods/userRegistrationDetails")
 }
 
 func (c *GraphClient) ConditionalAccessPolicies(ctx context.Context) ([]ConditionalAccessPolicy, error) {
-	return getPaged[ConditionalAccessPolicy](ctx, c, "/identity/conditionalAccess/policies")
+	return getPaged[ConditionalAccessPolicy](ctx, c, "graph.conditional_access.policies.list", "/identity/conditionalAccess/policies")
 }
 
 func (c *GraphClient) SecurityDefaults(ctx context.Context) (*IdentitySecurityDefaultsEnforcementPolicy, error) {
-	var policy IdentitySecurityDefaultsEnforcementPolicy
-	if err := c.getJSON(ctx, "/policies/identitySecurityDefaultsEnforcementPolicy", &policy); err != nil {
+	route := "/policies/identitySecurityDefaultsEnforcementPolicy"
+	var policy struct {
+		IsEnabled *bool `json:"isEnabled"`
+	}
+	if err := c.getJSON(ctx, graphOperation("graph.security_defaults.get"), route, nil, &policy); err != nil {
 		return nil, err
 	}
-	return &policy, nil
+	if policy.IsEnabled == nil {
+		return nil, invalidResponse("graph", route, "has no isEnabled")
+	}
+	return &IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: *policy.IsEnabled}, nil
 }
 
 func (c *GraphClient) RoleAssignments(ctx context.Context) ([]UnifiedRoleAssignment, error) {
-	return getPaged[UnifiedRoleAssignment](ctx, c, "/roleManagement/directory/roleAssignments?$expand=principal&$top=999")
+	return getPaged[UnifiedRoleAssignment](ctx, c, "graph.role_assignments.list", "/roleManagement/directory/roleAssignments?$expand=principal&$top=999")
 }
 
 func (c *GraphClient) RoleEligibilitySchedules(ctx context.Context) ([]UnifiedRoleEligibilitySchedule, error) {
-	return getPaged[UnifiedRoleEligibilitySchedule](ctx, c, "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999")
+	return getPaged[UnifiedRoleEligibilitySchedule](ctx, c, "graph.role_eligibility_schedules.list", "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999")
 }
 
 func (c *GraphClient) ServicePrincipals(ctx context.Context) ([]ServicePrincipal, error) {
-	return getPaged[ServicePrincipal](ctx, c, "/servicePrincipals?$filter=servicePrincipalType%20eq%20'Application'&$select=id,accountEnabled,appRoleAssignmentRequired,preferredSingleSignOnMode,servicePrincipalType,passwordCredentials,keyCredentials&$top=999")
+	return getPaged[ServicePrincipal](ctx, c, "graph.service_principals.list", "/servicePrincipals?$filter=servicePrincipalType%20eq%20'Application'&$select=id,appId,accountEnabled,appRoleAssignmentRequired,preferredSingleSignOnMode,servicePrincipalType,passwordCredentials,keyCredentials&$top=999")
 }
 
 func (c *GraphClient) Applications(ctx context.Context) ([]Application, error) {
-	return getPaged[Application](ctx, c, "/applications?$select=id,passwordCredentials,keyCredentials&$top=999")
+	return getPaged[Application](ctx, c, "graph.applications.list", "/applications?$select=id,appId,passwordCredentials,keyCredentials&$top=999")
 }
 
 func (c *GraphClient) SecureScores(ctx context.Context) ([]SecureScore, error) {
-	return getPaged[SecureScore](ctx, c, "/security/secureScores?$top=1")
+	return getPaged[SecureScore](ctx, c, "graph.secure_scores.list", "/security/secureScores?$top=1")
 }
 
 func (c *GraphClient) SignIns(ctx context.Context, since time.Time) ([]SignIn, error) {
@@ -147,8 +153,14 @@ func (c *GraphClient) SignIns(ctx context.Context, since time.Time) ([]SignIn, e
 	query.Set("$orderby", "createdDateTime desc")
 	query.Set("$select", "id,createdDateTime,userId,appId,status,conditionalAccessStatus,appliedConditionalAccessPolicies,clientAppUsed,riskLevelAggregated,riskLevelDuringSignIn")
 	query.Set("$top", "999")
-	return getPaged[SignIn](ctx, c, "/auditLogs/signIns?"+query.Encode())
+	return getPagedWithHeader[SignIn](ctx, c, "graph.sign_ins.list", "/auditLogs/signIns?"+query.Encode(), preferUnknownEnumMembers)
 }
+
+// preferUnknownEnumMembers is the Prefer header for the members of an
+// evolvable enum that come after unknownFutureValue. Without it, an applied
+// policy's reportOnlyFailure result arrives as unknownFutureValue.
+// https://learn.microsoft.com/en-us/graph/api/resources/appliedconditionalaccesspolicy
+var preferUnknownEnumMembers = http.Header{"Prefer": {"include-unknown-enum-members"}}
 
 func (c *GraphClient) DirectoryAudits(ctx context.Context, since time.Time) ([]DirectoryAudit, error) {
 	query := url.Values{}
@@ -156,74 +168,104 @@ func (c *GraphClient) DirectoryAudits(ctx context.Context, since time.Time) ([]D
 	query.Set("$orderby", "activityDateTime desc")
 	query.Set("$select", "id,activityDateTime,activityDisplayName,category,loggedByService,operationType,result,targetResources")
 	query.Set("$top", "999")
-	return getPaged[DirectoryAudit](ctx, c, "/auditLogs/directoryAudits?"+query.Encode())
+	return getPaged[DirectoryAudit](ctx, c, "graph.directory_audits.list", "/auditLogs/directoryAudits?"+query.Encode())
 }
 
-func getPaged[T any](ctx context.Context, c *GraphClient, route string) ([]T, error) {
-	var out []T
+// graphPermissions names the Microsoft Graph application permission each call
+// needs, as docs/configuration.md lists them.
+var graphPermissions = map[string]string{
+	"graph.organization.get":                 "Organization.Read.All",
+	"graph.users.list":                       "User.Read.All",
+	"graph.users.sign_in_activity.list":      "AuditLog.Read.All",
+	"graph.user_registration_details.list":   "AuditLog.Read.All",
+	"graph.conditional_access.policies.list": "Policy.Read.All",
+	"graph.security_defaults.get":            "Policy.Read.All",
+	"graph.role_assignments.list":            "RoleManagement.Read.Directory",
+	"graph.role_eligibility_schedules.list":  "RoleEligibilitySchedule.Read.Directory",
+	"graph.service_principals.list":          "Application.Read.All",
+	"graph.applications.list":                "Application.Read.All",
+	"graph.secure_scores.list":               "SecurityEvents.Read.All",
+	"graph.sign_ins.list":                    "AuditLog.Read.All",
+	"graph.directory_audits.list":            "AuditLog.Read.All",
+}
+
+// graphOperation names a Graph call with the permission it needs, so a
+// permission_denied gap on it names that permission.
+func graphOperation(name string) componentsdk.Operation {
+	return componentsdk.Operation{Name: name, Permission: graphPermissions[name]}
+}
+
+// getPaged fails the whole list when any page fails, so a partial list never
+// reads as a complete one.
+func getPaged[T any](ctx context.Context, c *GraphClient, operation, route string) ([]T, error) {
+	return getPagedWithHeader[T](ctx, c, operation, route, nil)
+}
+
+// getPagedWithHeader is getPaged with header added to the request for every
+// page.
+func getPagedWithHeader[T any](ctx context.Context, c *GraphClient, operation, route string, header http.Header) ([]T, error) {
+	op := graphOperation(operation)
+	out := []T{}
 	next := route
 	for next != "" {
 		var page struct {
-			Value    []T    `json:"value"`
+			Value    *[]T   `json:"value"`
 			NextLink string `json:"@odata.nextLink"`
 		}
-		if err := c.getJSON(ctx, next, &page); err != nil {
+		if err := c.getJSON(ctx, op, next, header, &page); err != nil {
 			return nil, err
 		}
-		out = append(out, page.Value...)
+		if page.Value == nil {
+			return nil, invalidResponse("graph", next, "has no value array")
+		}
+		out = append(out, *page.Value...)
 		next = page.NextLink
 	}
 	return out, nil
 }
 
-func (c *GraphClient) getJSON(ctx context.Context, route string, out any) error {
-	body, err := c.do(ctx, http.MethodGet, route, nil)
+func (c *GraphClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, header http.Header, out any) error {
+	body, err := c.do(ctx, op, http.MethodGet, route, header, nil)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(body, out)
+	if err := json.Unmarshal(body, out); err != nil {
+		return fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(route), err)
+	}
+	return nil
 }
 
-func (c *GraphClient) do(ctx context.Context, method, route string, body []byte) ([]byte, error) {
-	var lastErr error
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		payload := bytes.NewReader(body)
-		req, err := c.newRequest(ctx, method, route, payload)
-		if err != nil {
-			return nil, err
-		}
-
-		resp, err := c.httpClient.Do(req)
-		if err != nil {
-			lastErr = err
-		} else {
-			respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
-			_ = resp.Body.Close()
-
-			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-				return respBody, nil
-			}
-			lastErr = graphAPIError(resp.StatusCode, route, respBody)
-			if !retryableStatus(resp.StatusCode) {
-				return nil, lastErr
-			}
-			if attempt == maxAttempts {
-				break
-			}
-			if err := c.sleep(ctx, retryDelay(resp, attempt)); err != nil {
-				return nil, err
-			}
-			continue
-		}
-
-		if attempt == maxAttempts {
-			break
-		}
-		if err := c.sleep(ctx, retryDelay(nil, attempt)); err != nil {
-			return nil, err
+// do sends one named call with header added. The SDK's transport retries it
+// when that is safe.
+func (c *GraphClient) do(ctx context.Context, op componentsdk.Operation, method, route string, header http.Header, body []byte) ([]byte, error) {
+	ctx = componentsdk.WithOperation(ctx, op)
+	req, err := c.newRequest(ctx, method, route, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	for name, values := range header {
+		for _, value := range values {
+			req.Header.Add(name, value)
 		}
 	}
-	return nil, exhausted(ctx, lastErr)
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, &RequestError{Service: "graph", Route: route, Err: err}
+	}
+	defer func() { _ = resp.Body.Close() }()
+	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
+	if err != nil {
+		return nil, &RequestError{Service: "graph", Route: route, Err: err}
+	}
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		// ResponseError ties the error to its call, so a gap from it names
+		// the call and the permission it needs.
+		return nil, componentsdk.ResponseError(resp, graphAPIError(resp.StatusCode, route, resp.Header, respBody))
+	}
+	if len(respBody) > maxResponseBytes {
+		return nil, tooLarge("graph", route)
+	}
+	return respBody, nil
 }
 
 func (c *GraphClient) newRequest(ctx context.Context, method, route string, body io.Reader) (*http.Request, error) {
@@ -249,8 +291,8 @@ func (c *GraphClient) resolveURL(route string) (string, error) {
 	return resolveServiceURL(c.baseURL, route)
 }
 
-func graphAPIError(status int, route string, body []byte) *APIError {
-	apiErr := &APIError{Service: "graph", StatusCode: status, Route: route, Body: string(body)}
+func graphAPIError(status int, route string, header http.Header, body []byte) *APIError {
+	apiErr := &APIError{Service: "graph", StatusCode: status, Route: route, Body: string(body), Header: header}
 	var payload struct {
 		Error struct {
 			Code    string `json:"code"`

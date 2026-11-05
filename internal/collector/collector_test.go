@@ -101,10 +101,10 @@ func fakeGraphClient() *fakeGraph {
 			{ID: "u4", AccountEnabled: &disabled, UserType: "Member"},
 		},
 		signInUsers: []microsoft.User{
-			{ID: "u1", AccountEnabled: &enabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSignInDateTime: "2026-05-20T00:00:00Z"}},
-			{ID: "u2", AccountEnabled: &enabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSignInDateTime: "2026-01-01T00:00:00Z"}},
-			{ID: "u3", AccountEnabled: &enabled, UserType: "Guest", SignInActivity: &microsoft.SignInActivity{LastSignInDateTime: "2026-01-01T00:00:00Z"}},
-			{ID: "u4", AccountEnabled: &disabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSignInDateTime: "2026-01-01T00:00:00Z"}},
+			{ID: "u1", AccountEnabled: &enabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSuccessfulSignInDateTime: "2026-05-20T00:00:00Z"}},
+			{ID: "u2", AccountEnabled: &enabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSuccessfulSignInDateTime: "2026-01-01T00:00:00Z"}},
+			{ID: "u3", AccountEnabled: &enabled, UserType: "Guest", SignInActivity: &microsoft.SignInActivity{LastSuccessfulSignInDateTime: "2026-01-01T00:00:00Z"}},
+			{ID: "u4", AccountEnabled: &disabled, UserType: "Member", SignInActivity: &microsoft.SignInActivity{LastSuccessfulSignInDateTime: "2026-01-01T00:00:00Z"}},
 		},
 		registrations: []microsoft.UserRegistrationDetail{
 			{ID: "u1", IsMFARegistered: true, IsSSPRRegistered: true, MethodsRegistered: []string{"fido2SecurityKey"}},
@@ -127,11 +127,11 @@ func fakeGraphClient() *fakeGraph {
 		},
 		servicePrincipals: []microsoft.ServicePrincipal{
 			{
-				ID: "sp1", AccountEnabled: &enabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application",
+				ID: "sp1", AppID: kitClientAppID1, AccountEnabled: &enabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application",
 				PasswordCredentials: []microsoft.PasswordCredential{{KeyID: "sp-p1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-06-01T00:00:00Z"}},
 			},
 			{
-				ID: "sp2", AccountEnabled: &enabled, AppRoleAssignmentRequired: &disabled, PreferredSingleSignOnMode: "oidc", ServicePrincipalType: "Application",
+				ID: "sp2", AppID: kitClientAppID2, AccountEnabled: &enabled, AppRoleAssignmentRequired: &disabled, PreferredSingleSignOnMode: "oidc", ServicePrincipalType: "Application",
 				KeyCredentials: []microsoft.KeyCredential{{KeyID: "sp-k1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-05-01T00:00:00Z"}},
 			},
 			{ID: "sp3", AccountEnabled: &disabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application"},
@@ -139,11 +139,13 @@ func fakeGraphClient() *fakeGraph {
 		applications: []microsoft.Application{
 			{
 				ID:                  "app1",
+				AppID:               kitClientAppID1,
 				PasswordCredentials: []microsoft.PasswordCredential{{KeyID: "app-p1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-06-10T00:00:00Z"}},
 				KeyCredentials:      []microsoft.KeyCredential{{KeyID: "app-k1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-05-01T00:00:00Z"}},
 			},
 			{
 				ID:             "app2",
+				AppID:          kitClientAppID2,
 				KeyCredentials: []microsoft.KeyCredential{{KeyID: "app-k2", StartDateTime: "2026-01-01T00:00:00Z", EndDateTime: "2027-06-01T00:00:00Z"}},
 			},
 		},
@@ -174,13 +176,14 @@ func fakeGraphClient() *fakeGraph {
 				},
 			},
 			{
-				ID:                      "signin-failure-legacy",
-				UserID:                  "u3",
-				AppID:                   "app2",
-				Status:                  microsoft.SignInStatus{ErrorCode: 50053, Reason: "Account is locked"},
-				ConditionalAccessStatus: "notApplied",
-				ClientAppUsed:           "IMAP",
-				RiskLevelDuringSignIn:   "medium",
+				ID:                               "signin-failure-legacy",
+				UserID:                           "u3",
+				AppID:                            "app2",
+				Status:                           microsoft.SignInStatus{ErrorCode: 50053, Reason: "Account is locked"},
+				ConditionalAccessStatus:          "notApplied",
+				ClientAppUsed:                    "IMAP",
+				RiskLevelDuringSignIn:            "medium",
+				AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{},
 			},
 			{
 				ID:                      "signin-success-mobile",
@@ -336,29 +339,17 @@ func fakeARMClient() *fakeARM {
 			},
 		},
 		defenderAssessmentErrs: map[string]error{},
+		// u1 is an Owner, u2 a Reader, and u3, a guest, a Contributor. u4 is
+		// disabled and u9 is not in the user list, so neither is a member.
 		roleAssignments: map[string][]microsoft.ARMRoleAssignment{
 			subscriptionID: {
-				{
-					ID: "owner-user",
-					Properties: microsoft.ARMRoleAssignmentProperties{
-						RoleDefinitionID: "/subscriptions/" + subscriptionID + "/providers/Microsoft.Authorization/roleDefinitions/" + azureOwnerRoleDefinitionID,
-						PrincipalType:    "User",
-					},
-				},
-				{
-					ID: "owner-sp",
-					Properties: microsoft.ARMRoleAssignmentProperties{
-						RoleDefinitionID: "/subscriptions/" + subscriptionID + "/providers/Microsoft.Authorization/roleDefinitions/" + azureOwnerRoleDefinitionID,
-						PrincipalType:    "ServicePrincipal",
-					},
-				},
-				{
-					ID: "reader-sp",
-					Properties: microsoft.ARMRoleAssignmentProperties{
-						RoleDefinitionID: "/subscriptions/" + subscriptionID + "/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
-						PrincipalType:    "ServicePrincipal",
-					},
-				},
+				fakeRoleAssignment("owner-user", subscriptionID, azureOwnerRoleDefinitionID, "User", "u1"),
+				fakeRoleAssignment("owner-sp", subscriptionID, azureOwnerRoleDefinitionID, "ServicePrincipal", "sp1"),
+				fakeRoleAssignment("reader-sp", subscriptionID, azureReaderRoleDefinitionID, "ServicePrincipal", "sp2"),
+				fakeRoleAssignment("reader-user", subscriptionID, azureReaderRoleDefinitionID, "User", "u2"),
+				fakeRoleAssignment("contributor-guest", subscriptionID, azureContributorRoleDefinitionID, "User", "u3"),
+				fakeRoleAssignment("reader-disabled", subscriptionID, azureReaderRoleDefinitionID, "User", "u4"),
+				fakeRoleAssignment("access-admin-deleted", subscriptionID, azureUserAccessAdministratorRoleDefinitionID, "User", "u9"),
 			},
 		},
 		roleAssignmentErrs: map[string]error{},
@@ -407,6 +398,7 @@ func fakeARMClient() *fakeARM {
 						Encryption:               microsoft.StorageEncryption{KeySource: "Microsoft.Storage", RequireInfrastructureEncryption: &falseValue},
 						AllowBlobPublicAccess:    &trueValue,
 						PublicNetworkAccess:      "Enabled",
+						NetworkACLs:              &microsoft.StorageNetworkACLs{DefaultAction: "Allow"},
 					},
 				},
 			},
@@ -515,9 +507,9 @@ func fakeARMClient() *fakeARM {
 			"/subscriptions/" + subscriptionID: {enabledDiagnosticSetting()},
 			"/subscriptions/" + subscriptionID + "/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/storagea": {enabledDiagnosticSetting()},
 			"/subscriptions/" + subscriptionID + "/resourceGroups/security/providers/Microsoft.KeyVault/vaults/kv-a":         {enabledDiagnosticSetting()},
-			serverID:      {enabledDiagnosticSetting()},
-			dbProtectedID: {enabledDiagnosticSetting()},
-			vmProtectedID: {enabledDiagnosticSetting()},
+			serverID + "/databases/master": {enabledDiagnosticSetting()},
+			dbProtectedID:                  {enabledDiagnosticSetting()},
+			vmProtectedID:                  {enabledDiagnosticSetting()},
 		},
 		diagnosticSettingErrs: map[string]error{},
 		recoveryVaults: map[string][]microsoft.RecoveryServicesVault{
@@ -547,8 +539,8 @@ func fakeARMClient() *fakeARM {
 		recoveryVaultErrs: map[string]error{},
 		backupProtectedItems: map[string][]microsoft.BackupProtectedItem{
 			vaultEnabledID: {
-				{ID: "protected-vm", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: vmProtectedID, ProtectionState: "Protected"}},
-				{ID: "protected-db", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: dbProtectedID, ProtectionState: "Protected"}},
+				{ID: "protected-vm", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: vmProtectedID, PolicyID: "policy-30d", ProtectionState: "Protected"}},
+				{ID: "protected-db", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: dbProtectedID, PolicyID: "policy-90d", ProtectionState: "Protected"}},
 			},
 			vaultDisabledID: nil,
 		},
@@ -820,12 +812,8 @@ func TestTenantIdentity(t *testing.T) {
 
 func TestEnabledMemberCount(t *testing.T) {
 	artifact := collectTestArtifact(t, testConfig())
-	if artifact.Users.TotalCount != 4 {
-		t.Fatalf("unexpected total count: %d", artifact.Users.TotalCount)
-	}
-	if artifact.Users.EnabledMemberUsersCount != 2 {
-		t.Fatalf("unexpected enabled member count: %d", artifact.Users.EnabledMemberUsersCount)
-	}
+	assertPtrInt(t, "total count", artifact.Users.TotalCount, 4)
+	assertPtrInt(t, "enabled member count", artifact.Users.EnabledMemberUsersCount, 2)
 }
 
 func TestMfaRegistrationReport(t *testing.T) {
@@ -874,9 +862,69 @@ func TestMfaCoverage(t *testing.T) {
 	if artifact.Posture.MFAPhishingResistant == nil || *artifact.Posture.MFAPhishingResistant != 50 {
 		t.Fatalf("unexpected phishing-resistant coverage: %#v", artifact.Posture.MFAPhishingResistant)
 	}
-	if artifact.Posture.DenominatorEnabledMemberUsers != 2 {
-		t.Fatalf("unexpected denominator: %d", artifact.Posture.DenominatorEnabledMemberUsers)
+	assertPtrInt(t, "denominator", artifact.Posture.DenominatorEnabledMemberUsers, 2)
+}
+
+func TestMfaCoverageMeasuresOnlyMembersTheReportLists(t *testing.T) {
+	members := map[string]struct{}{"u1": {}, "u2": {}, "u5": {}, "u6": {}}
+	report := []microsoft.UserRegistrationDetail{
+		{ID: "u1", IsMFARegistered: true, IsSSPRRegistered: true, MethodsRegistered: []string{"fido2SecurityKey"}},
+		{ID: "u2", IsMFARegistered: false, MethodsRegistered: []string{"sms"}},
+		{ID: "u9", IsMFARegistered: true, MethodsRegistered: []string{"microsoftAuthenticatorPush"}},
 	}
+	got := computeRegistrationMetrics(members, report)
+	if got.Listed != 2 {
+		t.Fatalf("listed = %d, want the 2 members the report has caught up with", got.Listed)
+	}
+	assertPtrInt(t, "mfa_coverage", got.MFACoverage, 50)
+	assertPtrInt(t, "mfa_phishing_resistant", got.MFAPhishingResistant, 50)
+	assertPtrInt(t, "sspr_registered", got.SSPRRegistered, 50)
+}
+
+// In the registration report, a phone number is mobilePhone,
+// alternateMobilePhone or officePhone. Each is used for SMS or a voice call.
+func TestMfaWeakMethodOnlyCountsPhoneNumbers(t *testing.T) {
+	for _, method := range []string{"mobilePhone", "alternateMobilePhone", "officePhone", "email"} {
+		t.Run(method, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.registrations = []microsoft.UserRegistrationDetail{
+				{ID: "u1", IsMFARegistered: true, MethodsRegistered: []string{method}},
+				{ID: "u2", IsMFARegistered: true, MethodsRegistered: []string{"microsoftAuthenticatorPush", "mobilePhone"}},
+			}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+
+			assertPtrInt(t, "mfa_weak_method_only", collectTestArtifact(t, cfg).Posture.MFAWeakMethodOnly, 50)
+		})
+	}
+}
+
+// Failed interactive attempts update lastSignInDateTime, and non-interactive
+// sign-ins do not. Inactivity is measured from lastSuccessfulSignInDateTime.
+func TestInactiveUsersUseLastSuccessfulSignIn(t *testing.T) {
+	const raw = `[
+		{"id":"u1","accountEnabled":true,"userType":"Member","signInActivity":{"lastSignInDateTime":"2026-05-20T00:00:00Z","lastSuccessfulSignInDateTime":"2025-11-01T00:00:00Z"}},
+		{"id":"u2","accountEnabled":true,"userType":"Member","signInActivity":{"lastSignInDateTime":"2026-01-01T00:00:00Z","lastSuccessfulSignInDateTime":"2026-05-24T00:00:00Z"}},
+		{"id":"u3","accountEnabled":true,"userType":"Guest","signInActivity":{"lastSignInDateTime":"2026-05-20T00:00:00Z"}},
+		{"id":"u4","accountEnabled":false,"userType":"Member","signInActivity":{"lastSignInDateTime":"2026-01-01T00:00:00Z","lastSuccessfulSignInDateTime":"2026-01-01T00:00:00Z"}}
+	]`
+	var users []microsoft.User
+	if err := json.Unmarshal([]byte(raw), &users); err != nil {
+		t.Fatal(err)
+	}
+	graph := fakeGraphClient()
+	graph.signInUsers = users
+	cfg := testConfig()
+	cfg.GraphClient = graph
+
+	artifact := collectTestArtifact(t, cfg)
+	// u1 had only a failed attempt in the window and u3 never signed in
+	// successfully. u2 signed in two days ago.
+	assertPtrInt(t, "inactive_pct", artifact.Users.InactivePct, 67)
+	assertPtrInt(t, "inactive_guest_pct", artifact.Users.InactiveGuestPct, 100)
+	// Of the privileged users u1, u2 and u3, only u2 signed in successfully
+	// in the last 90 days.
+	assertPtrInt(t, "inactive_privileged_users_count", artifact.PrivilegedAccess.InactivePrivilegedUsersCount, 2)
 }
 
 func TestMfaCoverageZeroDenominator(t *testing.T) {
@@ -909,15 +957,12 @@ func TestNormalizedIdp(t *testing.T) {
 	if idp.Provider != "entra" {
 		t.Fatalf("unexpected provider: %s", idp.Provider)
 	}
-	if idp.UserSecurity.MFACoveragePct == nil || *idp.UserSecurity.MFACoveragePct != 50 {
+	if got := idp.UserSecurity.MFACoveragePct.Value; got == nil || *got != 50 {
 		t.Fatalf("unexpected MFA coverage: %#v", idp.UserSecurity.MFACoveragePct)
 	}
 
-	artifact.Posture.MFACoverage = nil
-	artifact.Posture.MFAPhishingResistant = nil
-	artifact.Posture.SSOCoverage = nil
-	artifact.Users.InactivePct = nil
-	artifact.Users.DisabledPct = nil
+	artifact.Users = Users{}
+	artifact.Apps = nil
 	artifact.Policy = nil
 	artifact.PrivilegedAccess = nil
 	if idp := artifact.ToIDPPosture(); idp != nil {
@@ -941,8 +986,8 @@ func TestSliceAGolden(t *testing.T) {
 	assertGoldenJSON(t, "../../testdata/golden/slice_a/idp-posture.json", result.EntraIDPPosture)
 
 	artifacts := result.Artifacts()
-	if len(artifacts) != 4 {
-		t.Fatalf("expected 4 artifacts, got %d", len(artifacts))
+	if len(artifacts) != 5 {
+		t.Fatalf("expected 5 artifacts, got %d", len(artifacts))
 	}
 }
 
@@ -971,6 +1016,11 @@ func assertGoldenJSON(t *testing.T, relPath string, actual any) {
 	got = append(got, '\n')
 
 	path := filepath.Clean(relPath)
+	if os.Getenv("UPDATE_GOLDENS") != "" {
+		if err := os.WriteFile(path, got, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
 	want, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
@@ -988,5 +1038,29 @@ func TestConfigErrorTypeIsPreserved(t *testing.T) {
 	var configErr componentsdk.ConfigError
 	if !errors.As(err, &configErr) {
 		t.Fatalf("expected config error, got %T", err)
+	}
+}
+
+// The appIds that join sp1 to app1 and sp2 to app2.
+const (
+	kitClientAppID1 = "aaaaaaaa-0000-4000-8000-000000000001"
+	kitClientAppID2 = "aaaaaaaa-0000-4000-8000-000000000002"
+)
+
+const (
+	azureReaderRoleDefinitionID      = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+	azureContributorRoleDefinitionID = "b24988ac-6180-42a0-ab88-20f7382dd24c"
+)
+
+// fakeRoleAssignment is an Azure role assignment on the subscription, with
+// the role definition's full resource ID.
+func fakeRoleAssignment(id, subscriptionID, roleID, principalType, principalID string) microsoft.ARMRoleAssignment {
+	return microsoft.ARMRoleAssignment{
+		ID: id,
+		Properties: microsoft.ARMRoleAssignmentProperties{
+			RoleDefinitionID: "/subscriptions/" + subscriptionID + "/providers/Microsoft.Authorization/roleDefinitions/" + roleID,
+			PrincipalType:    principalType,
+			PrincipalID:      principalID,
+		},
 	}
 }

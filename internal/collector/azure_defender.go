@@ -11,7 +11,7 @@ import (
 	"github.com/locktivity/epack/componentsdk"
 )
 
-func (c *Collector) collectAzure(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) (*AzureArtifact, error) {
+func (c *Collector) collectAzure(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) *AzureArtifact {
 	if c.config.OnStatus != nil {
 		c.config.OnStatus("Collecting Azure subscription posture")
 	}
@@ -20,134 +20,113 @@ func (c *Collector) collectAzure(ctx context.Context, level componentsdk.Level, 
 		SchemaVersion:    SchemaVersion,
 		CollectedAt:      c.clock.Now().UTC().Format("2006-01-02T15:04:05Z"),
 		CollectedAtLevel: string(level),
-		Diagnostics:      *diagnostics,
+		Accounts:         make([]AzureAccount, 0, len(c.config.SubscriptionIDs)),
 	}
-
 	for i, subscriptionID := range c.config.SubscriptionIDs {
 		if c.config.OnProgress != nil {
 			c.config.OnProgress(int64(i+1), int64(len(c.config.SubscriptionIDs)), "Collecting Azure subscription "+subscriptionID)
 		}
-		account, ok, err := c.collectAzureSubscription(ctx, level, subscriptionID, diagnostics)
-		if err != nil {
-			return nil, err
-		}
-		if ok {
-			artifact.Accounts = append(artifact.Accounts, *account)
-		}
+		artifact.Accounts = append(artifact.Accounts, c.collectAzureSubscription(ctx, level, i, subscriptionID, diagnostics))
 	}
 	artifact.Diagnostics = *diagnostics
-	if len(artifact.Accounts) == 0 {
-		if len(diagnostics.SubscriptionErrors) > 0 {
-			return artifact, nil
-		}
-		return nil, nil
-	}
-	return artifact, nil
+	return artifact
 }
 
-func (c *Collector) collectAzureSubscription(ctx context.Context, level componentsdk.Level, subscriptionID string, diagnostics *Diagnostics) (*AzureAccount, bool, error) {
+var azureAccountBlocks = []string{"defender", "rbac", "policy", "storage", "keyvault", "sql", "compute", "backup", "network", "logging"}
+
+// Every configured subscription keeps its index in the accounts list, so a
+// subscription that cannot be read never shifts the gap pointers of the ones
+// after it.
+func (c *Collector) collectAzureSubscription(ctx context.Context, level componentsdk.Level, index int, subscriptionID string, diagnostics *Diagnostics) AzureAccount {
+	account := AzureAccount{AccountID: subscriptionID}
 	if _, err := c.arm.Subscription(ctx, subscriptionID); err != nil {
-		if subscriptionError(err) {
-			diagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, fmt.Sprintf("%s: %s", subscriptionID, err.Error()))
-			return nil, false, nil
+		diagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, fmt.Sprintf("%s: %s", subscriptionID, err.Error()))
+		if apiStatus(err) == http.StatusNotFound {
+			err = componentsdk.CodeError(componentsdk.CodeConfigInvalid, err)
 		}
-		return nil, false, err
+		account.unreadable = failed(err)
+		blocks := azureAccountBlocks
+		if level.AtLeast(componentsdk.LevelAudit) {
+			blocks = append(append([]string{}, blocks...), "inventory")
+		}
+		for _, block := range blocks {
+			c.gaps.leaveOut(azurePath, account.unreadable, accountPointer(index, block))
+		}
+		return account
 	}
 
-	account := &AzureAccount{AccountID: subscriptionID}
-	defender, err := c.collectDefender(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Defender = defender
+	scope := subscriptionScope{index: index, id: subscriptionID}
+	account.Defender = c.collectDefender(ctx, scope, diagnostics)
+	account.RBAC, account.roleAssignments, account.rbacMiss = c.collectRBAC(ctx, scope, diagnostics)
+	account.Policy = c.collectAzurePolicy(ctx, scope, diagnostics)
 
-	rbac, err := c.collectRBAC(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.RBAC = rbac
-
-	policy, err := c.collectAzurePolicy(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Policy = policy
-
-	storage, storageAccounts, err := c.collectStorage(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
+	storage, storageAccounts, storageMiss := c.collectStorage(ctx, scope, diagnostics)
 	account.Storage = storage
-
-	keyVault, keyVaults, err := c.collectKeyVault(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
+	keyVault, keyVaults, keyVaultsMiss := c.collectKeyVault(ctx, scope, diagnostics)
 	account.KeyVault = keyVault
-
-	sql, sqlServers, sqlDatabases, err := c.collectSQL(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
+	sql, sqlReads := c.collectSQL(ctx, scope, diagnostics)
 	account.SQL = sql
-
-	compute, virtualMachines, publicIPs, err := c.collectCompute(ctx, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
+	compute, computeReads := c.collectCompute(ctx, scope, diagnostics)
 	account.Compute = compute
 
-	backup, err := c.collectBackup(ctx, subscriptionID, virtualMachines, sqlDatabases, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Backup = backup
-
-	network, err := c.collectNetwork(ctx, subscriptionID, publicIPs, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Network = network
-
-	logging, err := c.collectLogging(ctx, subscriptionID, monitoredResourceIDs(storageAccounts, keyVaults, sqlServers, sqlDatabases, virtualMachines), diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Logging = logging
-
-	inventory, err := c.collectInventory(ctx, level, subscriptionID, diagnostics)
-	if err != nil {
-		return nil, false, err
-	}
-	account.Inventory = inventory
-
-	return account, true, nil
+	account.Backup = c.collectBackup(ctx, scope, backupPopulation{
+		virtualMachines: computeReads.virtualMachines,
+		databases:       sqlReads.databases,
+		why:             firstMissing(computeReads.virtualMachinesMiss, sqlReads.serversMiss, sqlReads.databasesMiss),
+	}, diagnostics)
+	account.Network = c.collectNetwork(ctx, scope, computeReads.publicIPs, computeReads.publicIPsMiss, diagnostics)
+	account.Logging = c.collectLogging(ctx, scope, monitoredResources{
+		list: monitoredResourceList(storageAccounts, keyVaults, sqlReads.masters, sqlReads.databases, computeReads.virtualMachines),
+		why:  firstMissing(storageMiss, keyVaultsMiss, sqlReads.serversMiss, sqlReads.databasesMiss, computeReads.virtualMachinesMiss),
+	}, diagnostics)
+	account.Inventory = c.collectInventory(ctx, level, scope, diagnostics)
+	return account
 }
 
-func (c *Collector) collectDefender(ctx context.Context, subscriptionID string, diagnostics *Diagnostics) (*AzureDefender, error) {
+type subscriptionScope struct {
+	index int
+	id    string
+}
+
+func (s subscriptionScope) pointer(field string) string {
+	return accountPointer(s.index, field)
+}
+
+func (c *Collector) collectDefender(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzureDefender {
 	out := &AzureDefender{}
-	score, err := c.arm.DefenderSecureScore(ctx, subscriptionID)
-	if err == nil {
+	score, err := c.arm.DefenderSecureScore(ctx, scope.id)
+	switch {
+	case err == nil:
 		out.SecureScorePct = defenderSecureScorePct(score)
-	} else if surfaceUnavailable(err) {
-		diagnostics.Warn("Defender secure score unavailable for subscription " + subscriptionID)
-	} else if microsoft.RetriesExhausted(err) {
-		diagnostics.Warn(notCollectedAfterRetries("Defender secure score", subscriptionID, "defender.secure_score_pct", err))
-	} else {
-		return nil, err
+	case apiStatus(err) == http.StatusNotFound:
+		diagnostics.Warn("Defender secure score unavailable for subscription " + scope.id)
+		c.gaps.leaveOut(azurePath, unlicensed("Defender for Cloud has no secure score for the subscription."), scope.pointer("defender/secure_score_pct"))
+	default:
+		warnDefender(diagnostics, "Defender secure score", scope.id, "defender.secure_score_pct", err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("defender/secure_score_pct"))
 	}
 
-	assessments, err := c.arm.DefenderAssessments(ctx, subscriptionID)
+	assessments, err := c.arm.DefenderAssessments(ctx, scope.id)
 	if err == nil {
 		out.UnpatchedPct = defenderUnpatchedPct(assessments)
-	} else if surfaceUnavailable(err) {
-		diagnostics.Warn("Defender assessments unavailable for subscription " + subscriptionID)
-	} else if microsoft.RetriesExhausted(err) {
-		diagnostics.Warn(notCollectedAfterRetries("Defender assessments", subscriptionID, "defender.unpatched_pct", err))
 	} else {
-		return nil, err
+		warnDefender(diagnostics, "Defender assessments", scope.id, "defender.unpatched_pct", err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("defender/unpatched_pct"))
 	}
-	return out, nil
+	return out
+}
+
+// warnDefender keeps the warning older readers know for a Defender call that
+// still failed after the SDK's retries.
+func warnDefender(diagnostics *Diagnostics, surface, subscriptionID, metric string, err error) {
+	switch componentsdk.Classify(err) {
+	case componentsdk.CodeRateLimited, componentsdk.CodeVendorError, componentsdk.CodeTimeout:
+		if !surfaceUnavailable(err) {
+			diagnostics.Warn(notCollectedAfterRetries(surface, subscriptionID, metric, err))
+			return
+		}
+	}
+	diagnostics.warnSubscription(surface, subscriptionID, err)
 }
 
 func notCollectedAfterRetries(surface, subscriptionID, metric string, err error) string {
@@ -193,30 +172,4 @@ func patchOrVulnerabilityAssessment(assessment microsoft.SecurityAssessment) boo
 	return strings.Contains(haystack, "vulnerab") ||
 		strings.Contains(haystack, "patch") ||
 		strings.Contains(haystack, "update")
-}
-
-func subscriptionError(err error) bool {
-	var apiErr *microsoft.APIError
-	if !errors.As(err, &apiErr) {
-		return false
-	}
-	switch apiErr.StatusCode {
-	case http.StatusForbidden, http.StatusNotFound:
-		return true
-	default:
-		return false
-	}
-}
-
-func surfaceUnavailable(err error) bool {
-	var apiErr *microsoft.APIError
-	if !errors.As(err, &apiErr) {
-		return false
-	}
-	switch apiErr.StatusCode {
-	case http.StatusForbidden, http.StatusNotFound:
-		return true
-	default:
-		return false
-	}
 }

@@ -2,6 +2,8 @@ package collector
 
 import (
 	"context"
+	"maps"
+	"slices"
 	"sort"
 	"strings"
 	"unicode"
@@ -10,35 +12,25 @@ import (
 	"github.com/locktivity/epack/componentsdk"
 )
 
-var ownerTagKeys = map[string]struct{}{
-	"owner":            {},
-	"applicationowner": {},
-	"businessowner":    {},
-	"serviceowner":     {},
-	"contact":          {},
-	"managedby":        {},
-}
+// ownerTagKeys and environmentTagKeys are the normalized tag keys for a
+// resource's owner and environment, in the order they are read.
+var (
+	ownerTagKeys       = []string{"owner", "applicationowner", "businessowner", "serviceowner", "contact", "managedby"}
+	environmentTagKeys = []string{"environment", "env", "stage"}
+)
 
-var environmentTagKeys = map[string]struct{}{
-	"environment": {},
-	"env":         {},
-	"stage":       {},
-}
-
-func (c *Collector) collectInventory(ctx context.Context, level componentsdk.Level, subscriptionID string, diagnostics *Diagnostics) (*AzureInventory, error) {
+func (c *Collector) collectInventory(ctx context.Context, level componentsdk.Level, scope subscriptionScope, diagnostics *Diagnostics) *AzureInventory {
 	if !level.AtLeast(componentsdk.LevelAudit) {
-		return nil, nil
+		return nil
 	}
 
-	resources, err := c.arm.Resources(ctx, subscriptionID)
-	if err == nil {
-		return inventoryPosture(resources), nil
+	resources, err := c.arm.Resources(ctx, scope.id)
+	if err != nil {
+		diagnostics.warnSubscription("Azure resource inventory", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("inventory"))
+		return nil
 	}
-	if surfaceUnavailable(err) {
-		diagnostics.Warn("Azure resource inventory unavailable for subscription " + subscriptionID)
-		return nil, nil
-	}
-	return nil, err
+	return inventoryPosture(resources)
 }
 
 func inventoryPosture(resources []microsoft.ARMResource) *AzureInventory {
@@ -59,8 +51,10 @@ func inventoryPosture(resources []microsoft.ARMResource) *AzureInventory {
 		if resourceGroup := resourceGroupFromID(resource.ID); resourceGroup != "" {
 			resourceGroups[strings.ToLower(resourceGroup)] = struct{}{}
 		}
-		if location := strings.TrimSpace(resource.Location); location != "" {
-			regions[strings.ToLower(location)] = struct{}{}
+		// Resources such as DNS zones have the location global, which is not
+		// a region.
+		if location := strings.ToLower(strings.TrimSpace(resource.Location)); location != "" && location != "global" {
+			regions[location] = struct{}{}
 		}
 		if hasNormalizedTagKey(resource.Tags, ownerTagKeys) {
 			ownerTagged++
@@ -120,16 +114,24 @@ func resourceGroupFromID(id string) string {
 	return ""
 }
 
-func hasNormalizedTagKey(tags map[string]string, keys map[string]struct{}) bool {
+func hasNormalizedTagKey(tags map[string]string, keys []string) bool {
 	_, ok := normalizedTagValue(tags, keys)
 	return ok
 }
 
-func normalizedTagValue(tags map[string]string, keys map[string]struct{}) (string, bool) {
-	for key, value := range tags {
-		if _, ok := keys[normalizedTagKey(key)]; ok {
-			trimmed := strings.TrimSpace(value)
-			return strings.ToLower(trimmed), trimmed != ""
+// normalizedTagValue returns the lowercased value of the first nonempty tag
+// whose key is one of keys, taking keys in order. Empty tags are skipped.
+// The result does not depend on map order.
+func normalizedTagValue(tags map[string]string, keys []string) (string, bool) {
+	tagKeys := slices.Sorted(maps.Keys(tags))
+	for _, want := range keys {
+		for _, key := range tagKeys {
+			if normalizedTagKey(key) != want {
+				continue
+			}
+			if value := strings.TrimSpace(tags[key]); value != "" {
+				return strings.ToLower(value), true
+			}
 		}
 	}
 	return "", false

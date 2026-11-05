@@ -31,7 +31,7 @@ if [[ "$status" -ne 0 ]]; then
   exit "$status"
 fi
 
-if rg -n 'ms_CANARY_LEAK_SECRET|ms_CANARY_LEAK_TOKEN' "$stdout_file" "$stderr_file"; then
+if grep -n -E 'ms_CANARY_LEAK_SECRET|ms_CANARY_LEAK_TOKEN' "$stdout_file" "$stderr_file"; then
   echo "canary secret leaked to collector output" >&2
   exit 1
 fi

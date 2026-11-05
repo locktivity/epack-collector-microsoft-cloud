@@ -26,20 +26,44 @@ Abbreviated artifacts:
 ```json
 [
   {
-    "path": "artifacts/microsoft-cloud.entra.json"
+    "path": "artifacts/microsoft-cloud.entra.json",
+    "schema": "microsoft-cloud/entra@v1"
   },
   {
     "path": "artifacts/microsoft-cloud.idp-posture.json",
     "schema": "evidencepack/idp-posture@v1"
   },
   {
-    "path": "artifacts/microsoft-cloud.azure.json"
+    "path": "artifacts/microsoft-cloud.azure.json",
+    "schema": "microsoft-cloud/azure@v1"
   },
   {
     "path": "artifacts/microsoft-cloud.cloud-posture.json",
     "schema": "evidencepack/cloud-posture@v1"
+  },
+  {
+    "path": "artifacts/microsoft-cloud.access-posture.json",
+    "schema": "evidencepack/access-posture@v1"
   }
 ]
+```
+
+## Normalized Evidence Only
+
+Use `collect` to share only the normalized artifacts, which profiles read, and leave the detailed Entra and Azure files out of the pack.
+
+```yaml
+collectors:
+  microsoft-cloud:
+    source: locktivity/epack-collector-microsoft-cloud@^0.1.0
+    config:
+      tenant_id: 00000000-0000-0000-0000-000000000000
+      client_id: 11111111-1111-1111-1111-111111111111
+      auth_mode: oidc
+      subscription_ids:
+        - 22222222-2222-2222-2222-222222222222
+      level: trust
+      collect: [cloud-posture, access-posture, idp-posture]
 ```
 
 ## Audit-Level Azure Inventory
@@ -147,7 +171,7 @@ If a tenant lacks a required Entra license, the collector still emits the availa
 {
   "posture": {
     "mfa_coverage": null,
-    "denominator_enabled_member_users": 2
+    "denominator_enabled_member_users": null
   },
   "diagnostics": {
     "warnings": [

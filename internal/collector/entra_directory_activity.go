@@ -2,8 +2,6 @@ package collector
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"strings"
 	"time"
 
@@ -13,23 +11,23 @@ import (
 
 const directoryAuditLookback = 7 * 24 * time.Hour
 
-func (c *Collector) collectDirectoryActivity(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) (*DirectoryActivity, error) {
+func (c *Collector) collectDirectoryActivity(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) *DirectoryActivity {
 	if !level.AtLeast(componentsdk.LevelInternal) {
-		return nil, nil
+		return nil
 	}
 
 	audits, err := c.graph.DirectoryAudits(ctx, c.clock.Now().Add(-directoryAuditLookback))
-	if err == nil {
-		return summarizeDirectoryActivity(audits, int(directoryAuditLookback.Hours())), nil
-	}
-
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusForbidden {
+	switch {
+	case err == nil:
+		return summarizeDirectoryActivity(audits, int(directoryAuditLookback.Hours()))
+	case permissionDenied(err):
 		diagnostics.Warn("graph permission AuditLog.Read.All or Directory.Read.All not granted, directory audit activity skipped")
 		diagnostics.MarkCapabilityUnavailable("directory_audit_activity")
-		return nil, nil
+	default:
+		diagnostics.warnNotCollected("Directory audit activity", err)
 	}
-	return nil, err
+	c.gaps.leaveOut(entraPath, failed(err), "/directory_activity")
+	return nil
 }
 
 func summarizeDirectoryActivity(audits []microsoft.DirectoryAudit, lookbackHours int) *DirectoryActivity {

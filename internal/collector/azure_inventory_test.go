@@ -36,6 +36,36 @@ func TestInventoryTrustOmitted(t *testing.T) {
 	}
 }
 
+// Resources that are not tied to a region, such as DNS zones, have the
+// location global.
+// https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/considerations/regions
+func TestInventoryRegionsLeaveOutGlobal(t *testing.T) {
+	inventory := inventoryPosture([]microsoft.ARMResource{
+		{ID: "/subscriptions/s/resourceGroups/a/providers/Microsoft.Storage/storageAccounts/sa", Location: "eastus"},
+		{ID: "/subscriptions/s/resourceGroups/b/providers/Microsoft.Compute/virtualMachines/vm", Location: "westus"},
+		{ID: "/subscriptions/s/resourceGroups/c/providers/Microsoft.Network/dnszones/contoso.com", Location: "global"},
+	})
+	assertInt(t, "region count", inventory.RegionsCount, 2)
+}
+
+// A nonempty tag counts when another owner or environment tag is empty. The
+// answer is the same on every run.
+func TestInventoryTagCoverageSkipsEmptyTags(t *testing.T) {
+	resources := []microsoft.ARMResource{
+		{ID: "/subscriptions/s/resourceGroups/a/providers/Microsoft.Storage/storageAccounts/one", Tags: map[string]string{"Owner": "alice", "ManagedBy": ""}},
+		{ID: "/subscriptions/s/resourceGroups/a/providers/Microsoft.Storage/storageAccounts/two", Tags: map[string]string{"env": "", "stage": "prod"}},
+		{ID: "/subscriptions/s/resourceGroups/a/providers/Microsoft.Storage/storageAccounts/three", Tags: map[string]string{"environment": "dev", "stage": "prod"}},
+		{ID: "/subscriptions/s/resourceGroups/a/providers/Microsoft.Storage/storageAccounts/four"},
+	}
+	for range 100 {
+		inventory := inventoryPosture(resources)
+		assertPtrInt(t, "owner tag coverage", inventory.OwnerTagCoveragePct, 25)
+		assertPtrInt(t, "environment tag coverage", inventory.EnvironmentTagCoveragePct, 50)
+		// An environment tag is read before a stage tag.
+		assertPtrInt(t, "production resources", inventory.ProductionResourcesPct, 25)
+	}
+}
+
 func TestInventoryZeroResources(t *testing.T) {
 	arm := fakeARMClient()
 	arm.resources["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = nil

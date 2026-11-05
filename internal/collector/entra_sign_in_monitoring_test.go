@@ -26,16 +26,16 @@ func TestSignInMonitoringInternalOnly(t *testing.T) {
 	assertInt(t, "unique users", monitoring.UniqueUsersCount, 3)
 	assertInt(t, "unique apps", monitoring.UniqueAppsCount, 2)
 	assertInt(t, "legacy client sign-ins", monitoring.LegacyClientSignInsCount, 1)
-	assertInt(t, "risky sign-ins", monitoring.RiskySignInsCount, 2)
+	assertPtrInt(t, "risky sign-ins", monitoring.RiskySignInsCount, 2)
 	assertInt(t, "CA success", monitoring.ConditionalAccessSuccessCount, 2)
 	assertInt(t, "CA failure", monitoring.ConditionalAccessFailureCount, 1)
 	assertInt(t, "CA not applied", monitoring.ConditionalAccessNotAppliedCount, 1)
-	assertInt(t, "applied policies", monitoring.AppliedPoliciesCount, 3)
-	assertInt(t, "applied policy evaluations", monitoring.AppliedPolicyEvaluationsCount, 4)
-	assertInt(t, "applied policy successes", monitoring.AppliedPolicySuccessCount, 1)
-	assertInt(t, "applied policy failures", monitoring.AppliedPolicyFailureCount, 1)
-	assertInt(t, "applied policy not applied", monitoring.AppliedPolicyNotAppliedCount, 1)
-	assertInt(t, "applied policy report-only failures", monitoring.AppliedPolicyReportOnlyFailCount, 1)
+	assertPtrInt(t, "applied policies", monitoring.AppliedPoliciesCount, 3)
+	assertPtrInt(t, "applied policy evaluations", monitoring.AppliedPolicyEvaluationsCount, 4)
+	assertPtrInt(t, "applied policy successes", monitoring.AppliedPolicySuccessCount, 1)
+	assertPtrInt(t, "applied policy failures", monitoring.AppliedPolicyFailureCount, 1)
+	assertPtrInt(t, "applied policy not applied", monitoring.AppliedPolicyNotAppliedCount, 1)
+	assertPtrInt(t, "applied policy report-only failures", monitoring.AppliedPolicyReportOnlyFailCount, 1)
 	if len(monitoring.TopFailureCodes) != 2 || monitoring.TopFailureCodes[0].Code != 50053 || monitoring.TopFailureCodes[1].Code != 50126 {
 		t.Fatalf("unexpected top failure codes: %#v", monitoring.TopFailureCodes)
 	}
@@ -57,6 +57,75 @@ func TestSignInMonitoringUnavailable(t *testing.T) {
 	if got := result.Entra.Diagnostics.License.CapabilitiesUnavailable; got[len(got)-1] != "sign_in_logs" {
 		t.Fatalf("expected sign_in_logs unavailable capability, got %#v", got)
 	}
+}
+
+func collectTestSignIns(t *testing.T, signIns []microsoft.SignIn) (*SignInMonitoring, *componentsdk.Recorder) {
+	t.Helper()
+	graph := fakeGraphClient()
+	graph.signIns = signIns
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.GraphClient = graph
+	cfg.Recorder = rec
+	monitoring := collectTestResultAtLevel(t, cfg, componentsdk.LevelInternal).Entra.SignInMonitoring
+	if monitoring == nil {
+		t.Fatal("expected sign-in monitoring")
+	}
+	return monitoring, rec
+}
+
+// Risk levels are hidden on every sign-in of a tenant without Entra ID P2.
+// Sign-in logs need only P1.
+// https://learn.microsoft.com/en-us/graph/api/resources/signin
+func TestRiskySignInsLeftOutWhenRiskLevelsAreHidden(t *testing.T) {
+	none := []microsoft.AppliedConditionalAccessPolicy{}
+	monitoring, rec := collectTestSignIns(t, []microsoft.SignIn{
+		{ID: "s1", UserID: "u1", AppID: "app1", RiskLevelAggregated: "hidden", RiskLevelDuringSignIn: "hidden", AppliedConditionalAccessPolicies: none},
+		{ID: "s2", UserID: "u2", AppID: "app1", RiskLevelAggregated: "hidden", RiskLevelDuringSignIn: "hidden", AppliedConditionalAccessPolicies: none},
+	})
+	if monitoring.RiskySignInsCount != nil {
+		t.Fatalf("risky_sign_ins_count = %d, want it left out", *monitoring.RiskySignInsCount)
+	}
+	assertGap(t, rec, entraPath, "/sign_in_monitoring/risky_sign_ins_count", componentsdk.CodeNotLicensed)
+}
+
+// appliedConditionalAccessPolicies is left out of every sign-in when the app
+// cannot read Conditional Access data.
+// https://learn.microsoft.com/en-us/graph/api/signin-list#permissions
+func TestAppliedPolicyCountsLeftOutWhenSignInsOmitThem(t *testing.T) {
+	monitoring, rec := collectTestSignIns(t, []microsoft.SignIn{
+		{ID: "s1", UserID: "u1", AppID: "app1", ConditionalAccessStatus: "success", RiskLevelAggregated: "none"},
+		{ID: "s2", UserID: "u2", AppID: "app1", ConditionalAccessStatus: "success", RiskLevelAggregated: "none"},
+	})
+	assertInt(t, "CA success", monitoring.ConditionalAccessSuccessCount, 2)
+	for _, count := range []*int{
+		monitoring.AppliedPoliciesCount, monitoring.AppliedPolicyEvaluationsCount, monitoring.AppliedPolicySuccessCount,
+		monitoring.AppliedPolicyFailureCount, monitoring.AppliedPolicyNotAppliedCount, monitoring.AppliedPolicyReportOnlyFailCount,
+	} {
+		if count != nil {
+			t.Fatalf("expected the applied policy counts left out, got %#v", monitoring)
+		}
+	}
+	for _, pointer := range appliedPolicyFields {
+		assertGap(t, rec, entraPath, pointer, componentsdk.CodePermissionDenied)
+	}
+	assertPtrInt(t, "risky sign-ins", monitoring.RiskySignInsCount, 0)
+}
+
+// Microsoft lists these protocols under the Other clients condition for
+// legacy authentication.
+// https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-conditions
+func TestLegacyClientSignInsCountEveryLegacyProtocol(t *testing.T) {
+	var signIns []microsoft.SignIn
+	for _, client := range []string{
+		"Exchange Web Services", "Exchange Online PowerShell", "Offline Address Book",
+		"Outlook Anywhere (RPC over HTTP)", "Outlook Service", "Reporting Web Services",
+		"Browser", "Mobile Apps and Desktop clients",
+	} {
+		signIns = append(signIns, microsoft.SignIn{ID: client, UserID: "u1", AppID: "app1", ClientAppUsed: client, AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{}})
+	}
+	monitoring, _ := collectTestSignIns(t, signIns)
+	assertInt(t, "legacy client sign-ins", monitoring.LegacyClientSignInsCount, 6)
 }
 
 func TestSliceIGolden(t *testing.T) {

@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -53,52 +54,102 @@ type Collector struct {
 	graph  GraphAPI
 	arm    ARMAPI
 	clock  Clock
+	gaps   *gapLog
+
+	graphToken *microsoft.TokenSource
+	armToken   *microsoft.TokenSource
 }
 
 func New(config Config) (*Collector, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
-	graph, err := config.graphClient()
-	if err != nil {
-		return nil, err
+	c := &Collector{config: config, clock: config.Clock, gaps: newGapLog(config.Recorder)}
+	if c.clock == nil {
+		c.clock = realClock{}
 	}
-	arm, err := config.armClient()
-	if err != nil {
-		return nil, err
+	if config.GraphClient != nil {
+		c.graph = config.GraphClient
+	} else {
+		tokenSource, err := config.tokenSource(microsoft.GraphScope)
+		if err != nil {
+			return nil, err
+		}
+		c.graphToken = tokenSource
+		c.graph = config.graphClient(tokenSource)
 	}
-	clock := config.Clock
-	if clock == nil {
-		clock = realClock{}
+	if config.ARMClient != nil {
+		c.arm = config.ARMClient
+	} else {
+		tokenSource, err := config.tokenSource(microsoft.ARMScope)
+		if err != nil {
+			return nil, err
+		}
+		c.armToken = tokenSource
+		c.arm = config.armClient(tokenSource)
 	}
-	return &Collector{config: config, graph: graph, arm: arm, clock: clock}, nil
+	return c, nil
 }
 
+// Collect returns an error only when sign-in fails. Any value it cannot read
+// after that is left out of the artifacts and recorded as a gap.
 func (c *Collector) Collect(ctx context.Context, level componentsdk.Level) (*Result, error) {
 	if c.config.OnStatus != nil {
 		c.config.OnStatus("Collecting Entra tenant posture")
 	}
-
-	diagnostics := NewDiagnostics()
-	entra, err := c.collectEntra(ctx, level, &diagnostics)
+	org, err := c.signIn(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	diagnostics := NewDiagnostics()
+	entra := c.collectEntra(ctx, level, org, &diagnostics)
+	azure := c.collectAzure(ctx, level, &diagnostics)
+	entra.Diagnostics = diagnostics
+	azure.Diagnostics = diagnostics
 
 	result := &Result{
 		Entra:       entra,
+		Azure:       azure,
 		Diagnostics: diagnostics,
 	}
 	result.EntraIDPPosture = entra.ToIDPPosture()
-	azure, err := c.collectAzure(ctx, level, &diagnostics)
-	if err != nil {
-		return nil, err
+	if result.EntraIDPPosture != nil {
+		c.markUnlistedMembers(entra, idpPosturePath, "/user_security/mfa_coverage_pct", "/user_security/mfa_phishing_resistant_pct")
+		c.markIDPPostureUnsupported(level)
+		c.mirrorIDPPostureGaps()
 	}
-	result.Diagnostics = diagnostics
-	result.Entra.Diagnostics = diagnostics
-	result.Azure = azure
-	result.AzureCloudPosture = azure.ToCloudPosture(entra)
+	result.AzureCloudPosture = azure.ToCloudPosture()
+	c.mirrorCloudPostureGaps(azure)
+	result.AzureAccessPosture = c.accessPosture(level, azure, entra)
 	return result, nil
+}
+
+// signIn acquires both access tokens and looks up the organization. These
+// are the only calls whose failure fails the run.
+func (c *Collector) signIn(ctx context.Context) (*microsoft.Organization, error) {
+	if c.graphToken != nil {
+		if _, err := c.graphToken.AccessToken(ctx); err != nil {
+			return nil, fmt.Errorf("signing in to Microsoft Graph: %w", err)
+		}
+		c.gaps.rec.SignedInAs(componentsdk.Principal{
+			Provider: "microsoft-entra",
+			Kind:     "service_principal",
+			TenantID: c.config.TenantID,
+			Scopes:   c.graphToken.Roles(),
+			ID:       c.config.ClientID,
+		})
+	}
+	if c.armToken != nil {
+		if _, err := c.armToken.AccessToken(ctx); err != nil {
+			return nil, fmt.Errorf("signing in to Azure Resource Manager: %w", err)
+		}
+	}
+	org, err := c.graph.Organization(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("looking up the organization: %w", err)
+	}
+	return org, nil
 }
 
 func (r *Result) Artifacts() []componentsdk.CollectedArtifact {
@@ -107,30 +158,19 @@ func (r *Result) Artifacts() []componentsdk.CollectedArtifact {
 	}
 	artifacts := []componentsdk.CollectedArtifact{}
 	if r.Entra != nil {
-		artifacts = append(artifacts, componentsdk.CollectedArtifact{
-			Data: r.Entra,
-			Path: "artifacts/microsoft-cloud.entra.json",
-		})
+		artifacts = append(artifacts, componentsdk.CollectedArtifact{Data: r.Entra, Schema: entraSchema, Path: entraPath})
 	}
 	if r.EntraIDPPosture != nil {
-		artifacts = append(artifacts, componentsdk.CollectedArtifact{
-			Data:   r.EntraIDPPosture,
-			Schema: "evidencepack/idp-posture@v1",
-			Path:   "artifacts/microsoft-cloud.idp-posture.json",
-		})
+		artifacts = append(artifacts, componentsdk.CollectedArtifact{Data: r.EntraIDPPosture, Schema: idpPostureSchema, Path: idpPosturePath})
 	}
 	if r.Azure != nil {
-		artifacts = append(artifacts, componentsdk.CollectedArtifact{
-			Data: r.Azure,
-			Path: "artifacts/microsoft-cloud.azure.json",
-		})
+		artifacts = append(artifacts, componentsdk.CollectedArtifact{Data: r.Azure, Schema: azureSchema, Path: azurePath})
 	}
 	if r.AzureCloudPosture != nil {
-		artifacts = append(artifacts, componentsdk.CollectedArtifact{
-			Data:   r.AzureCloudPosture,
-			Schema: "evidencepack/cloud-posture@v1",
-			Path:   "artifacts/microsoft-cloud.cloud-posture.json",
-		})
+		artifacts = append(artifacts, componentsdk.CollectedArtifact{Data: r.AzureCloudPosture, Schema: cloudPostureSchema, Path: cloudPosturePath})
+	}
+	if r.AzureAccessPosture != nil {
+		artifacts = append(artifacts, componentsdk.CollectedArtifact{Data: r.AzureAccessPosture, Schema: accessPostureSchema, Path: accessPosturePath})
 	}
 	return artifacts
 }

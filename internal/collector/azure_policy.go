@@ -7,33 +7,29 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectAzurePolicy(ctx context.Context, subscriptionID string, diagnostics *Diagnostics) (*AzurePolicy, error) {
-	assignments, err := c.arm.PolicyAssignments(ctx, subscriptionID)
+func (c *Collector) collectAzurePolicy(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzurePolicy {
+	assignments, err := c.arm.PolicyAssignments(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Azure Policy assignments unavailable for subscription " + subscriptionID)
-			return &AzurePolicy{}, nil
-		}
-		return nil, err
+		diagnostics.warnSubscription("Azure Policy assignments", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("policy"))
+		return nil
 	}
 
 	out := &AzurePolicy{AssignmentsCount: len(assignments)}
 	if len(assignments) == 0 {
-		return out, nil
+		return out
 	}
 
-	summary, err := c.arm.PolicyStateSummary(ctx, subscriptionID)
+	summary, err := c.arm.PolicyStateSummary(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Azure Policy compliance summary unavailable for subscription " + subscriptionID)
-			return out, nil
-		}
-		return nil, err
+		diagnostics.warnSubscription("Azure Policy compliance summary", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("policy/compliant_pct"), scope.pointer("policy/noncompliant_resources_count"))
+		return out
 	}
 	compliant, noncompliant := policyResourceCompliance(summary)
 	out.CompliantPct = PercentInt(compliant, compliant+noncompliant)
 	out.NoncompliantResourcesCount = intPtr(noncompliant)
-	return out, nil
+	return out
 }
 
 func policyResourceCompliance(summary *microsoft.PolicyStateSummaryResult) (compliant, noncompliant int) {

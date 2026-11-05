@@ -1,5 +1,7 @@
 package collector
 
+import "github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
+
 const SchemaVersion = "1.0.0"
 
 type EntraArtifact struct {
@@ -18,6 +20,20 @@ type EntraArtifact struct {
 	DirectoryActivity *DirectoryActivity `json:"directory_activity,omitempty"`
 	SignInMonitoring  *SignInMonitoring  `json:"sign_in_monitoring,omitempty"`
 	Diagnostics       Diagnostics        `json:"diagnostics"`
+
+	// directory holds the users the access posture looks up by ID.
+	directory directory
+}
+
+// directory holds the tenant's users by ID, from the user list and from the
+// sign-in activity list, with why each list could not be read. apps holds the
+// app credentials.
+type directory struct {
+	users      map[string]microsoft.User
+	usersMiss  *missing
+	signIns    map[string]microsoft.User
+	signInMiss *missing
+	apps       appCredentials
 }
 
 type Posture struct {
@@ -26,16 +42,29 @@ type Posture struct {
 	MFAWeakMethodOnly             *int `json:"mfa_weak_method_only"`
 	SSPRRegistered                *int `json:"sspr_registered"`
 	SSOCoverage                   *int `json:"sso_coverage"`
-	DenominatorEnabledMemberUsers int  `json:"denominator_enabled_member_users"`
+	DenominatorEnabledMemberUsers *int `json:"denominator_enabled_member_users"`
+
+	// The counts behind the registration percentages, which the normalized
+	// artifacts round as their schemas say. Both are nil when the
+	// percentages were not read.
+	mfaRegisteredCount     *int
+	phishingResistantCount *int
 }
 
 type Users struct {
-	TotalCount              int  `json:"total_count"`
-	EnabledMemberUsersCount int  `json:"enabled_member_users_count"`
+	TotalCount              *int `json:"total_count"`
+	EnabledMemberUsersCount *int `json:"enabled_member_users_count"`
 	GuestPct                *int `json:"guest_pct"`
 	DisabledPct             *int `json:"disabled_pct"`
 	InactivePct             *int `json:"inactive_pct"`
 	InactiveGuestPct        *int `json:"inactive_guest_pct"`
+
+	// disabledCount is the count behind DisabledPct. inactiveCount and
+	// signInEnabledCount are the counts behind InactivePct, taken from the
+	// sign-in activity list.
+	disabledCount      *int
+	inactiveCount      *int
+	signInEnabledCount *int
 }
 
 type Policy struct {
@@ -46,6 +75,11 @@ type Policy struct {
 	CompliantDeviceRequired *bool `json:"compliant_device_required"`
 	LegacyAuthBlocked       *bool `json:"legacy_auth_blocked"`
 	PolicyCount             *int  `json:"policy_count"`
+
+	// mfaRequiredUserCount is the count behind MFARequiredCoveragePct. It
+	// counts the enabled members a policy that requires MFA covers, and is
+	// nil when the coverage or the user list was not read.
+	mfaRequiredUserCount *int
 }
 
 type SecurityDefaults struct {
@@ -53,25 +87,32 @@ type SecurityDefaults struct {
 }
 
 type PrivilegedAccess struct {
-	SuperAdminCount                int   `json:"super_admin_count"`
-	PrivilegedUsersCount           int   `json:"privileged_users_count"`
-	PrivilegedMFACoveragePct       *int  `json:"privileged_mfa_coverage_pct"`
-	PrivilegedPhishingResistantPct *int  `json:"privileged_phishing_resistant_pct"`
-	PIMEligiblePct                 *int  `json:"pim_eligible_pct"`
-	StandingAssignmentCount        *int  `json:"standing_assignment_count"`
-	InactivePrivilegedUsersCount   *int  `json:"inactive_privileged_users_count"`
-	PrivilegedGuestCount           int   `json:"privileged_guest_count"`
-	RootMFAEnabled                 *bool `json:"-"`
+	SuperAdminCount                *int `json:"super_admin_count"`
+	PrivilegedUsersCount           *int `json:"privileged_users_count"`
+	PrivilegedMFACoveragePct       *int `json:"privileged_mfa_coverage_pct"`
+	PrivilegedPhishingResistantPct *int `json:"privileged_phishing_resistant_pct"`
+	PIMEligiblePct                 *int `json:"pim_eligible_pct"`
+	StandingAssignmentCount        *int `json:"standing_assignment_count"`
+	InactivePrivilegedUsersCount   *int `json:"inactive_privileged_users_count"`
+	PrivilegedGuestCount           *int `json:"privileged_guest_count"`
+
+	// The counts behind the privileged MFA percentages, nil when they were
+	// not read.
+	mfaRegisteredCount     *int
+	phishingResistantCount *int
 }
 
 type Apps struct {
 	EnabledEnterpriseAppsCount int  `json:"enabled_enterprise_apps_count"`
 	AssignmentRequiredPct      *int `json:"assignment_required_pct"`
-	CredentialsExpiringCount   int  `json:"credentials_expiring_count"`
-	CredentialsExpiredCount    int  `json:"credentials_expired_count"`
-	CredentialsOver365dCount   int  `json:"credentials_over_365d_count"`
+	CredentialsExpiringCount   *int `json:"credentials_expiring_count"`
+	CredentialsExpiredCount    *int `json:"credentials_expired_count"`
+	CredentialsOver365dCount   *int `json:"credentials_over_365d_count"`
 	PasswordCredentialsPct     *int `json:"password_credentials_pct"`
 	SSOCoveragePct             *int `json:"-"`
+
+	// ssoAppCount is the count behind SSOCoveragePct.
+	ssoAppCount int
 }
 
 type SecureScore struct {
@@ -98,16 +139,16 @@ type SignInMonitoring struct {
 	UniqueUsersCount                 int                      `json:"unique_users_count"`
 	UniqueAppsCount                  int                      `json:"unique_apps_count"`
 	LegacyClientSignInsCount         int                      `json:"legacy_client_sign_ins_count"`
-	RiskySignInsCount                int                      `json:"risky_sign_ins_count"`
+	RiskySignInsCount                *int                     `json:"risky_sign_ins_count"`
 	ConditionalAccessSuccessCount    int                      `json:"conditional_access_success_count"`
 	ConditionalAccessFailureCount    int                      `json:"conditional_access_failure_count"`
 	ConditionalAccessNotAppliedCount int                      `json:"conditional_access_not_applied_count"`
-	AppliedPoliciesCount             int                      `json:"applied_policies_count"`
-	AppliedPolicyEvaluationsCount    int                      `json:"applied_policy_evaluations_count"`
-	AppliedPolicySuccessCount        int                      `json:"applied_policy_success_count"`
-	AppliedPolicyFailureCount        int                      `json:"applied_policy_failure_count"`
-	AppliedPolicyNotAppliedCount     int                      `json:"applied_policy_not_applied_count"`
-	AppliedPolicyReportOnlyFailCount int                      `json:"applied_policy_report_only_fail_count"`
+	AppliedPoliciesCount             *int                     `json:"applied_policies_count"`
+	AppliedPolicyEvaluationsCount    *int                     `json:"applied_policy_evaluations_count"`
+	AppliedPolicySuccessCount        *int                     `json:"applied_policy_success_count"`
+	AppliedPolicyFailureCount        *int                     `json:"applied_policy_failure_count"`
+	AppliedPolicyNotAppliedCount     *int                     `json:"applied_policy_not_applied_count"`
+	AppliedPolicyReportOnlyFailCount *int                     `json:"applied_policy_report_only_fail_count"`
 	TopFailureCodes                  []SignInFailureCodeCount `json:"top_failure_codes"`
 }
 
@@ -117,11 +158,12 @@ type SignInFailureCodeCount struct {
 }
 
 type Result struct {
-	Entra             *EntraArtifact
-	EntraIDPPosture   *IDPPosture
-	Azure             *AzureArtifact
-	AzureCloudPosture *CloudPosture
-	Diagnostics       Diagnostics
+	Entra              *EntraArtifact
+	EntraIDPPosture    *IDPPosture
+	Azure              *AzureArtifact
+	AzureCloudPosture  *CloudPosture
+	AzureAccessPosture *AccessPosture
+	Diagnostics        Diagnostics
 }
 
 type AzureArtifact struct {
@@ -145,6 +187,14 @@ type AzureAccount struct {
 	Network   *AzureNetwork   `json:"network,omitempty"`
 	Logging   *AzureLogging   `json:"logging,omitempty"`
 	Inventory *AzureInventory `json:"inventory,omitempty"`
+
+	// unreadable is why the subscription itself could not be read, in which
+	// case the account carries only its ID.
+	unreadable *missing
+	// roleAssignments are the subscription's Azure role assignments, and
+	// rbacMiss is why they could not be read.
+	roleAssignments []microsoft.ARMRoleAssignment
+	rbacMiss        *missing
 }
 
 type AzureDefender struct {
@@ -170,6 +220,11 @@ type AzureStorage struct {
 	EncryptionCMKPct            *int `json:"encryption_cmk_pct"`
 	InfrastructureEncryptionPct *int `json:"infrastructure_encryption_pct"`
 	PublicAccessBlockedPct      *int `json:"public_access_blocked_pct"`
+	NetworkRestrictedPct        *int `json:"network_restricted_pct"`
+
+	// The counts behind EncryptionCMKPct and PublicAccessBlockedPct.
+	cmkCount                 int
+	publicAccessBlockedCount int
 }
 
 type AzureKeyVault struct {
@@ -180,7 +235,7 @@ type AzureKeyVault struct {
 
 type AzureSQL struct {
 	ServersCount            int  `json:"servers_count"`
-	DatabasesCount          int  `json:"databases_count"`
+	DatabasesCount          *int `json:"databases_count"`
 	TDEEnabledPct           *int `json:"tde_enabled_pct"`
 	MinTLS12Pct             *int `json:"min_tls12_pct"`
 	PublicAccessDisabledPct *int `json:"public_access_disabled_pct"`
@@ -193,17 +248,22 @@ type AzureCompute struct {
 }
 
 type AzureNetwork struct {
-	NetworkSecurityGroupsCount int  `json:"network_security_groups_count"`
-	PublicIPAddressesCount     int  `json:"public_ip_addresses_count"`
+	NetworkSecurityGroupsCount *int `json:"network_security_groups_count"`
+	PublicIPAddressesCount     *int `json:"public_ip_addresses_count"`
 	SSHOpenToWorldPct          *int `json:"ssh_open_to_world_pct"`
 	RDPOpenToWorldPct          *int `json:"rdp_open_to_world_pct"`
+
+	// The counts behind SSHOpenToWorldPct and RDPOpenToWorldPct, nil when the
+	// network security groups were not read.
+	sshOpenCount *int
+	rdpOpenCount *int
 }
 
 type AzureLogging struct {
 	SubscriptionDiagnosticSettingsEnabled *bool `json:"subscription_diagnostic_settings_enabled"`
 	ActivityLogAdministrativeExported     *bool `json:"activity_log_administrative_exported"`
 	DiagnosticSettingsCoveragePct         *int  `json:"diagnostic_settings_coverage_pct"`
-	MonitoredResourcesCount               int   `json:"monitored_resources_count"`
+	MonitoredResourcesCount               *int  `json:"monitored_resources_count"`
 	ResourcesWithoutDiagnosticsCount      *int  `json:"resources_without_diagnostics_count"`
 }
 
@@ -229,4 +289,8 @@ type AzureBackup struct {
 	FailedJobs7dCount                 *int `json:"failed_jobs_7d_count"`
 	VaultSoftDeletePct                *int `json:"vault_soft_delete_pct"`
 	VaultImmutabilityPct              *int `json:"vault_immutability_pct"`
+
+	// retentionRead is true when every vault's backup policies were read, so
+	// a nil RetentionDaysMin means no policy sets a retention period.
+	retentionRead bool
 }
