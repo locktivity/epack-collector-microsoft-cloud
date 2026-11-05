@@ -7,74 +7,123 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectLogging(ctx context.Context, subscriptionID string, resourceIDs []string, diagnostics *Diagnostics) (*AzureLogging, error) {
-	out := &AzureLogging{MonitoredResourcesCount: len(resourceIDs)}
-	subscriptionSettings, err := c.arm.SubscriptionDiagnosticSettings(ctx, subscriptionID)
+type monitoredResources struct {
+	list []monitoredResource
+	why  *missing
+}
+
+// monitoredResource is a resource whose logging coverage is measured. Its
+// logs and metrics can be in the diagnostic settings of any of settingIDs.
+type monitoredResource struct {
+	settingIDs []string
+}
+
+func (c *Collector) collectLogging(ctx context.Context, scope subscriptionScope, resources monitoredResources, diagnostics *Diagnostics) *AzureLogging {
+	out := &AzureLogging{}
+	subscriptionSettings, err := c.arm.SubscriptionDiagnosticSettings(ctx, scope.id)
 	if err == nil {
 		out.SubscriptionDiagnosticSettingsEnabled = boolPtr(diagnosticSettingsEnabled(subscriptionSettings))
 		out.ActivityLogAdministrativeExported = boolPtr(activityLogAdministrativeExported(subscriptionSettings))
-	} else if surfaceUnavailable(err) {
-		diagnostics.Warn("Subscription diagnostic settings unavailable for subscription " + subscriptionID)
 	} else {
-		return nil, err
+		diagnostics.warnSubscription("Subscription diagnostic settings", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err),
+			scope.pointer("logging/subscription_diagnostic_settings_enabled"),
+			scope.pointer("logging/activity_log_administrative_exported"))
 	}
 
-	if len(resourceIDs) == 0 {
-		return out, nil
+	coverage := scope.pointer("logging/diagnostic_settings_coverage_pct")
+	withoutDiagnostics := scope.pointer("logging/resources_without_diagnostics_count")
+	if resources.why != nil {
+		c.gaps.leaveOut(azurePath, resources.why, scope.pointer("logging/monitored_resources_count"), coverage, withoutDiagnostics)
+		return out
+	}
+	out.MonitoredResourcesCount = intPtr(len(resources.list))
+	if len(resources.list) == 0 {
+		return out
 	}
 
-	known := true
 	enabled := 0
-	warned := false
-	for _, resourceID := range resourceIDs {
-		settings, err := c.arm.DiagnosticSettings(ctx, resourceID)
+	unread := 0
+	var firstErr error
+	for _, resource := range resources.list {
+		logged, err := c.resourceLogged(ctx, resource)
 		if err != nil {
-			if surfaceUnavailable(err) {
-				known = false
-				if !warned {
-					diagnostics.Warn("Resource diagnostic settings unavailable for subscription " + subscriptionID)
-					warned = true
-				}
-				continue
+			if unread == 0 {
+				diagnostics.warnSubscription("Resource diagnostic settings", scope.id, err)
+				firstErr = err
 			}
-			return nil, err
+			unread++
+			continue
 		}
-		if diagnosticSettingsEnabled(settings) {
+		if logged {
 			enabled++
 		}
 	}
-	if known {
-		out.DiagnosticSettingsCoveragePct = PercentInt(enabled, len(resourceIDs))
-		out.ResourcesWithoutDiagnosticsCount = intPtr(len(resourceIDs) - enabled)
+	if unread > 0 {
+		c.gaps.partial(azurePath, unread, failed(firstErr), coverage, withoutDiagnostics)
+		return out
 	}
-	return out, nil
+	out.DiagnosticSettingsCoveragePct = PercentInt(enabled, len(resources.list))
+	out.ResourcesWithoutDiagnosticsCount = intPtr(len(resources.list) - enabled)
+	return out
 }
 
-func monitoredResourceIDs(storageAccounts []microsoft.StorageAccount, keyVaults []microsoft.KeyVault, sqlServers []microsoft.SQLServer, sqlDatabases []microsoft.SQLDatabase, virtualMachines []microsoft.VirtualMachine) []string {
-	resourceIDs := make([]string, 0, len(storageAccounts)+len(keyVaults)+len(sqlServers)+len(sqlDatabases)+len(virtualMachines))
+// resourceLogged reports whether a diagnostic setting sends the resource's
+// logs or metrics to a destination. It returns an error only when a read
+// failed and none of the settings read do.
+func (c *Collector) resourceLogged(ctx context.Context, resource monitoredResource) (bool, error) {
+	var firstErr error
+	for _, id := range resource.settingIDs {
+		settings, err := c.arm.DiagnosticSettings(ctx, id)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		if diagnosticSettingsEnabled(settings) {
+			return true, nil
+		}
+	}
+	return false, firstErr
+}
+
+// storageServices are the services of a storage account that hold its
+// resource logs. The account's own diagnostic setting carries only metrics.
+// https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/logs-index
+var storageServices = []string{"blobServices", "fileServices", "queueServices", "tableServices"}
+
+// monitoredResourceList lists the resources whose logging is measured. A
+// SQL server has no diagnostic settings of its own. Its audit logs are sent
+// through a diagnostic setting on its master database, so the server is
+// measured by that database.
+func monitoredResourceList(storageAccounts []microsoft.StorageAccount, keyVaults []microsoft.KeyVault, sqlMasters, sqlDatabases []microsoft.SQLDatabase, virtualMachines []microsoft.VirtualMachine) []monitoredResource {
+	var list []monitoredResource
+	add := func(ids ...string) {
+		if ids[0] != "" {
+			list = append(list, monitoredResource{settingIDs: ids})
+		}
+	}
 	for _, account := range storageAccounts {
-		resourceIDs = appendResourceID(resourceIDs, account.ID)
+		ids := []string{account.ID}
+		for _, service := range storageServices {
+			ids = append(ids, account.ID+"/"+service+"/default")
+		}
+		add(ids...)
 	}
 	for _, vault := range keyVaults {
-		resourceIDs = appendResourceID(resourceIDs, vault.ID)
+		add(vault.ID)
 	}
-	for _, server := range sqlServers {
-		resourceIDs = appendResourceID(resourceIDs, server.ID)
+	for _, master := range sqlMasters {
+		add(master.ID)
 	}
 	for _, database := range sqlDatabases {
-		resourceIDs = appendResourceID(resourceIDs, database.ID)
+		add(database.ID)
 	}
 	for _, vm := range virtualMachines {
-		resourceIDs = appendResourceID(resourceIDs, vm.ID)
+		add(vm.ID)
 	}
-	return resourceIDs
-}
-
-func appendResourceID(resourceIDs []string, resourceID string) []string {
-	if resourceID == "" {
-		return resourceIDs
-	}
-	return append(resourceIDs, resourceID)
+	return list
 }
 
 func diagnosticSettingsEnabled(settings []microsoft.DiagnosticSetting) bool {

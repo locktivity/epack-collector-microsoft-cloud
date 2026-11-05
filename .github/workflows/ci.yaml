@@ -5,27 +5,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Test
-        run: make test
-
-      - name: Lint
-        run: make lint
-
-      - name: Build
-        run: make build
-
-      - name: Verify binary metadata
-        run: |
-          ./epack-collector-microsoft-cloud --version
-          ./epack-collector-microsoft-cloud --capabilities
+  collector:
+    uses: locktivity/epack/.github/workflows/collector-ci.yaml@main
+    with:
+      name: microsoft-cloud
+      profile-url: ${{ vars.EVIDENCE_PROFILE_URL }}
+      conformance-secrets: AZURE_CLIENT_SECRET
+      checks: |
+        ./scripts/check-no-beta-urls.sh
+        make lint-secret-leak

@@ -4,19 +4,22 @@
   "provider": "entra",
   "org_domain": "contoso.com",
   "user_security": {
+    "users_present": true,
     "mfa_coverage_pct": 50,
     "mfa_phishing_resistant_pct": 50,
     "inactive_pct": 67
   },
   "app_security": {
+    "apps_present": true,
     "sso_coverage_pct": 100
   },
   "privileged_access": {
-    "privileged_users_count": 3,
-    "super_admin_count": 1,
-    "privileged_mfa_coverage_pct": 67
+    "privileged_users_present": true,
+    "privileged_mfa_coverage_pct": 66,
+    "privileged_phishing_resistant_pct": 33
   },
   "lifecycle": {
+    "accounts_present": true,
     "suspended_pct": 25
   },
   "policy": {

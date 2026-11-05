@@ -10,74 +10,97 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectBackup(ctx context.Context, subscriptionID string, virtualMachines []microsoft.VirtualMachine, databases []microsoft.SQLDatabase, diagnostics *Diagnostics) (*AzureBackup, error) {
-	vaults, err := c.arm.RecoveryServicesVaults(ctx, subscriptionID)
+type backupPopulation struct {
+	virtualMachines []microsoft.VirtualMachine
+	databases       []microsoft.SQLDatabase
+	why             *missing
+}
+
+func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, population backupPopulation, diagnostics *Diagnostics) *AzureBackup {
+	vaults, err := c.arm.RecoveryServicesVaults(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Recovery Services vault inventory unavailable for subscription " + subscriptionID)
-			return &AzureBackup{}, nil
-		}
-		return nil, err
+		diagnostics.warnSubscription("Recovery Services vault inventory", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("backup"))
+		return nil
 	}
 
+	protectedPct := scope.pointer("backup/protected_resource_pct")
 	out := backupVaultPosture(vaults)
 	if len(vaults) == 0 {
-		out.ProtectedResourcePct = protectedResourcePct(nil, virtualMachines, databases)
-		return out, nil
+		out.retentionRead = true
+		if population.why == nil {
+			out.ProtectedResourcePct = protectedResourcePct(nil, population.virtualMachines, population.databases)
+		}
+		c.gaps.leaveOut(azurePath, population.why, protectedPct)
+		return out
 	}
 
 	var protectedItems []microsoft.BackupProtectedItem
-	protectedKnown := true
 	var policies []microsoft.BackupPolicy
-	policiesKnown := true
 	var jobs []microsoft.BackupJob
-	jobsKnown := true
+	var items, policyReads, jobReads unreadVaults
 	for _, vault := range vaults {
 		vaultProtectedItems, err := c.arm.BackupProtectedItems(ctx, vault.ID)
 		if err != nil {
-			if surfaceUnavailable(err) {
-				diagnostics.Warn("Backup protected items unavailable for subscription " + subscriptionID)
-				protectedKnown = false
-			} else {
-				return nil, err
-			}
+			diagnostics.warnSubscription("Backup protected items", scope.id, err)
+			items.add(err)
 		}
 		protectedItems = append(protectedItems, vaultProtectedItems...)
 
 		vaultPolicies, err := c.arm.BackupPolicies(ctx, vault.ID)
 		if err != nil {
-			if surfaceUnavailable(err) {
-				diagnostics.Warn("Backup policies unavailable for subscription " + subscriptionID)
-				policiesKnown = false
-			} else {
-				return nil, err
-			}
+			diagnostics.warnSubscription("Backup policies", scope.id, err)
+			policyReads.add(err)
 		}
 		policies = append(policies, vaultPolicies...)
 
 		vaultJobs, err := c.arm.BackupJobs(ctx, vault.ID, "operation eq 'Backup'")
 		if err != nil {
-			if surfaceUnavailable(err) {
-				diagnostics.Warn("Backup job history unavailable for subscription " + subscriptionID)
-				jobsKnown = false
-			} else {
-				return nil, err
-			}
+			diagnostics.warnSubscription("Backup job history", scope.id, err)
+			jobReads.add(err)
 		}
 		jobs = append(jobs, vaultJobs...)
 	}
 
-	if protectedKnown {
-		out.ProtectedResourcePct = protectedResourcePct(protectedItems, virtualMachines, databases)
+	switch {
+	case population.why != nil:
+		c.gaps.leaveOut(azurePath, population.why, protectedPct)
+	case items.count > 0:
+		c.gaps.partial(azurePath, items.count, failed(items.err), protectedPct)
+	default:
+		out.ProtectedResourcePct = protectedResourcePct(protectedItems, population.virtualMachines, population.databases)
 	}
-	if policiesKnown {
-		out.RetentionDaysMin = retentionDaysMin(policies)
+	// The retention depends on which policies the protected items use, so
+	// both lists must be read.
+	switch {
+	case policyReads.count > 0:
+		c.gaps.partial(azurePath, policyReads.count, failed(policyReads.err), scope.pointer("backup/retention_days_min"))
+	case items.count > 0:
+		c.gaps.partial(azurePath, items.count, failed(items.err), scope.pointer("backup/retention_days_min"))
+	default:
+		out.RetentionDaysMin = retentionDaysMin(policies, protectedItems)
+		out.retentionRead = true
 	}
-	if jobsKnown {
+	if jobReads.count > 0 {
+		c.gaps.partial(azurePath, jobReads.count, failed(jobReads.err),
+			scope.pointer("backup/latest_successful_backup_age_hours_max"), scope.pointer("backup/failed_jobs_7d_count"))
+	} else {
 		out.LatestSuccessfulBackupAgeHoursMax = latestSuccessfulBackupAgeHoursMax(jobs, c.clock.Now())
 		out.FailedJobs7dCount = failedBackupJobs7dCount(jobs, c.clock.Now())
 	}
-	return out, nil
+	return out
+}
+
+type unreadVaults struct {
+	count int
+	err   error
+}
+
+func (u *unreadVaults) add(err error) {
+	if u.count == 0 {
+		u.err = err
+	}
+	u.count++
 }
 
 func backupVaultPosture(vaults []microsoft.RecoveryServicesVault) *AzureBackup {
@@ -152,9 +175,22 @@ func backupProtectionActive(state string) bool {
 	return state == "protected" || state == "protectionconfigured" || state == "backupprotectionenabled"
 }
 
-func retentionDaysMin(policies []microsoft.BackupPolicy) *int {
+// retentionDaysMin is the shortest retention in the backup policies that a
+// protected item uses. A vault lists its built-in policies whether or not an
+// item uses them. It is nil when no policy in use sets a retention period.
+// https://learn.microsoft.com/en-us/rest/api/backup/protected-items/get
+func retentionDaysMin(policies []microsoft.BackupPolicy, items []microsoft.BackupProtectedItem) *int {
+	inUse := map[string]struct{}{}
+	for _, item := range items {
+		if id := strings.ToLower(item.Properties.PolicyID); id != "" {
+			inUse[id] = struct{}{}
+		}
+	}
 	minDays := 0
 	for _, policy := range policies {
+		if _, ok := inUse[strings.ToLower(policy.ID)]; !ok {
+			continue
+		}
 		for _, days := range retentionDays(policy.Properties, false) {
 			if days <= 0 {
 				continue

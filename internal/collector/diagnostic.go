@@ -1,5 +1,14 @@
 package collector
 
+import (
+	"errors"
+	"fmt"
+	"net/http"
+
+	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
+	"github.com/locktivity/epack/componentsdk"
+)
+
 type Diagnostics struct {
 	TenantErrors       []string              `json:"tenant_errors"`
 	SubscriptionErrors []string              `json:"subscription_errors"`
@@ -37,4 +46,39 @@ func (d *Diagnostics) Warn(message string) {
 
 func (d *Diagnostics) MarkCapabilityUnavailable(capability string) {
 	d.License.CapabilitiesUnavailable = append(d.License.CapabilitiesUnavailable, capability)
+}
+
+func (d *Diagnostics) warnNotCollected(surface string, err error) {
+	d.Warn(fmt.Sprintf("%s not collected (%s)", surface, componentsdk.Classify(err)))
+}
+
+// warnSubscription adds the "unavailable" warning older readers know for a
+// 403 or 404 from an Azure surface, and names the code for anything else.
+func (d *Diagnostics) warnSubscription(surface, subscriptionID string, err error) {
+	if surfaceUnavailable(err) {
+		d.Warn(surface + " unavailable for subscription " + subscriptionID)
+		return
+	}
+	d.warnNotCollected(surface+" for subscription "+subscriptionID, err)
+}
+
+func apiStatus(err error) int {
+	var apiErr *microsoft.APIError
+	if errors.As(err, &apiErr) {
+		return apiErr.StatusCode
+	}
+	return 0
+}
+
+func permissionDenied(err error) bool {
+	return componentsdk.Classify(err) == componentsdk.CodePermissionDenied
+}
+
+func surfaceUnavailable(err error) bool {
+	switch apiStatus(err) {
+	case http.StatusForbidden, http.StatusNotFound:
+		return true
+	default:
+		return false
+	}
 }

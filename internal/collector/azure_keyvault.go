@@ -6,14 +6,13 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectKeyVault(ctx context.Context, subscriptionID string, diagnostics *Diagnostics) (*AzureKeyVault, []microsoft.KeyVault, error) {
-	vaults, err := c.arm.KeyVaults(ctx, subscriptionID)
+func (c *Collector) collectKeyVault(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureKeyVault, []microsoft.KeyVault, *missing) {
+	vaults, err := c.arm.KeyVaults(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Key Vault inventory unavailable for subscription " + subscriptionID)
-			return &AzureKeyVault{}, nil, nil
-		}
-		return nil, nil, err
+		diagnostics.warnSubscription("Key Vault inventory", scope.id, err)
+		why := failed(err)
+		c.gaps.leaveOut(azurePath, why, scope.pointer("keyvault"))
+		return nil, nil, why
 	}
 	return keyVaultPosture(vaults), vaults, nil
 }

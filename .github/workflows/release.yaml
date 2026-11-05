@@ -12,29 +12,7 @@ permissions: read-all
 
 jobs:
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
-      - name: Test
-        run: make test
-
-      - name: Lint
-        run: make lint
-
-      - name: Build
-        run: make build
-
-      - name: Run conformance tests
-        run: |
-          EPACK_VERSION="$(go list -m -f '{{.Version}}' github.com/locktivity/epack)"
-          echo "Installing epack-conformance at ${EPACK_VERSION}"
-          go install -tags conformance github.com/locktivity/epack/cmd/epack-conformance@"${EPACK_VERSION}"
-          epack-conformance collector ./epack-collector-microsoft-cloud --level standard
+    uses: ./.github/workflows/ci.yaml
 
   args:
     runs-on: ubuntu-latest

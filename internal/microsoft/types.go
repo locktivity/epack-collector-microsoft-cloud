@@ -42,6 +42,12 @@ func (u User) EnabledMember() bool {
 	return u.AccountEnabled != nil && *u.AccountEnabled && u.UserType == "Member"
 }
 
+// Disabled reports whether the user's accountEnabled is false. A user with no
+// accountEnabled value is not disabled.
+func (u User) Disabled() bool {
+	return u.AccountEnabled != nil && !*u.AccountEnabled
+}
+
 type UserRegistrationDetail struct {
 	ID                string   `json:"id"`
 	UserPrincipalName string   `json:"userPrincipalName"`
@@ -51,8 +57,10 @@ type UserRegistrationDetail struct {
 	MethodsRegistered []string `json:"methodsRegistered"`
 }
 
+// SignInActivity holds the time of a user's last successful sign-in,
+// interactive or not. Failed attempts do not change it.
 type SignInActivity struct {
-	LastSignInDateTime string `json:"lastSignInDateTime"`
+	LastSuccessfulSignInDateTime string `json:"lastSuccessfulSignInDateTime"`
 }
 
 type ConditionalAccessPolicy struct {
@@ -63,16 +71,58 @@ type ConditionalAccessPolicy struct {
 	GrantControls *ConditionalAccessGrantControls `json:"grantControls"`
 }
 
+// ConditionalAccessConditionSet holds the conditions that govern when a
+// policy applies. A risk level, location, platform, device or authentication
+// flow condition limits a policy to the sign-ins that meet it.
+// insiderRiskLevels and transferMethods each hold their flags in one
+// comma-separated string.
+// https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessconditionset
 type ConditionalAccessConditionSet struct {
-	Applications   *ConditionalAccessApplications `json:"applications"`
-	Users          *ConditionalAccessUsers        `json:"users"`
-	ClientAppTypes []string                       `json:"clientAppTypes"`
+	Applications               *ConditionalAccessApplications        `json:"applications"`
+	Users                      *ConditionalAccessUsers               `json:"users"`
+	ClientAppTypes             []string                              `json:"clientAppTypes"`
+	SignInRiskLevels           []string                              `json:"signInRiskLevels"`
+	UserRiskLevels             []string                              `json:"userRiskLevels"`
+	ServicePrincipalRiskLevels []string                              `json:"servicePrincipalRiskLevels"`
+	InsiderRiskLevels          string                                `json:"insiderRiskLevels"`
+	Locations                  *ConditionalAccessLocations           `json:"locations"`
+	Platforms                  *ConditionalAccessPlatforms           `json:"platforms"`
+	Devices                    *ConditionalAccessDevices             `json:"devices"`
+	AuthenticationFlows        *ConditionalAccessAuthenticationFlows `json:"authenticationFlows"`
 }
 
 type ConditionalAccessApplications struct {
-	IncludeApplications []string `json:"includeApplications"`
-	ExcludeApplications []string `json:"excludeApplications"`
-	IncludeUserActions  []string `json:"includeUserActions"`
+	IncludeApplications []string                 `json:"includeApplications"`
+	ExcludeApplications []string                 `json:"excludeApplications"`
+	ApplicationFilter   *ConditionalAccessFilter `json:"applicationFilter"`
+	IncludeUserActions  []string                 `json:"includeUserActions"`
+}
+
+// ConditionalAccessLocations holds named location IDs, All or AllTrusted.
+type ConditionalAccessLocations struct {
+	IncludeLocations []string `json:"includeLocations"`
+	ExcludeLocations []string `json:"excludeLocations"`
+}
+
+// ConditionalAccessPlatforms holds device platforms, or all.
+type ConditionalAccessPlatforms struct {
+	IncludePlatforms []string `json:"includePlatforms"`
+	ExcludePlatforms []string `json:"excludePlatforms"`
+}
+
+type ConditionalAccessDevices struct {
+	DeviceFilter *ConditionalAccessFilter `json:"deviceFilter"`
+}
+
+// ConditionalAccessFilter is a rule over device or app properties. Its mode
+// is include or exclude.
+type ConditionalAccessFilter struct {
+	Mode string `json:"mode"`
+	Rule string `json:"rule"`
+}
+
+type ConditionalAccessAuthenticationFlows struct {
+	TransferMethods string `json:"transferMethods"`
 }
 
 type ConditionalAccessUsers struct {
@@ -84,9 +134,25 @@ type ConditionalAccessUsers struct {
 	ExcludeRoles  []string `json:"excludeRoles"`
 }
 
+// ConditionalAccessGrantControls are the controls a policy grants access
+// with. With operator AND every control is required, and with OR one of them
+// is.
 type ConditionalAccessGrantControls struct {
-	Operator        string   `json:"operator"`
-	BuiltInControls []string `json:"builtInControls"`
+	Operator                    string                        `json:"operator"`
+	BuiltInControls             []string                      `json:"builtInControls"`
+	CustomAuthenticationFactors []string                      `json:"customAuthenticationFactors"`
+	TermsOfUse                  []string                      `json:"termsOfUse"`
+	AuthenticationStrength      *AuthenticationStrengthPolicy `json:"authenticationStrength"`
+}
+
+// AuthenticationStrengthPolicy is the authentication strength a policy
+// requires. RequirementsSatisfied is mfa when the strength grants the MFA
+// claim, for a built-in or a custom strength.
+type AuthenticationStrengthPolicy struct {
+	ID                    string `json:"id"`
+	DisplayName           string `json:"displayName"`
+	PolicyType            string `json:"policyType"`
+	RequirementsSatisfied string `json:"requirementsSatisfied"`
 }
 
 type IdentitySecurityDefaultsEnforcementPolicy struct {
@@ -121,12 +187,20 @@ type DirectoryPrincipal struct {
 
 type ServicePrincipal struct {
 	ID                        string               `json:"id"`
+	AppID                     string               `json:"appId"`
 	AccountEnabled            *bool                `json:"accountEnabled"`
 	AppRoleAssignmentRequired *bool                `json:"appRoleAssignmentRequired"`
 	PreferredSingleSignOnMode string               `json:"preferredSingleSignOnMode"`
 	ServicePrincipalType      string               `json:"servicePrincipalType"`
 	PasswordCredentials       []PasswordCredential `json:"passwordCredentials"`
 	KeyCredentials            []KeyCredential      `json:"keyCredentials"`
+}
+
+// Disabled reports whether the service principal's accountEnabled is false.
+// A disabled service principal cannot get a token.
+// https://learn.microsoft.com/en-us/troubleshoot/entra/entra-id/app-integration/error-code-aadsts7000112-application-is-disabled
+func (sp ServicePrincipal) Disabled() bool {
+	return sp.AccountEnabled != nil && !*sp.AccountEnabled
 }
 
 func (sp ServicePrincipal) EnabledEnterpriseApp() bool {
@@ -138,6 +212,7 @@ func (sp ServicePrincipal) EnabledEnterpriseApp() bool {
 
 type Application struct {
 	ID                  string               `json:"id"`
+	AppID               string               `json:"appId"`
 	PasswordCredentials []PasswordCredential `json:"passwordCredentials"`
 	KeyCredentials      []KeyCredential      `json:"keyCredentials"`
 }

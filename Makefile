@@ -1,10 +1,11 @@
-.PHONY: build build-all test test-e2e lint lint-no-beta-urls lint-secret-leak clean
+.PHONY: build build-all test test-e2e lint lint-no-beta-urls lint-secret-leak clean trace-map
 
 BINARY_NAME := epack-collector-microsoft-cloud
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 COMMIT := $(shell git rev-parse --verify HEAD 2>/dev/null || echo "unknown")
 GOLANGCI_LINT_VERSION := v2.9.0
 GOLANGCI_LINT := ./bin/golangci-lint
+EPACK_VERSION = $(shell go list -m -f '{{.Version}}' github.com/locktivity/epack)
 
 build:
 	go build -ldflags "-X main.Version=$(VERSION) -X main.Commit=$(COMMIT)" -o $(BINARY_NAME) ./cmd/$(BINARY_NAME)
@@ -38,3 +39,8 @@ lint-secret-leak: build
 
 clean:
 	rm -f $(BINARY_NAME) $(BINARY_NAME)-*
+
+# Rewrites docs/schema/trace-map.json from the collectortest suite and the
+# source, at the epack version go.mod pins, as CI checks it. Commit the result.
+trace-map:
+	go run -tags components github.com/locktivity/epack/cmd/epack@$(EPACK_VERSION) sdk map

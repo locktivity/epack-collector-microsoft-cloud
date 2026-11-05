@@ -38,15 +38,9 @@ func TestEnterpriseApps(t *testing.T) {
 func TestAppCredentialHygiene(t *testing.T) {
 	artifact := collectTestArtifact(t, testConfig())
 	apps := artifact.Apps
-	if apps.CredentialsExpiringCount != 2 {
-		t.Fatalf("expected 2 expiring credentials, got %d", apps.CredentialsExpiringCount)
-	}
-	if apps.CredentialsExpiredCount != 2 {
-		t.Fatalf("expected 2 expired credentials, got %d", apps.CredentialsExpiredCount)
-	}
-	if apps.CredentialsOver365dCount != 3 {
-		t.Fatalf("expected 3 long-lived credentials, got %d", apps.CredentialsOver365dCount)
-	}
+	assertPtrInt(t, "expiring credentials", apps.CredentialsExpiringCount, 2)
+	assertPtrInt(t, "expired credentials", apps.CredentialsExpiredCount, 2)
+	assertPtrInt(t, "long-lived credentials", apps.CredentialsOver365dCount, 3)
 	if apps.PasswordCredentialsPct == nil || *apps.PasswordCredentialsPct != 67 {
 		t.Fatalf("unexpected password credential pct: %#v", apps.PasswordCredentialsPct)
 	}

@@ -99,11 +99,18 @@ type StorageAccount struct {
 }
 
 type StorageAccountProperties struct {
-	SupportsHTTPSTrafficOnly *bool             `json:"supportsHttpsTrafficOnly"`
-	MinimumTLSVersion        string            `json:"minimumTlsVersion"`
-	Encryption               StorageEncryption `json:"encryption"`
-	AllowBlobPublicAccess    *bool             `json:"allowBlobPublicAccess"`
-	PublicNetworkAccess      string            `json:"publicNetworkAccess"`
+	SupportsHTTPSTrafficOnly *bool               `json:"supportsHttpsTrafficOnly"`
+	MinimumTLSVersion        string              `json:"minimumTlsVersion"`
+	Encryption               StorageEncryption   `json:"encryption"`
+	AllowBlobPublicAccess    *bool               `json:"allowBlobPublicAccess"`
+	PublicNetworkAccess      string              `json:"publicNetworkAccess"`
+	NetworkACLs              *StorageNetworkACLs `json:"networkAcls"`
+}
+
+// StorageNetworkACLs is a storage account's firewall. With defaultAction
+// Deny, only the allowed networks and private endpoints reach the account.
+type StorageNetworkACLs struct {
+	DefaultAction string `json:"defaultAction"`
 }
 
 type StorageEncryption struct {

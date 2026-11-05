@@ -7,24 +7,35 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectCompute(ctx context.Context, subscriptionID string, diagnostics *Diagnostics) (*AzureCompute, []microsoft.VirtualMachine, []microsoft.PublicIPAddress, error) {
-	virtualMachines, err := c.arm.VirtualMachines(ctx, subscriptionID)
+type computeReads struct {
+	virtualMachines     []microsoft.VirtualMachine
+	virtualMachinesMiss *missing
+	publicIPs           []microsoft.PublicIPAddress
+	publicIPsMiss       *missing
+}
+
+func (c *Collector) collectCompute(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureCompute, computeReads) {
+	var reads computeReads
+	virtualMachines, err := c.arm.VirtualMachines(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Virtual machine inventory unavailable for subscription " + subscriptionID)
-			return &AzureCompute{}, nil, nil, nil
-		}
-		return nil, nil, nil, err
+		diagnostics.warnSubscription("Virtual machine inventory", scope.id, err)
+		reads.virtualMachinesMiss = failed(err)
+		c.gaps.leaveOut(azurePath, reads.virtualMachinesMiss, scope.pointer("compute"))
 	}
-	publicIPs, err := c.arm.PublicIPAddresses(ctx, subscriptionID)
+	reads.virtualMachines = virtualMachines
+
+	publicIPs, err := c.arm.PublicIPAddresses(ctx, scope.id)
 	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Public IP inventory unavailable for subscription " + subscriptionID)
-			return computePosture(virtualMachines, nil, false), virtualMachines, nil, nil
-		}
-		return nil, nil, nil, err
+		diagnostics.warnSubscription("Public IP inventory", scope.id, err)
+		reads.publicIPsMiss = failed(err)
 	}
-	return computePosture(virtualMachines, publicIPs, true), virtualMachines, publicIPs, nil
+	reads.publicIPs = publicIPs
+
+	if reads.virtualMachinesMiss != nil {
+		return nil, reads
+	}
+	c.gaps.leaveOut(azurePath, reads.publicIPsMiss, scope.pointer("compute/public_ip_pct"))
+	return computePosture(virtualMachines, publicIPs, reads.publicIPsMiss == nil), reads
 }
 
 func computePosture(virtualMachines []microsoft.VirtualMachine, publicIPs []microsoft.PublicIPAddress, publicIPKnown bool) *AzureCompute {

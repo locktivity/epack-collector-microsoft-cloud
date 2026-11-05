@@ -15,8 +15,8 @@ func TestNetworkExposure(t *testing.T) {
 	if network == nil {
 		t.Fatal("expected network posture")
 	}
-	assertInt(t, "network security group count", network.NetworkSecurityGroupsCount, 2)
-	assertInt(t, "public IP address count", network.PublicIPAddressesCount, 1)
+	assertPtrInt(t, "network security group count", network.NetworkSecurityGroupsCount, 2)
+	assertPtrInt(t, "public IP address count", network.PublicIPAddressesCount, 1)
 	assertPtrInt(t, "SSH open to world", network.SSHOpenToWorldPct, 50)
 	assertPtrInt(t, "RDP open to world", network.RDPOpenToWorldPct, 0)
 }
@@ -29,7 +29,7 @@ func TestNetworkExposureZeroDenominator(t *testing.T) {
 
 	artifact := collectTestAzureArtifact(t, cfg)
 	network := artifact.Accounts[0].Network
-	if network == nil || network.NetworkSecurityGroupsCount != 0 {
+	if network == nil || network.NetworkSecurityGroupsCount == nil || *network.NetworkSecurityGroupsCount != 0 {
 		t.Fatalf("unexpected network posture: %#v", network)
 	}
 	if network.SSHOpenToWorldPct != nil || network.RDPOpenToWorldPct != nil {
@@ -49,9 +49,73 @@ func TestLoggingCoverage(t *testing.T) {
 	if logging.ActivityLogAdministrativeExported == nil || !*logging.ActivityLogAdministrativeExported {
 		t.Fatalf("unexpected administrative activity log export: %#v", logging.ActivityLogAdministrativeExported)
 	}
-	assertInt(t, "monitored resource count", logging.MonitoredResourcesCount, 9)
+	assertPtrInt(t, "monitored resource count", logging.MonitoredResourcesCount, 9)
 	assertPtrInt(t, "diagnostic settings coverage", logging.DiagnosticSettingsCoveragePct, 56)
 	assertPtrInt(t, "resources without diagnostics", logging.ResourcesWithoutDiagnosticsCount, 4)
+}
+
+// A storage account's own diagnostic setting carries only metrics. Its logs
+// are on its blob, file, queue and table services.
+// https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/logs-index
+func TestLoggingCoverageReadsStorageServiceSettings(t *testing.T) {
+	arm := fakeARMClient()
+	storageA := "/subscriptions/" + kitSubscriptionID + "/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/storagea"
+	storageB := "/subscriptions/" + kitSubscriptionID + "/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/storageb"
+	delete(arm.diagnosticSettings, storageA)
+	arm.diagnosticSettings[storageA+"/blobServices/default"] = []microsoft.DiagnosticSetting{storageLogsSetting()}
+	arm.diagnosticSettings[storageB+"/tableServices/default"] = []microsoft.DiagnosticSetting{storageLogsSetting()}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+
+	logging := collectTestAzureArtifact(t, cfg).Accounts[0].Logging
+	assertPtrInt(t, "monitored resource count", logging.MonitoredResourcesCount, 9)
+	assertPtrInt(t, "diagnostic settings coverage", logging.DiagnosticSettingsCoveragePct, 67)
+	assertPtrInt(t, "resources without diagnostics", logging.ResourcesWithoutDiagnosticsCount, 3)
+}
+
+// A SQL server has no diagnostic settings of its own. Its audit logs go
+// through a diagnostic setting on its master database.
+func TestLoggingCoverageMeasuresSQLServersByTheirMasterDatabase(t *testing.T) {
+	serverID := "/subscriptions/" + kitSubscriptionID + "/resourceGroups/data/providers/Microsoft.Sql/servers/sql-a"
+	cases := []struct {
+		name    string
+		setting string
+		want    int
+	}{
+		{"master database logged", serverID + "/databases/master", 4},
+		{"setting on the server only", serverID, 5},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			arm := fakeARMClient()
+			delete(arm.diagnosticSettings, serverID+"/databases/master")
+			arm.diagnosticSettings[tc.setting] = []microsoft.DiagnosticSetting{{
+				Properties: microsoft.DiagnosticSettingProperties{
+					WorkspaceID: "/subscriptions/" + kitSubscriptionID + "/resourceGroups/monitor/providers/Microsoft.OperationalInsights/workspaces/law-a",
+					Logs:        []microsoft.DiagnosticLogSetting{{Category: "SQLSecurityAuditEvents", Enabled: true}},
+				},
+			}}
+			cfg := testConfig()
+			cfg.ARMClient = arm
+
+			logging := collectTestAzureArtifact(t, cfg).Accounts[0].Logging
+			assertPtrInt(t, "monitored resource count", logging.MonitoredResourcesCount, 9)
+			assertPtrInt(t, "resources without diagnostics", logging.ResourcesWithoutDiagnosticsCount, tc.want)
+		})
+	}
+}
+
+func storageLogsSetting() microsoft.DiagnosticSetting {
+	return microsoft.DiagnosticSetting{
+		Properties: microsoft.DiagnosticSettingProperties{
+			WorkspaceID: "/subscriptions/" + kitSubscriptionID + "/resourceGroups/monitor/providers/Microsoft.OperationalInsights/workspaces/law-a",
+			Logs: []microsoft.DiagnosticLogSetting{
+				{Category: "StorageRead", Enabled: true},
+				{Category: "StorageWrite", Enabled: true},
+				{Category: "StorageDelete", Enabled: true},
+			},
+		},
+	}
 }
 
 func TestLoggingCoverageUnavailable(t *testing.T) {
@@ -169,8 +233,8 @@ func TestNormalizedCloudSliceF(t *testing.T) {
 	if network == nil {
 		t.Fatal("expected normalized network posture")
 	}
-	assertPtrInt(t, "normalized SSH exposure", network.SSHOpenToWorldPct, 50)
-	assertPtrInt(t, "normalized RDP exposure", network.RDPOpenToWorldPct, 0)
+	assertPtrInt(t, "normalized SSH exposure", network.SSHOpenToWorldPct.Value, 50)
+	assertPtrInt(t, "normalized RDP exposure", network.RDPOpenToWorldPct.Value, 0)
 	logging := result.AzureCloudPosture.Accounts[0].Logging
 	if logging == nil || logging.CloudTrailEnabled == nil || !*logging.CloudTrailEnabled || logging.CloudTrailMultiregion == nil || !*logging.CloudTrailMultiregion {
 		t.Fatalf("expected normalized logging enabled across regions, got %#v", logging)

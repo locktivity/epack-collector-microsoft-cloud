@@ -76,14 +76,14 @@ func TestE2E_RealMicrosoftCloudCollection(t *testing.T) {
 	if strings.TrimSpace(result.Entra.OrgDomain) == "" {
 		t.Error("entra.org_domain should not be empty")
 	}
-	if result.Entra.Users.TotalCount < 0 {
-		t.Errorf("users.total_count should be nonnegative, got %d", result.Entra.Users.TotalCount)
+	if total := result.Entra.Users.TotalCount; total != nil && *total < 0 {
+		t.Errorf("users.total_count should be nonnegative, got %d", *total)
 	}
-	if result.Entra.Users.EnabledMemberUsersCount < 0 {
-		t.Errorf("users.enabled_member_users_count should be nonnegative, got %d", result.Entra.Users.EnabledMemberUsersCount)
+	if enabled := result.Entra.Users.EnabledMemberUsersCount; enabled != nil && *enabled < 0 {
+		t.Errorf("users.enabled_member_users_count should be nonnegative, got %d", *enabled)
 	}
-	if result.Entra.Posture.DenominatorEnabledMemberUsers != result.Entra.Users.EnabledMemberUsersCount {
-		t.Errorf("posture.denominator_enabled_member_users = %d, want users.enabled_member_users_count %d", result.Entra.Posture.DenominatorEnabledMemberUsers, result.Entra.Users.EnabledMemberUsersCount)
+	if denominator, enabled := result.Entra.Posture.DenominatorEnabledMemberUsers, result.Entra.Users.EnabledMemberUsersCount; denominator != nil && (enabled == nil || *denominator > *enabled) {
+		t.Errorf("posture.denominator_enabled_member_users = %d, want no more than users.enabled_member_users_count", *denominator)
 	}
 
 	assertEntraPercentages(t, result.Entra)
@@ -115,6 +115,9 @@ func TestE2E_RealMicrosoftCloudCollection(t *testing.T) {
 	if result.AzureCloudPosture == nil {
 		t.Error("expected normalized cloud posture artifact")
 	}
+	if result.AzureAccessPosture == nil {
+		t.Error("expected normalized access posture artifact")
+	}
 
 	data, _ := json.MarshalIndent(result.Artifacts(), "", "  ")
 	t.Logf("collection complete at level=%s artifacts=%d\n%s", level, len(result.Artifacts()), string(data))
@@ -124,8 +127,8 @@ func TestE2E_OutputValidJSON(t *testing.T) {
 	result := collectE2E(t, e2eLevel())
 
 	artifacts := result.Artifacts()
-	if len(artifacts) < 4 {
-		t.Fatalf("expected four artifacts, got %d", len(artifacts))
+	if len(artifacts) < 5 {
+		t.Fatalf("expected five artifacts, got %d", len(artifacts))
 	}
 
 	seenPaths := map[string]bool{}
@@ -155,6 +158,7 @@ func TestE2E_OutputValidJSON(t *testing.T) {
 		"artifacts/microsoft-cloud.idp-posture.json",
 		"artifacts/microsoft-cloud.azure.json",
 		"artifacts/microsoft-cloud.cloud-posture.json",
+		"artifacts/microsoft-cloud.access-posture.json",
 	} {
 		if !seenPaths[path] {
 			t.Errorf("missing artifact path %s", path)

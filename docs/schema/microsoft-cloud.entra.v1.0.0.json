@@ -15,11 +15,11 @@
     "diagnostics"
   ],
   "properties": {
-    "schema_version": { "type": "string", "const": "1.0.0" },
-    "collected_at": { "type": "string", "format": "date-time" },
-    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"] },
-    "tenant_id": { "type": "string" },
-    "org_domain": { "type": "string" },
+    "schema_version": { "type": "string", "const": "1.0.0", "x-epack-label": "Schema version", "x-epack-summary": "Version of this artifact's schema." },
+    "collected_at": { "type": "string", "format": "date-time", "x-epack-label": "Collected at", "x-epack-summary": "When the collection ran." },
+    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"], "x-epack-label": "Collection level", "x-epack-summary": "The collection level the run used." },
+    "tenant_id": { "type": "string", "x-epack-label": "Tenant ID", "x-epack-summary": "ID of the Microsoft Entra tenant the values come from." },
+    "org_domain": { "type": "string", "x-epack-label": "Organization domain", "x-epack-summary": "The tenant's default verified domain." },
     "posture": {
       "type": "object",
       "additionalProperties": false,
@@ -32,13 +32,22 @@
         "denominator_enabled_member_users"
       ],
       "properties": {
-        "mfa_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "mfa_phishing_resistant": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "mfa_weak_method_only": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "sspr_registered": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "sso_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "denominator_enabled_member_users": { "type": "integer", "minimum": 0 }
-      }
+        "mfa_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "denominator_enabled_member_users", "x-epack-label": "MFA coverage", "x-epack-summary": "Share of enabled member users in Microsoft's MFA registration report who are registered for MFA. Registration shows a second factor is set up. It does not show that a policy requires it.", "x-epack-method": "Divides the enabled member users that the userRegistrationDetails report lists with isMfaRegistered true by all enabled member users it lists." },
+        "mfa_phishing_resistant": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "denominator_enabled_member_users", "x-epack-label": "Phishing-resistant MFA", "x-epack-summary": "Share of enabled member users in the MFA registration report with a phishing-resistant method registered. These methods are FIDO2 security keys, passkeys, Windows Hello for Business and certificates.", "x-epack-method": "Divides the listed enabled member users whose registered methods include a FIDO2 key, passkey, Windows Hello for Business or certificate by all listed enabled member users." },
+        "mfa_weak_method_only": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "denominator_enabled_member_users", "x-epack-label": "Weak MFA methods only", "x-epack-summary": "Share of enabled member users in the MFA registration report whose only registered methods are SMS, voice call or email.", "x-epack-method": "Divides the listed enabled member users registered for MFA whose every registered method is a phone number, SMS, voice or email by all listed enabled member users. The phone number methods are mobilePhone, alternateMobilePhone and officePhone." },
+        "sspr_registered": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "denominator_enabled_member_users", "x-epack-label": "Self-service password reset", "x-epack-summary": "Share of enabled member users in the MFA registration report who are registered for self-service password reset.", "x-epack-method": "Divides the listed enabled member users with isSsprRegistered true by all listed enabled member users." },
+        "sso_coverage": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "/apps/enabled_enterprise_apps_count", "x-epack-label": "Single sign-on coverage", "x-epack-summary": "Share of enabled enterprise apps set up for single sign-on through SAML or OIDC.", "x-epack-method": "Divides the enabled Application service principals whose preferredSingleSignOnMode is saml or oidc by all enabled Application service principals." },
+        "denominator_enabled_member_users": {
+          "type": ["integer", "null"],
+          "minimum": 0,
+          "description": "Enabled member users listed in the MFA registration report, which the registration percentages are calculated against. The report refreshes on Microsoft's schedule, so members created since its last refresh are not counted until it lists them.",
+          "x-epack-label": "Members in the MFA report",
+          "x-epack-summary": "Enabled member users listed in Microsoft's MFA registration report. The registration percentages count these users.",
+          "x-epack-method": "Counts the users in the userRegistrationDetails report whose ID matches an enabled user of type Member in the users list."
+        }
+      },
+      "x-epack-label": "Sign-in methods",
+      "x-epack-summary": "MFA and password reset registration across the tenant's enabled member users, and single sign-on across its enterprise apps."
     },
     "users": {
       "type": "object",
@@ -52,13 +61,15 @@
         "inactive_guest_pct"
       ],
       "properties": {
-        "total_count": { "type": "integer", "minimum": 0 },
-        "enabled_member_users_count": { "type": "integer", "minimum": 0 },
-        "guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "inactive_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "inactive_guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-      }
+        "total_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Total users", "x-epack-summary": "All user accounts in the directory, members and guests, enabled and disabled.", "x-epack-method": "Counts every user that Microsoft Graph's users list returns." },
+        "enabled_member_users_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Enabled member users", "x-epack-summary": "Enabled user accounts that are not guests.", "x-epack-method": "Counts the users with accountEnabled true and userType Member." },
+        "guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "total_count", "x-epack-label": "Guest share", "x-epack-summary": "Share of all user accounts that are guests.", "x-epack-method": "Divides the users with userType Guest by all users." },
+        "disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "total_count", "x-epack-label": "Disabled share", "x-epack-summary": "Share of all user accounts that are disabled.", "x-epack-method": "Divides the users with accountEnabled false by all users." },
+        "inactive_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "The tenant has no enabled users.", "x-epack-label": "Inactive users", "x-epack-summary": "Share of enabled users, guests included, with no successful sign-in in the last 90 days. Interactive and non-interactive sign-ins both count.", "x-epack-method": "Divides the enabled users whose signInActivity has no lastSuccessfulSignInDateTime in the last 90 days by all enabled users." },
+        "inactive_guest_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "The tenant has no enabled guest users.", "x-epack-label": "Inactive guests", "x-epack-summary": "Share of enabled guest users with no successful sign-in in the last 90 days. Interactive and non-interactive sign-ins both count.", "x-epack-method": "Divides the enabled guest users whose signInActivity has no lastSuccessfulSignInDateTime in the last 90 days by all enabled guest users." }
+      },
+      "x-epack-label": "Users",
+      "x-epack-summary": "The tenant's user accounts by type and status."
     },
     "policy": {
       "type": "object",
@@ -73,22 +84,26 @@
         "policy_count"
       ],
       "properties": {
-        "mfa_required": { "type": ["boolean", "null"] },
-        "mfa_required_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "admin_portals_mfa_required": { "type": ["boolean", "null"] },
-        "all_cloud_apps_mfa_required": { "type": ["boolean", "null"] },
-        "compliant_device_required": { "type": ["boolean", "null"] },
-        "legacy_auth_blocked": { "type": ["boolean", "null"] },
-        "policy_count": { "type": ["integer", "null"], "minimum": 0 }
-      }
+        "mfa_required": { "type": ["boolean", "null"], "x-epack-label": "MFA required for all users", "x-epack-summary": "Whether an enabled Conditional Access policy requires MFA for all users on every sign-in.", "x-epack-goal": true, "x-epack-method": "Checks for an enabled Conditional Access policy whose included users are All and whose grant requires MFA. A grant requires MFA through the mfa control or an authentication strength whose requirementsSatisfied is mfa. With the OR operator, every control in the grant must require MFA. A policy with a risk level, location, device platform, device filter or authentication flow condition applies only to some sign-ins and does not count. A policy for a user action, such as registering security information, does not count either." },
+        "mfa_required_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "/users/enabled_member_users_count", "x-epack-label": "MFA policy coverage", "x-epack-summary": "Share of enabled member users covered by an enabled Conditional Access policy that requires MFA on every sign-in. When no policy is enabled, it is 100 when security defaults are on and 0 when they are off.", "x-epack-method": "Divides the enabled member users that an enabled policy requiring MFA includes, by user ID or as All less its excluded users, by all enabled member users. A policy counts when it requires MFA and applies to every sign-in, as mfa_required describes. When no policy is enabled, it is 100 when security defaults are on and 0 when they are off. It is left out when an MFA policy includes or excludes a group or a role and the other policies leave members uncovered." },
+        "admin_portals_mfa_required": { "type": ["boolean", "null"], "x-epack-label": "MFA for admin portals", "x-epack-summary": "Whether an enabled Conditional Access policy requires MFA on every sign-in to the Microsoft admin portals.", "x-epack-goal": true, "x-epack-method": "Checks for an enabled Conditional Access policy that requires MFA on every sign-in, as mfa_required describes. Its included apps must be MicrosoftAdminPortals or All, without excluding MicrosoftAdminPortals." },
+        "all_cloud_apps_mfa_required": { "type": ["boolean", "null"], "x-epack-label": "MFA for all cloud apps", "x-epack-summary": "Whether an enabled Conditional Access policy requires MFA on every sign-in to all cloud apps.", "x-epack-goal": true, "x-epack-method": "Checks for an enabled Conditional Access policy that requires MFA on every sign-in, as mfa_required describes. Its included apps must be All, without excluding All." },
+        "compliant_device_required": { "type": ["boolean", "null"], "x-epack-label": "Compliant device required", "x-epack-summary": "Whether an enabled Conditional Access policy requires a compliant or hybrid-joined device for admins or for all users.", "x-epack-goal": true, "x-epack-method": "Checks for an enabled Conditional Access policy whose grant requires a compliantDevice or domainJoinedDevice control and that targets the admin portals, all users or a directory role. With the OR operator, every control in the grant must be one of those two." },
+        "legacy_auth_blocked": { "type": ["boolean", "null"], "x-epack-label": "Legacy authentication blocked", "x-epack-summary": "Whether an enabled Conditional Access policy blocks legacy authentication clients for all users and all resources.", "x-epack-goal": true, "x-epack-method": "Checks for an enabled Conditional Access policy with a block grant whose included users and apps are All. It must exclude no app. Its client app types must be all, or include both exchangeActiveSync and other. It must have no risk level, location, device platform, device filter or authentication flow condition." },
+        "policy_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Enabled policies", "x-epack-summary": "Enabled Conditional Access policies in the tenant.", "x-epack-method": "Counts the Conditional Access policies whose state is enabled." }
+      },
+      "x-epack-label": "Conditional Access",
+      "x-epack-summary": "What the tenant's enabled Conditional Access policies require at sign-in."
     },
     "security_defaults": {
       "type": "object",
       "additionalProperties": false,
       "required": ["enabled"],
       "properties": {
-        "enabled": { "type": "boolean" }
-      }
+        "enabled": { "type": "boolean", "x-epack-label": "Security defaults on", "x-epack-summary": "Whether Microsoft's security defaults are turned on for the tenant. Security defaults and Conditional Access policies cannot both be in use.", "x-epack-method": "Reads isEnabled from the identitySecurityDefaultsEnforcementPolicy." }
+      },
+      "x-epack-label": "Security defaults",
+      "x-epack-summary": "The tenant's security defaults setting."
     },
     "privileged_access": {
       "type": "object",
@@ -104,15 +119,17 @@
         "privileged_guest_count"
       ],
       "properties": {
-        "super_admin_count": { "type": "integer", "minimum": 0 },
-        "privileged_users_count": { "type": "integer", "minimum": 0 },
-        "privileged_mfa_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "privileged_phishing_resistant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "pim_eligible_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "standing_assignment_count": { "type": ["integer", "null"], "minimum": 0 },
-        "inactive_privileged_users_count": { "type": ["integer", "null"], "minimum": 0 },
-        "privileged_guest_count": { "type": "integer", "minimum": 0 }
-      }
+        "super_admin_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Global admins", "x-epack-summary": "Enabled users with an active Global Administrator role assignment.", "x-epack-method": "Counts the distinct enabled users with a directory role assignment to the Global Administrator role template. It is left out when the role is assigned to a group, since group members are not read." },
+        "privileged_users_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Privileged users", "x-epack-summary": "Enabled users with an active assignment to one of 11 privileged directory roles, such as Global Administrator or Security Administrator.", "x-epack-method": "Counts the distinct enabled users with a directory role assignment to one of 11 privileged role templates. It is left out when one of those roles is assigned to a group, since group members are not read." },
+        "privileged_mfa_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "privileged_users_count", "x-epack-label": "Admin MFA coverage", "x-epack-summary": "Share of privileged users registered for MFA in Microsoft's MFA registration report. A privileged user missing from the report counts as not registered.", "x-epack-method": "Divides the privileged users the userRegistrationDetails report shows with isMfaRegistered true by all privileged users." },
+        "privileged_phishing_resistant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "privileged_users_count", "x-epack-label": "Admin phishing-resistant MFA", "x-epack-summary": "Share of privileged users with a phishing-resistant method registered in the MFA registration report. A privileged user missing from the report counts as not registered.", "x-epack-method": "Divides the privileged users whose registered methods in the userRegistrationDetails report include a FIDO2 key, passkey, Windows Hello for Business or certificate by all privileged users." },
+        "pim_eligible_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "No privileged role is assigned to a user, and none is eligible for activation.", "x-epack-label": "Just-in-time admin share", "x-epack-summary": "Eligible assignments of a privileged role in Privileged Identity Management, as a share of eligible and active ones. An eligible role must be activated before it can be used.", "x-epack-method": "Divides the role eligibility schedules for a privileged role template by those schedules plus the privileged role assignments to users." },
+        "standing_assignment_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Active admin assignments", "x-epack-summary": "Active assignments of a privileged directory role to users.", "x-epack-goal": "lower", "x-epack-method": "Counts the directory role assignments of a privileged role template to users." },
+        "inactive_privileged_users_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "No user holds a privileged role.", "x-epack-label": "Inactive admins", "x-epack-summary": "Privileged users with no successful sign-in in the last 90 days. Interactive and non-interactive sign-ins both count.", "x-epack-goal": "lower", "x-epack-method": "Counts the privileged users whose signInActivity has no lastSuccessfulSignInDateTime in the last 90 days." },
+        "privileged_guest_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Guest admins", "x-epack-summary": "Enabled guest users who hold a privileged directory role.", "x-epack-goal": "lower", "x-epack-method": "Counts the privileged users with userType Guest. It is left out when a privileged role is assigned to a group, since group members are not read." }
+      },
+      "x-epack-label": "Privileged access",
+      "x-epack-summary": "Users who hold a privileged directory role and how they sign in."
     },
     "apps": {
       "type": "object",
@@ -126,24 +143,29 @@
         "password_credentials_pct"
       ],
       "properties": {
-        "enabled_enterprise_apps_count": { "type": "integer", "minimum": 0 },
-        "assignment_required_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-        "credentials_expiring_count": { "type": "integer", "minimum": 0 },
-        "credentials_expired_count": { "type": "integer", "minimum": 0 },
-        "credentials_over_365d_count": { "type": "integer", "minimum": 0 },
-        "password_credentials_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-      }
+        "enabled_enterprise_apps_count": { "type": "integer", "minimum": 0, "x-epack-label": "Enabled enterprise apps", "x-epack-summary": "Enabled service principals of the Application type in the tenant.", "x-epack-method": "Counts the service principals of type Application whose accountEnabled is not false." },
+        "assignment_required_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "enabled_enterprise_apps_count", "x-epack-label": "Assignment required", "x-epack-summary": "Share of enabled enterprise apps where a user must be assigned to the app before they can sign in.", "x-epack-method": "Divides the enabled Application service principals with appRoleAssignmentRequired true by all enabled Application service principals." },
+        "credentials_expiring_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Expiring credentials", "x-epack-summary": "Secrets and certificates on app registrations and enterprise apps that expire in the next 30 days.", "x-epack-method": "Counts the password and key credentials on applications and service principals whose end date falls in the next 30 days." },
+        "credentials_expired_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Expired credentials", "x-epack-summary": "Secrets and certificates on app registrations and enterprise apps that have expired.", "x-epack-goal": "lower", "x-epack-method": "Counts the password and key credentials on applications and service principals whose end date has passed." },
+        "credentials_over_365d_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Long-lived credentials", "x-epack-summary": "Unexpired secrets and certificates on app registrations and enterprise apps that are valid for more than a year.", "x-epack-goal": "lower", "x-epack-method": "Counts the unexpired password and key credentials on applications and service principals whose end date is more than 365 days after their start date." },
+        "password_credentials_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "No app registration or service principal has an unexpired credential.", "x-epack-label": "Client secret share", "x-epack-summary": "Share of unexpired app credentials that are client secrets. The others are certificates.", "x-epack-method": "Divides the unexpired password credentials on applications and service principals by all their unexpired credentials." }
+      },
+      "x-epack-label": "Applications",
+      "x-epack-summary": "Enterprise apps and the credentials on app registrations and enterprise apps."
     },
     "secure_score": {
       "type": "object",
       "additionalProperties": false,
       "required": ["identity_pct"],
       "properties": {
-        "identity_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-      }
+        "identity_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-label": "Microsoft Secure Score", "x-epack-summary": "The tenant's latest Microsoft Secure Score as a percentage of its maximum score.", "x-epack-method": "Divides currentScore by maxScore in the latest Microsoft Graph secureScore." }
+      },
+      "x-epack-label": "Secure Score",
+      "x-epack-summary": "The tenant's Microsoft Secure Score."
     },
     "directory_activity": {
       "type": "object",
+      "x-epack-level": "internal",
       "additionalProperties": false,
       "required": [
         "lookback_hours",
@@ -158,20 +180,23 @@
         "pim_events_count"
       ],
       "properties": {
-        "lookback_hours": { "type": "integer", "minimum": 0 },
-        "events_count": { "type": "integer", "minimum": 0 },
-        "failure_count": { "type": "integer", "minimum": 0 },
-        "delete_events_count": { "type": "integer", "minimum": 0 },
-        "user_change_events_count": { "type": "integer", "minimum": 0 },
-        "group_change_events_count": { "type": "integer", "minimum": 0 },
-        "app_change_events_count": { "type": "integer", "minimum": 0 },
-        "role_change_events_count": { "type": "integer", "minimum": 0 },
-        "policy_change_events_count": { "type": "integer", "minimum": 0 },
-        "pim_events_count": { "type": "integer", "minimum": 0 }
-      }
+        "lookback_hours": { "type": "integer", "minimum": 0, "x-epack-label": "Activity window in hours", "x-epack-summary": "Hours of directory audit events the counts cover." },
+        "events_count": { "type": "integer", "minimum": 0, "x-epack-label": "Directory events", "x-epack-summary": "Directory audit events in the window." },
+        "failure_count": { "type": "integer", "minimum": 0, "x-epack-label": "Failed operations", "x-epack-summary": "Directory audit events in the window whose result is failure or timeout." },
+        "delete_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "Delete events", "x-epack-summary": "Directory audit events in the window that deleted an object." },
+        "user_change_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "User changes", "x-epack-summary": "Directory audit events in the window in user management or on a user." },
+        "group_change_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "Group changes", "x-epack-summary": "Directory audit events in the window in group management or on a group." },
+        "app_change_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "App changes", "x-epack-summary": "Directory audit events in the window in application management or on an app." },
+        "role_change_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "Role changes", "x-epack-summary": "Directory audit events in the window in role management or on a role." },
+        "policy_change_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "Policy changes", "x-epack-summary": "Directory audit events in the window in policy management or on a policy." },
+        "pim_events_count": { "type": "integer", "minimum": 0, "x-epack-label": "PIM events", "x-epack-summary": "Directory audit events in the window from Privileged Identity Management." }
+      },
+      "x-epack-label": "Directory activity",
+      "x-epack-summary": "Directory audit events over the last 7 days, by kind of change."
     },
     "sign_in_monitoring": {
       "type": "object",
+      "x-epack-level": "internal",
       "additionalProperties": false,
       "required": [
         "lookback_hours",
@@ -193,22 +218,22 @@
         "top_failure_codes"
       ],
       "properties": {
-        "lookback_hours": { "type": "integer", "minimum": 0 },
-        "sign_ins_count": { "type": "integer", "minimum": 0 },
-        "failure_count": { "type": "integer", "minimum": 0 },
-        "unique_users_count": { "type": "integer", "minimum": 0 },
-        "unique_apps_count": { "type": "integer", "minimum": 0 },
-        "legacy_client_sign_ins_count": { "type": "integer", "minimum": 0 },
-        "risky_sign_ins_count": { "type": "integer", "minimum": 0 },
-        "conditional_access_success_count": { "type": "integer", "minimum": 0 },
-        "conditional_access_failure_count": { "type": "integer", "minimum": 0 },
-        "conditional_access_not_applied_count": { "type": "integer", "minimum": 0 },
-        "applied_policies_count": { "type": "integer", "minimum": 0 },
-        "applied_policy_evaluations_count": { "type": "integer", "minimum": 0 },
-        "applied_policy_success_count": { "type": "integer", "minimum": 0 },
-        "applied_policy_failure_count": { "type": "integer", "minimum": 0 },
-        "applied_policy_not_applied_count": { "type": "integer", "minimum": 0 },
-        "applied_policy_report_only_fail_count": { "type": "integer", "minimum": 0 },
+        "lookback_hours": { "type": "integer", "minimum": 0, "x-epack-label": "Sign-in window in hours", "x-epack-summary": "Hours of sign-ins the counts cover." },
+        "sign_ins_count": { "type": "integer", "minimum": 0, "x-epack-label": "Sign-ins", "x-epack-summary": "Interactive sign-ins in the window." },
+        "failure_count": { "type": "integer", "minimum": 0, "x-epack-label": "Failed sign-ins", "x-epack-summary": "Sign-ins in the window that ended with an error code." },
+        "unique_users_count": { "type": "integer", "minimum": 0, "x-epack-label": "Users signing in", "x-epack-summary": "Distinct users who signed in during the window." },
+        "unique_apps_count": { "type": "integer", "minimum": 0, "x-epack-label": "Apps signed in to", "x-epack-summary": "Distinct apps users signed in to during the window." },
+        "legacy_client_sign_ins_count": { "type": "integer", "minimum": 0, "x-epack-label": "Legacy client sign-ins", "x-epack-summary": "Sign-ins in the window from legacy authentication clients such as IMAP, POP, SMTP or Exchange ActiveSync. These clients cannot do MFA.", "x-epack-goal": "lower" },
+        "risky_sign_ins_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Risky sign-ins", "x-epack-summary": "Sign-ins in the window that Entra ID Protection rated low, medium or high risk.", "x-epack-goal": "lower", "x-epack-method": "Counts the sign-ins whose riskLevelAggregated or riskLevelDuringSignIn is low, medium or high. It is left out when a sign-in's risk level is hidden, as for every sign-in without Entra ID P2." },
+        "conditional_access_success_count": { "type": "integer", "minimum": 0, "x-epack-label": "Conditional Access passed", "x-epack-summary": "Sign-ins in the window where Conditional Access succeeded." },
+        "conditional_access_failure_count": { "type": "integer", "minimum": 0, "x-epack-label": "Conditional Access failed", "x-epack-summary": "Sign-ins in the window where Conditional Access failed." },
+        "conditional_access_not_applied_count": { "type": "integer", "minimum": 0, "x-epack-label": "Conditional Access not applied", "x-epack-summary": "Sign-ins in the window where no Conditional Access policy applied." },
+        "applied_policies_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Policies applied", "x-epack-summary": "Distinct Conditional Access policies evaluated on sign-ins in the window." },
+        "applied_policy_evaluations_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Policy evaluations", "x-epack-summary": "Conditional Access policy evaluations on sign-ins in the window." },
+        "applied_policy_success_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Evaluations passed", "x-epack-summary": "Policy evaluations in the window whose result is success." },
+        "applied_policy_failure_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Evaluations failed", "x-epack-summary": "Policy evaluations in the window whose result is failure." },
+        "applied_policy_not_applied_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Evaluations not applied", "x-epack-summary": "Policy evaluations in the window where the policy did not apply or was not enabled." },
+        "applied_policy_report_only_fail_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Report-only failures", "x-epack-summary": "Evaluations in the window where a report-only policy would have failed the sign-in." },
         "top_failure_codes": {
           "type": "array",
           "maxItems": 10,
@@ -217,21 +242,25 @@
             "additionalProperties": false,
             "required": ["code", "count"],
             "properties": {
-              "code": { "type": "integer" },
-              "count": { "type": "integer", "minimum": 1 }
+              "code": { "type": "integer", "x-epack-label": "Error code", "x-epack-summary": "A Microsoft Entra sign-in error code." },
+              "count": { "type": "integer", "minimum": 1, "x-epack-label": "Sign-ins with this code", "x-epack-summary": "Sign-ins in the window that ended with this error code." }
             }
-          }
+          },
+          "x-epack-label": "Top failure codes",
+          "x-epack-summary": "The 10 most frequent sign-in error codes in the window, with their counts."
         }
-      }
+      },
+      "x-epack-label": "Sign-in activity",
+      "x-epack-summary": "Interactive sign-ins over the last 7 days and how Conditional Access handled them."
     },
     "diagnostics": {
       "type": "object",
       "additionalProperties": false,
       "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
       "properties": {
-        "tenant_errors": { "type": "array", "items": { "type": "string" } },
-        "subscription_errors": { "type": "array", "items": { "type": "string" } },
-        "warnings": { "type": "array", "items": { "type": "string" } },
+        "tenant_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Tenant errors", "x-epack-summary": "Errors from reading tenant-wide Entra data." },
+        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. Each one starts with the subscription ID." },
+        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing." },
         "truncation": {
           "type": "object",
           "additionalProperties": {
@@ -239,21 +268,29 @@
             "additionalProperties": false,
             "required": ["truncated", "dropped_count"],
             "properties": {
-              "truncated": { "type": "boolean" },
-              "dropped_count": { "type": "integer", "minimum": 0 }
-            }
-          }
+              "truncated": { "type": "boolean", "x-epack-label": "Truncated", "x-epack-summary": "Whether the area's list was cut short.", "x-epack-goal": false, "x-epack-method": "Records whether the area's list was cut short." },
+              "dropped_count": { "type": "integer", "minimum": 0, "x-epack-label": "Dropped items", "x-epack-summary": "Items left out of the area's list when it was cut short.", "x-epack-goal": "lower", "x-epack-method": "Counts the items left out of the area's list." }
+            },
+            "x-epack-label": "Truncated area",
+            "x-epack-summary": "Whether one area's list was cut short and how many items were dropped."
+          },
+          "x-epack-label": "Truncation",
+          "x-epack-summary": "Lists cut short during collection, keyed by area."
         },
         "license": {
           "type": "object",
           "additionalProperties": false,
           "required": ["entra_tier", "capabilities_unavailable"],
           "properties": {
-            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"] },
-            "capabilities_unavailable": { "type": "array", "items": { "type": "string" } }
-          }
+            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"], "x-epack-label": "Entra tier", "x-epack-summary": "The tenant's Entra ID license tier, or unknown." },
+            "capabilities_unavailable": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Unavailable features", "x-epack-summary": "Features the run could not read because a license or permission is missing. Values that depend on them are left out." }
+          },
+          "x-epack-label": "Licensing",
+          "x-epack-summary": "The Entra license tier and the features the run could not read."
         }
-      }
+      },
+      "x-epack-label": "Collection diagnostics",
+      "x-epack-summary": "Errors, warnings, truncation and licensing notes from the run. They show which readings may be incomplete."
     }
   }
 }

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func TestGraphClientPagesAndRetries(t *testing.T) {
+func TestGraphClientPages(t *testing.T) {
 	var usersCalls int
 	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
 		if got := r.Header.Get("Authorization"); got != "Bearer token" {
@@ -29,9 +29,6 @@ func TestGraphClientPagesAndRetries(t *testing.T) {
 				}), nil
 			}
 			usersCalls++
-			if usersCalls == 1 {
-				return textResponse(http.StatusTooManyRequests, "retry", map[string]string{"Retry-After": "0"}), nil
-			}
 			return jsonResponse(http.StatusOK, map[string]any{
 				"value": []map[string]any{
 					{"id": "u1", "accountEnabled": true, "userType": "Member"},
@@ -44,7 +41,7 @@ func TestGraphClientPagesAndRetries(t *testing.T) {
 		return nil, nil
 	})}
 
-	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient), WithRetrySleeper(func(context.Context, time.Duration) error { return nil }))
+	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient))
 	users, err := client.Users(context.Background())
 	if err != nil {
 		t.Fatal(err)
@@ -52,8 +49,8 @@ func TestGraphClientPagesAndRetries(t *testing.T) {
 	if len(users) != 2 {
 		t.Fatalf("expected 2 users, got %d", len(users))
 	}
-	if usersCalls != 2 {
-		t.Fatalf("expected retry, got %d calls", usersCalls)
+	if usersCalls != 1 {
+		t.Fatalf("expected one first-page call, got %d", usersCalls)
 	}
 }
 
@@ -143,8 +140,14 @@ func TestGraphClientB2Routes(t *testing.T) {
 		case "/v1.0/roleManagement/directory/roleEligibilitySchedules":
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "rs1", "principalId": "u1", "roleDefinitionId": "role-1"}}}), nil
 		case "/v1.0/servicePrincipals":
+			if !strings.Contains(r.URL.Query().Get("$select"), "appId") {
+				t.Fatalf("expected appId in the service principal select, got %s", r.URL.RawQuery)
+			}
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "sp1", "servicePrincipalType": "Application"}}}), nil
 		case "/v1.0/applications":
+			if !strings.Contains(r.URL.Query().Get("$select"), "appId") {
+				t.Fatalf("expected appId in the application select, got %s", r.URL.RawQuery)
+			}
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "app1"}}}), nil
 		case "/v1.0/security/secureScores":
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"currentScore": 1, "maxScore": 2}}}), nil
@@ -273,6 +276,43 @@ func TestGraphClientSignInRoute(t *testing.T) {
 	}
 	if len(signIns) != 1 || signIns[0].AppliedConditionalAccessPolicies[0].ID != "policy-a" {
 		t.Fatalf("unexpected sign-ins: %#v", signIns)
+	}
+}
+
+// An applied policy's report-only results come back only for a request that
+// asks for unknown enum members. Without the header they arrive as
+// unknownFutureValue.
+// https://learn.microsoft.com/en-us/graph/api/resources/appliedconditionalaccesspolicy
+func TestGraphClientSignInsAskForUnknownEnumMembers(t *testing.T) {
+	var pages int
+	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		pages++
+		result := "unknownFutureValue"
+		if r.Header.Get("Prefer") == "include-unknown-enum-members" {
+			result = "reportOnlyFailure"
+		}
+		page := map[string]any{"value": []map[string]any{{
+			"id":                               "signin-" + r.URL.Query().Get("page"),
+			"appliedConditionalAccessPolicies": []map[string]any{{"id": "policy-a", "result": result}},
+		}}}
+		if r.URL.Query().Get("page") == "" {
+			page["@odata.nextLink"] = "https://graph.test/v1.0/auditLogs/signIns?page=2"
+		}
+		return jsonResponse(http.StatusOK, page), nil
+	})}
+
+	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient))
+	signIns, err := client.SignIns(context.Background(), time.Date(2026, 5, 19, 14, 12, 9, 0, time.UTC))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pages != 2 || len(signIns) != 2 {
+		t.Fatalf("expected two pages of one sign-in each, got %d pages and %#v", pages, signIns)
+	}
+	for _, signIn := range signIns {
+		if got := signIn.AppliedConditionalAccessPolicies[0].Result; got != "reportOnlyFailure" {
+			t.Fatalf("sign-in %s has result %s, want reportOnlyFailure", signIn.ID, got)
+		}
 	}
 }
 

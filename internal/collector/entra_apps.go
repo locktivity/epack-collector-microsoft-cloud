@@ -2,8 +2,6 @@ package collector
 
 import (
 	"context"
-	"errors"
-	"net/http"
 	"strings"
 	"time"
 
@@ -16,57 +14,83 @@ type credentialWindow struct {
 	end   time.Time
 }
 
-func (c *Collector) collectApps(ctx context.Context, diagnostics *Diagnostics) (*Apps, error) {
-	servicePrincipals, spAvailable, err := c.servicePrincipals(ctx, diagnostics)
-	if err != nil {
-		return nil, err
-	}
-	applications, appAvailable, err := c.applications(ctx, diagnostics)
-	if err != nil {
-		return nil, err
-	}
-	if !spAvailable && !appAvailable {
-		return nil, nil
+// collectApps returns the enterprise app metrics and the app credentials
+// they are taken from, which the access posture reads too.
+func (c *Collector) collectApps(ctx context.Context, diagnostics *Diagnostics) (*Apps, appCredentials) {
+	servicePrincipals, servicePrincipalsMiss := c.servicePrincipals(ctx, diagnostics)
+	applications, applicationsMiss := c.applications(ctx, diagnostics)
+	creds := newAppCredentials(servicePrincipals, servicePrincipalsMiss, applications, applicationsMiss)
+	if servicePrincipalsMiss != nil {
+		c.gaps.leaveOut(entraPath, servicePrincipalsMiss, "/apps", "/posture/sso_coverage")
+		return nil, creds
 	}
 
 	out := &Apps{}
-	if spAvailable {
-		populateEnterpriseAppMetrics(out, servicePrincipals)
-	}
-	if appAvailable || spAvailable {
+	populateEnterpriseAppMetrics(out, servicePrincipals)
+	if applicationsMiss == nil {
 		populateCredentialMetrics(out, applications, servicePrincipals, c.clock.Now())
 	}
-	return out, nil
+	c.gaps.leaveOut(entraPath, applicationsMiss,
+		"/apps/credentials_expiring_count", "/apps/credentials_expired_count",
+		"/apps/credentials_over_365d_count", "/apps/password_credentials_pct")
+	return out, creds
 }
 
-func (c *Collector) servicePrincipals(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.ServicePrincipal, bool, error) {
-	servicePrincipals, err := c.graph.ServicePrincipals(ctx)
-	if err == nil {
-		return servicePrincipals, true, nil
-	}
+// appCredentials holds the tenant's Application service principals by object
+// ID and its applications by appId, with why each list could not be read.
+type appCredentials struct {
+	servicePrincipals     map[string]microsoft.ServicePrincipal
+	servicePrincipalsMiss *missing
+	applications          map[string]microsoft.Application
+	applicationsMiss      *missing
+}
 
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusForbidden {
+func newAppCredentials(servicePrincipals []microsoft.ServicePrincipal, servicePrincipalsMiss *missing, applications []microsoft.Application, applicationsMiss *missing) appCredentials {
+	out := appCredentials{
+		servicePrincipals:     map[string]microsoft.ServicePrincipal{},
+		servicePrincipalsMiss: servicePrincipalsMiss,
+		applications:          map[string]microsoft.Application{},
+		applicationsMiss:      applicationsMiss,
+	}
+	for _, sp := range servicePrincipals {
+		if sp.ID != "" {
+			out.servicePrincipals[sp.ID] = sp
+		}
+	}
+	for _, app := range applications {
+		if app.AppID != "" {
+			out.applications[app.AppID] = app
+		}
+	}
+	return out
+}
+
+func (c *Collector) servicePrincipals(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.ServicePrincipal, *missing) {
+	servicePrincipals, err := c.graph.ServicePrincipals(ctx)
+	switch {
+	case err == nil:
+		return servicePrincipals, nil
+	case permissionDenied(err):
 		diagnostics.Warn("graph permission Application.Read.All not granted, enterprise apps skipped")
 		diagnostics.MarkCapabilityUnavailable("enterprise_apps")
-		return nil, false, nil
+	default:
+		diagnostics.warnNotCollected("Enterprise applications", err)
 	}
-	return nil, false, err
+	return nil, failed(err)
 }
 
-func (c *Collector) applications(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.Application, bool, error) {
+func (c *Collector) applications(ctx context.Context, diagnostics *Diagnostics) ([]microsoft.Application, *missing) {
 	applications, err := c.graph.Applications(ctx)
-	if err == nil {
-		return applications, true, nil
-	}
-
-	var apiErr *microsoft.APIError
-	if errors.As(err, &apiErr) && apiErr.StatusCode == http.StatusForbidden {
+	switch {
+	case err == nil:
+		return applications, nil
+	case permissionDenied(err):
 		diagnostics.Warn("graph permission Application.Read.All not granted, application credentials skipped")
 		diagnostics.MarkCapabilityUnavailable("application_credentials")
-		return nil, false, nil
+	default:
+		diagnostics.warnNotCollected("Application credentials", err)
 	}
-	return nil, false, err
+	return nil, failed(err)
 }
 
 func populateEnterpriseAppMetrics(out *Apps, servicePrincipals []microsoft.ServicePrincipal) {
@@ -88,6 +112,7 @@ func populateEnterpriseAppMetrics(out *Apps, servicePrincipals []microsoft.Servi
 	out.EnabledEnterpriseAppsCount = enabled
 	out.AssignmentRequiredPct = PercentInt(assignmentRequired, enabled)
 	out.SSOCoveragePct = PercentInt(ssoConfigured, enabled)
+	out.ssoAppCount = ssoConfigured
 }
 
 func populateCredentialMetrics(out *Apps, applications []microsoft.Application, servicePrincipals []microsoft.ServicePrincipal, now time.Time) {
@@ -95,10 +120,13 @@ func populateCredentialMetrics(out *Apps, applications []microsoft.Application, 
 	expiringBefore := now.AddDate(0, 0, 30)
 	activeCredentials := 0
 	activePasswordCredentials := 0
+	expiring := 0
+	expired := 0
+	over365d := 0
 
 	for _, credential := range credentials {
 		if !credential.end.IsZero() && !credential.end.After(now) {
-			out.CredentialsExpiredCount++
+			expired++
 			continue
 		}
 		activeCredentials++
@@ -106,12 +134,15 @@ func populateCredentialMetrics(out *Apps, applications []microsoft.Application, 
 			activePasswordCredentials++
 		}
 		if !credential.end.IsZero() && credential.end.After(now) && !credential.end.After(expiringBefore) {
-			out.CredentialsExpiringCount++
+			expiring++
 		}
 		if !credential.start.IsZero() && !credential.end.IsZero() && credential.end.Sub(credential.start) > 365*24*time.Hour {
-			out.CredentialsOver365dCount++
+			over365d++
 		}
 	}
+	out.CredentialsExpiringCount = intPtr(expiring)
+	out.CredentialsExpiredCount = intPtr(expired)
+	out.CredentialsOver365dCount = intPtr(over365d)
 	out.PasswordCredentialsPct = PercentInt(activePasswordCredentials, activeCredentials)
 }
 

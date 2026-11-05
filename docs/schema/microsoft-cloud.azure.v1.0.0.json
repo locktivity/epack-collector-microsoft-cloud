@@ -12,44 +12,50 @@
     "diagnostics"
   ],
   "properties": {
-    "schema_version": { "type": "string", "const": "1.0.0" },
-    "collected_at": { "type": "string", "format": "date-time" },
-    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"] },
+    "schema_version": { "type": "string", "const": "1.0.0", "x-epack-label": "Schema version", "x-epack-summary": "Version of this artifact's schema." },
+    "collected_at": { "type": "string", "format": "date-time", "x-epack-label": "Collected at", "x-epack-summary": "When the collection ran." },
+    "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"], "x-epack-label": "Collection level", "x-epack-summary": "The collection level the run used." },
     "accounts": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["account_id", "defender", "rbac", "policy", "storage", "keyvault", "sql", "compute", "backup", "network", "logging"],
+        "required": ["account_id"],
         "properties": {
-          "account_id": { "type": "string" },
+          "account_id": { "type": "string", "x-epack-label": "Subscription ID", "x-epack-summary": "ID of the Azure subscription the entry describes." },
           "defender": {
             "type": "object",
             "additionalProperties": false,
             "required": ["secure_score_pct", "unpatched_pct"],
             "properties": {
-              "secure_score_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "unpatched_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "secure_score_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "Defender for Cloud reports a maximum score of 0 for the subscription.", "x-epack-label": "Cloud secure score", "x-epack-summary": "Defender for Cloud's secure score for the subscription, as a percentage of the maximum score.", "x-epack-method": "Reads the percentage from Defender for Cloud's ascScore secure score, or divides its current score by its maximum." },
+              "unpatched_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "Defender for Cloud has no healthy or unhealthy patch or vulnerability assessment for the subscription.", "x-epack-label": "Unhealthy update assessments", "x-epack-summary": "Share of Defender for Cloud's system update and vulnerability assessments on the subscription that are unhealthy.", "x-epack-method": "Divides the unhealthy Defender for Cloud assessments whose name, display name or categories mention updates, patches or vulnerabilities by the healthy and unhealthy ones." }
+            },
+            "x-epack-label": "Defender for Cloud",
+            "x-epack-summary": "The subscription's Microsoft Defender for Cloud scores."
           },
           "rbac": {
             "type": "object",
             "additionalProperties": false,
             "required": ["owner_count", "owner_service_principal_count"],
             "properties": {
-              "owner_count": { "type": "integer", "minimum": 0 },
-              "owner_service_principal_count": { "type": "integer", "minimum": 0 }
-            }
+              "owner_count": { "type": "integer", "minimum": 0, "x-epack-label": "Owner assignments", "x-epack-summary": "Owner role assignments at the subscription or inherited from above it.", "x-epack-method": "Counts the role assignments at or above the subscription's scope whose role definition is Owner." },
+              "owner_service_principal_count": { "type": "integer", "minimum": 0, "x-epack-label": "Service principal owners", "x-epack-summary": "Owner role assignments held by service principals.", "x-epack-goal": "lower", "x-epack-method": "Counts the Owner role assignments whose principal type is ServicePrincipal." }
+            },
+            "x-epack-label": "Owner role",
+            "x-epack-summary": "Owner role assignments that apply to the subscription."
           },
           "policy": {
             "type": "object",
             "additionalProperties": false,
             "required": ["assignments_count", "compliant_pct", "noncompliant_resources_count"],
             "properties": {
-              "assignments_count": { "type": "integer", "minimum": 0 },
-              "compliant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "noncompliant_resources_count": { "type": ["integer", "null"], "minimum": 0 }
-            }
+              "assignments_count": { "type": "integer", "minimum": 0, "x-epack-label": "Policy assignments", "x-epack-summary": "Azure Policy assignments that apply to the subscription.", "x-epack-method": "Counts the assignments in Azure Policy's list for the subscription with the atScope() filter. Assignments on resource groups and resources inside the subscription are not counted." },
+              "compliant_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "No policy is assigned, or the assigned policies have evaluated no resources.", "x-epack-label": "Policy compliance", "x-epack-summary": "Share of evaluated resources that comply with the assigned policies.", "x-epack-method": "Divides the compliant resources in Azure Policy's latest state summary by its compliant and noncompliant resources." },
+              "noncompliant_resources_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "No policy is assigned to the subscription.", "x-epack-label": "Noncompliant resources", "x-epack-summary": "Resources that fail at least one assigned policy.", "x-epack-goal": "lower", "x-epack-method": "Reads the noncompliant resource count from Azure Policy's latest state summary." }
+            },
+            "x-epack-label": "Azure Policy",
+            "x-epack-summary": "Azure Policy assignments on the subscription and how its resources comply."
           },
           "storage": {
             "type": "object",
@@ -63,45 +69,54 @@
               "public_access_blocked_pct"
             ],
             "properties": {
-              "storage_accounts_count": { "type": "integer", "minimum": 0 },
-              "https_only_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "encryption_cmk_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "infrastructure_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "public_access_blocked_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "storage_accounts_count": { "type": "integer", "minimum": 0, "x-epack-label": "Storage accounts", "x-epack-summary": "Storage accounts in the subscription.", "x-epack-method": "Counts the storage accounts in the subscription." },
+              "https_only_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "HTTPS only", "x-epack-summary": "Share of storage accounts that accept only HTTPS traffic.", "x-epack-method": "Divides the storage accounts with supportsHttpsTrafficOnly true by all storage accounts." },
+              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "TLS 1.2 minimum", "x-epack-summary": "Share of storage accounts whose minimum TLS version is 1.2 or later.", "x-epack-method": "Divides the storage accounts whose minimumTlsVersion is TLS1_2 or later by all storage accounts." },
+              "encryption_cmk_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "Customer-managed keys", "x-epack-summary": "Share of storage accounts encrypted with a customer-managed key in Key Vault. Azure encrypts every storage account at rest, with Microsoft-managed keys by default.", "x-epack-method": "Divides the storage accounts whose encryption key source is Microsoft.Keyvault by all storage accounts." },
+              "infrastructure_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "Infrastructure encryption", "x-epack-summary": "Share of storage accounts that also encrypt data at the infrastructure layer with a second key.", "x-epack-method": "Divides the storage accounts with requireInfrastructureEncryption true by all storage accounts." },
+              "public_access_blocked_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "Public access blocked", "x-epack-summary": "Share of storage accounts that disallow anonymous blob access. The account setting overrides the setting of each container.", "x-epack-method": "Divides the storage accounts with allowBlobPublicAccess false by all storage accounts. An account without allowBlobPublicAccess counts as allowing anonymous access." },
+              "network_restricted_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "storage_accounts_count", "x-epack-label": "Network access restricted", "x-epack-summary": "Share of storage accounts that refuse public network traffic by default. Traffic then comes only from allowed networks and private endpoints.", "x-epack-method": "Divides the storage accounts with publicNetworkAccess Disabled or networkAcls.defaultAction Deny by all storage accounts." }
+            },
+            "x-epack-label": "Storage",
+            "x-epack-summary": "Security settings of the subscription's storage accounts."
           },
           "keyvault": {
             "type": "object",
             "additionalProperties": false,
             "required": ["vaults_count", "purge_protection_pct", "rbac_authorization_pct"],
             "properties": {
-              "vaults_count": { "type": "integer", "minimum": 0 },
-              "purge_protection_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "rbac_authorization_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "vaults_count": { "type": "integer", "minimum": 0, "x-epack-label": "Key vaults", "x-epack-summary": "Key vaults in the subscription.", "x-epack-method": "Counts the key vaults in the subscription." },
+              "purge_protection_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "vaults_count", "x-epack-label": "Purge protection", "x-epack-summary": "Share of key vaults with purge protection on. Purge protection stops a deleted vault or secret from being removed for good until its retention period ends.", "x-epack-method": "Divides the key vaults with enablePurgeProtection true by all key vaults." },
+              "rbac_authorization_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "vaults_count", "x-epack-label": "Azure RBAC authorization", "x-epack-summary": "Share of key vaults that use Azure RBAC for data access. The others use vault access policies.", "x-epack-method": "Divides the key vaults with enableRbacAuthorization true by all key vaults." }
+            },
+            "x-epack-label": "Key vaults",
+            "x-epack-summary": "Protection and access settings of the subscription's key vaults."
           },
           "sql": {
             "type": "object",
             "additionalProperties": false,
             "required": ["servers_count", "databases_count", "tde_enabled_pct", "min_tls12_pct", "public_access_disabled_pct"],
             "properties": {
-              "servers_count": { "type": "integer", "minimum": 0 },
-              "databases_count": { "type": "integer", "minimum": 0 },
-              "tde_enabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "public_access_disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "servers_count": { "type": "integer", "minimum": 0, "x-epack-label": "SQL servers", "x-epack-summary": "Azure SQL logical servers in the subscription.", "x-epack-method": "Counts the Azure SQL servers in the subscription." },
+              "databases_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "SQL databases", "x-epack-summary": "Databases on the subscription's Azure SQL servers, leaving out each server's master database.", "x-epack-method": "Counts the databases on each SQL server, leaving out master." },
+              "tde_enabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "databases_count", "x-epack-label": "Transparent data encryption", "x-epack-summary": "Share of SQL databases with transparent data encryption on.", "x-epack-method": "Divides the databases whose current transparent data encryption state is Enabled by all databases other than master." },
+              "min_tls12_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "servers_count", "x-epack-label": "TLS 1.2 minimum", "x-epack-summary": "Share of SQL servers whose minimum TLS version is 1.2 or later.", "x-epack-method": "Divides the SQL servers whose minimalTlsVersion is 1.2 or later by all SQL servers." },
+              "public_access_disabled_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "servers_count", "x-epack-label": "Public network access off", "x-epack-summary": "Share of SQL servers with public network access turned off.", "x-epack-method": "Divides the SQL servers whose publicNetworkAccess is Disabled by all SQL servers." }
+            },
+            "x-epack-label": "Azure SQL",
+            "x-epack-summary": "Security settings of the subscription's Azure SQL servers and databases."
           },
           "compute": {
             "type": "object",
             "additionalProperties": false,
             "required": ["virtual_machines_count", "disk_encryption_pct", "public_ip_pct"],
             "properties": {
-              "virtual_machines_count": { "type": "integer", "minimum": 0 },
-              "disk_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "public_ip_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "virtual_machines_count": { "type": "integer", "minimum": 0, "x-epack-label": "Virtual machines", "x-epack-summary": "Virtual machines in the subscription.", "x-epack-method": "Counts the virtual machines in the subscription." },
+              "disk_encryption_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "virtual_machines_count", "x-epack-label": "Disk encryption", "x-epack-summary": "Share of virtual machines whose OS disk and every data disk are managed disks or use Azure Disk Encryption.", "x-epack-method": "Divides the virtual machines whose OS disk and data disks are all managed disks or have encryptionSettings enabled by all virtual machines." },
+              "public_ip_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "virtual_machines_count", "x-epack-label": "Public IP addresses", "x-epack-summary": "Share of virtual machines with a network interface that has a public IP address.", "x-epack-method": "Divides the virtual machines with a network interface that a public IP address's IP configuration belongs to by all virtual machines." }
+            },
+            "x-epack-label": "Virtual machines",
+            "x-epack-summary": "Disk encryption and public addresses of the subscription's virtual machines."
           },
           "backup": {
             "type": "object",
@@ -115,13 +130,15 @@
               "vault_immutability_pct"
             ],
             "properties": {
-              "retention_days_min": { "type": ["integer", "null"], "minimum": 0 },
-              "protected_resource_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "latest_successful_backup_age_hours_max": { "type": ["integer", "null"], "minimum": 0 },
-              "failed_jobs_7d_count": { "type": ["integer", "null"], "minimum": 0 },
-              "vault_soft_delete_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "vault_immutability_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "retention_days_min": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "No backup policy that a protected item uses sets a retention period.", "x-epack-label": "Shortest retention in days", "x-epack-summary": "The shortest retention period in the backup policies that the protected items of the subscription's Recovery Services vaults use. Months count as 30 days and years as 365.", "x-epack-goal": "higher", "x-epack-method": "Takes the shortest positive retention duration in the backup policies that the protected items of the subscription's Recovery Services vaults use. A month counts as 30 days and a year as 365." },
+              "protected_resource_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "The subscription has no virtual machines or SQL databases.", "x-epack-label": "Backup coverage", "x-epack-summary": "Share of virtual machines and SQL databases that a Recovery Services vault backs up.", "x-epack-method": "Divides the virtual machines and SQL databases that a backup item in a Recovery Services vault protects by all virtual machines and SQL databases other than master." },
+              "latest_successful_backup_age_hours_max": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "No backup job in the vaults' job history has completed successfully.", "x-epack-label": "Oldest successful backup in hours", "x-epack-summary": "Hours since the oldest successful backup job in the vaults' job history ended.", "x-epack-goal": "lower", "x-epack-method": "Takes the most hours since the end of any completed or succeeded Backup job in the Recovery Services vaults' job history." },
+              "failed_jobs_7d_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "The subscription has no Recovery Services vault.", "x-epack-label": "Failed backup jobs in 7 days", "x-epack-summary": "Backup jobs in the last 7 days that failed.", "x-epack-goal": "lower", "x-epack-method": "Counts the Backup jobs in the Recovery Services vaults' job history that failed in the last 7 days." },
+              "vault_soft_delete_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "The subscription has no Recovery Services vault.", "x-epack-label": "Vault soft delete", "x-epack-summary": "Share of Recovery Services vaults with soft delete on. Soft delete keeps deleted backup data for a period before it is removed.", "x-epack-method": "Divides the Recovery Services vaults whose soft delete state is Enabled or AlwaysON by all vaults." },
+              "vault_immutability_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-null": "The subscription has no Recovery Services vault.", "x-epack-label": "Vault immutability", "x-epack-summary": "Share of Recovery Services vaults with immutability on, locked or unlocked. Immutability blocks changes that would delete recovery points early.", "x-epack-method": "Divides the Recovery Services vaults whose immutability state is Enabled, Locked or Unlocked by all vaults." }
+            },
+            "x-epack-label": "Backup",
+            "x-epack-summary": "Backup coverage, job results and vault protections in the subscription's Recovery Services vaults."
           },
           "network": {
             "type": "object",
@@ -133,11 +150,13 @@
               "rdp_open_to_world_pct"
             ],
             "properties": {
-              "network_security_groups_count": { "type": "integer", "minimum": 0 },
-              "public_ip_addresses_count": { "type": "integer", "minimum": 0 },
-              "ssh_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "rdp_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 }
-            }
+              "network_security_groups_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Network security groups", "x-epack-summary": "Network security groups in the subscription.", "x-epack-method": "Counts the network security groups in the subscription." },
+              "public_ip_addresses_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Public IP addresses", "x-epack-summary": "Public IP addresses in the subscription.", "x-epack-method": "Counts the public IP addresses in the subscription." },
+              "ssh_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "network_security_groups_count", "x-epack-label": "SSH open to the internet", "x-epack-summary": "Share of network security groups with an inbound rule that allows SSH on port 22 from any address.", "x-epack-method": "Divides the network security groups with an inbound Allow rule for TCP port 22 from *, Any, Internet, 0.0.0.0/0 or ::/0 by all network security groups." },
+              "rdp_open_to_world_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "network_security_groups_count", "x-epack-label": "RDP open to the internet", "x-epack-summary": "Share of network security groups with an inbound rule that allows RDP on port 3389 from any address.", "x-epack-method": "Divides the network security groups with an inbound Allow rule for TCP port 3389 from *, Any, Internet, 0.0.0.0/0 or ::/0 by all network security groups." }
+            },
+            "x-epack-label": "Network",
+            "x-epack-summary": "Network security groups and public IP addresses in the subscription."
           },
           "logging": {
             "type": "object",
@@ -150,15 +169,18 @@
               "resources_without_diagnostics_count"
             ],
             "properties": {
-              "subscription_diagnostic_settings_enabled": { "type": ["boolean", "null"] },
-              "activity_log_administrative_exported": { "type": ["boolean", "null"] },
-              "diagnostic_settings_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "monitored_resources_count": { "type": "integer", "minimum": 0 },
-              "resources_without_diagnostics_count": { "type": ["integer", "null"], "minimum": 0 }
-            }
+              "subscription_diagnostic_settings_enabled": { "type": ["boolean", "null"], "x-epack-label": "Activity Log exported", "x-epack-summary": "Whether a diagnostic setting sends any Activity Log category of the subscription to a destination.", "x-epack-goal": true, "x-epack-method": "Checks for a subscription diagnostic setting with a destination and an enabled log or metric category." },
+              "activity_log_administrative_exported": { "type": ["boolean", "null"], "x-epack-label": "Administrative events exported", "x-epack-summary": "Whether a diagnostic setting sends the subscription's Administrative Activity Log events to a destination. These events record changes to resources.", "x-epack-goal": true, "x-epack-method": "Checks for a subscription diagnostic setting with a destination that enables the Administrative category or the allLogs category group." },
+              "diagnostic_settings_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "monitored_resources_count", "x-epack-label": "Resource logging coverage", "x-epack-summary": "Share of monitored resources with a diagnostic setting that sends logs or metrics to a destination.", "x-epack-method": "Divides the monitored resources with a diagnostic setting that has a destination and an enabled log or metric category by all monitored resources. A storage account's setting can be on the account or on its blob, file, queue or table service. A SQL server's setting is on its master database." },
+              "monitored_resources_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-label": "Monitored resources", "x-epack-summary": "Storage accounts, key vaults, SQL servers, SQL databases and virtual machines in the subscription.", "x-epack-method": "Counts the storage accounts, key vaults, SQL servers, SQL databases other than master and virtual machines in the subscription. A SQL server is counted by its master database." },
+              "resources_without_diagnostics_count": { "type": ["integer", "null"], "minimum": 0, "x-epack-null": "The subscription has no storage account, key vault, SQL server or database, or virtual machine.", "x-epack-label": "Resources without logging", "x-epack-summary": "Monitored resources with no diagnostic setting that sends logs or metrics to a destination.", "x-epack-goal": "lower", "x-epack-method": "Counts the monitored resources with no diagnostic setting that has a destination and an enabled log or metric category. A storage account's setting can be on the account or on its blob, file, queue or table service. A SQL server's setting is on its master database." }
+            },
+            "x-epack-label": "Logging",
+            "x-epack-summary": "Where the subscription's Activity Log and its resources' logs are sent."
           },
           "inventory": {
             "type": "object",
+            "x-epack-level": "audit",
             "additionalProperties": false,
             "required": [
               "resources_count",
@@ -170,12 +192,12 @@
               "top_resource_types"
             ],
             "properties": {
-              "resources_count": { "type": "integer", "minimum": 0 },
-              "resource_groups_count": { "type": "integer", "minimum": 0 },
-              "regions_count": { "type": "integer", "minimum": 0 },
-              "owner_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "environment_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
-              "production_resources_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+              "resources_count": { "type": "integer", "minimum": 0, "x-epack-label": "Resources", "x-epack-summary": "Resources in the subscription." },
+              "resource_groups_count": { "type": "integer", "minimum": 0, "x-epack-label": "Resource groups", "x-epack-summary": "Resource groups that hold the subscription's resources." },
+              "regions_count": { "type": "integer", "minimum": 0, "x-epack-label": "Regions", "x-epack-summary": "Azure regions the subscription's resources are in.", "x-epack-method": "Counts the distinct locations of the subscription's resources other than global, which is not a region." },
+              "owner_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "resources_count", "x-epack-label": "Owner tag coverage", "x-epack-summary": "Share of resources with an owner tag, such as owner, businessowner or managedby.", "x-epack-method": "Divides the resources with a nonempty owner, applicationowner, businessowner, serviceowner, contact or managedby tag by all resources. Tag keys are compared without case, spaces or punctuation." },
+              "environment_tag_coverage_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "resources_count", "x-epack-label": "Environment tag coverage", "x-epack-summary": "Share of resources with a nonempty environment, env or stage tag.", "x-epack-method": "Divides the resources with a nonempty environment, env or stage tag by all resources. Tag keys are compared without case, spaces or punctuation." },
+              "production_resources_pct": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "x-epack-denominator": "resources_count", "x-epack-label": "Production share", "x-epack-summary": "Share of resources whose environment tag is prod or production.", "x-epack-method": "Divides the resources whose first nonempty environment, env or stage tag, in that order, is prod or production by all resources." },
               "top_resource_types": {
                 "type": "array",
                 "maxItems": 10,
@@ -184,24 +206,30 @@
                   "additionalProperties": false,
                   "required": ["type", "count"],
                   "properties": {
-                    "type": { "type": "string" },
-                    "count": { "type": "integer", "minimum": 1 }
+                    "type": { "type": "string", "x-epack-label": "Resource type", "x-epack-summary": "An Azure resource type, such as Microsoft.Storage/storageAccounts." },
+                    "count": { "type": "integer", "minimum": 1, "x-epack-label": "Resources of this type", "x-epack-summary": "Resources of this type in the subscription." }
                   }
-                }
+                },
+                "x-epack-label": "Top resource types",
+                "x-epack-summary": "The 10 most common resource types in the subscription, with their counts."
               }
-            }
+            },
+            "x-epack-label": "Inventory",
+            "x-epack-summary": "The subscription's resources by group, region, type and tag."
           }
         }
-      }
+      },
+      "x-epack-label": "Subscriptions",
+      "x-epack-summary": "One entry for each configured subscription, in the configured order."
     },
     "diagnostics": {
       "type": "object",
       "additionalProperties": false,
       "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
       "properties": {
-        "tenant_errors": { "type": "array", "items": { "type": "string" } },
-        "subscription_errors": { "type": "array", "items": { "type": "string" } },
-        "warnings": { "type": "array", "items": { "type": "string" } },
+        "tenant_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Tenant errors", "x-epack-summary": "Errors from reading tenant-wide Entra data." },
+        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. Each one starts with the subscription ID." },
+        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing." },
         "truncation": {
           "type": "object",
           "additionalProperties": {
@@ -209,21 +237,29 @@
             "additionalProperties": false,
             "required": ["truncated", "dropped_count"],
             "properties": {
-              "truncated": { "type": "boolean" },
-              "dropped_count": { "type": "integer", "minimum": 0 }
-            }
-          }
+              "truncated": { "type": "boolean", "x-epack-label": "Truncated", "x-epack-summary": "Whether the area's list was cut short.", "x-epack-goal": false, "x-epack-method": "Records whether the area's list was cut short." },
+              "dropped_count": { "type": "integer", "minimum": 0, "x-epack-label": "Dropped items", "x-epack-summary": "Items left out of the area's list when it was cut short.", "x-epack-goal": "lower", "x-epack-method": "Counts the items left out of the area's list." }
+            },
+            "x-epack-label": "Truncated area",
+            "x-epack-summary": "Whether one area's list was cut short and how many items were dropped."
+          },
+          "x-epack-label": "Truncation",
+          "x-epack-summary": "Lists cut short during collection, keyed by area."
         },
         "license": {
           "type": "object",
           "additionalProperties": false,
           "required": ["entra_tier", "capabilities_unavailable"],
           "properties": {
-            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"] },
-            "capabilities_unavailable": { "type": "array", "items": { "type": "string" } }
-          }
+            "entra_tier": { "type": "string", "enum": ["free", "p1", "p2", "unknown"], "x-epack-label": "Entra tier", "x-epack-summary": "The tenant's Entra ID license tier, or unknown." },
+            "capabilities_unavailable": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Unavailable features", "x-epack-summary": "Features the run could not read because a license or permission is missing. Values that depend on them are left out." }
+          },
+          "x-epack-label": "Licensing",
+          "x-epack-summary": "The Entra license tier and the features the run could not read."
         }
-      }
+      },
+      "x-epack-label": "Collection diagnostics",
+      "x-epack-summary": "Errors, warnings, truncation and licensing notes from the run. They show which readings may be incomplete."
     }
   }
 }

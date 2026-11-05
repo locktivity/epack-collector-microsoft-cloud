@@ -1,5 +1,11 @@
 package collector
 
+import "github.com/locktivity/epack/componentsdk"
+
+// CloudPosture is the normalized evidencepack/cloud-posture@v1 artifact. A
+// value the Azure artifact left out is absent here too, with the same gap. A percentage over an empty population is null. The account ID
+// and the counts behind the percentages are written from the audit level, as
+// the schema marks them, and the present flags at every level.
 type CloudPosture struct {
 	SchemaVersion string                `json:"schema_version"`
 	CollectedAt   string                `json:"collected_at"`
@@ -8,41 +14,59 @@ type CloudPosture struct {
 }
 
 type CloudPostureAccount struct {
-	AccountID string               `json:"account_id"`
-	IAM       *CloudPostureIAM     `json:"iam,omitempty"`
+	AccountID string               `json:"account_id,omitempty"`
 	Storage   *CloudPostureStorage `json:"storage,omitempty"`
 	Logging   *CloudPostureLogging `json:"logging,omitempty"`
 	Backup    *CloudPostureBackup  `json:"backup,omitempty"`
 	Network   *CloudPostureNetwork `json:"network,omitempty"`
 }
 
-type CloudPostureIAM struct {
-	MFACoveragePct      *int  `json:"mfa_coverage_pct,omitempty"`
-	RootMFAEnabled      *bool `json:"root_mfa_enabled,omitempty"`
-	RootAccessProtected *bool `json:"root_access_protected,omitempty"`
-}
-
 type CloudPostureStorage struct {
-	EncryptionPct          *int `json:"encryption_pct,omitempty"`
-	PublicAccessBlockedPct *int `json:"public_access_blocked_pct,omitempty"`
+	StorageResourcesPresent                 *bool      `json:"storage_resources_present,omitempty"`
+	StorageResourceCount                    *int       `json:"storage_resource_count,omitempty"`
+	EncryptedStorageResourceCount           *int       `json:"encrypted_storage_resource_count,omitempty"`
+	PublicAccessBlockedStorageResourceCount *int       `json:"public_access_blocked_storage_resource_count,omitempty"`
+	EncryptionPct                           Percentage `json:"encryption_pct,omitzero"`
+	PublicAccessBlockedPct                  Percentage `json:"public_access_blocked_pct,omitzero"`
 }
 
 type CloudPostureLogging struct {
+	AuditLogEnabled       *bool `json:"audit_log_enabled,omitempty"`
+	AuditLogAllRegions    *bool `json:"audit_log_all_regions,omitempty"`
 	CloudTrailEnabled     *bool `json:"cloudtrail_enabled,omitempty"`
 	CloudTrailMultiregion *bool `json:"cloudtrail_multiregion,omitempty"`
 }
 
+// CloudPostureBackup's retention is null when no backup policy that a
+// protected item uses sets a retention period, as when the subscription has
+// no Recovery Services vault.
 type CloudPostureBackup struct {
-	RetentionDaysMin *int `json:"retention_days_min,omitempty"`
+	RetentionDaysMin Days `json:"retention_days_min,omitzero"`
 }
+
+// Days is a normalized number of days. Like a Percentage, it is left out
+// when Read is false. Otherwise it is written as Value, which is nil when
+// there is nothing to measure.
+type Days = Percentage
 
 type CloudPostureNetwork struct {
-	SSHOpenToWorldPct *int `json:"ssh_open_to_world_pct,omitempty"`
-	RDPOpenToWorldPct *int `json:"rdp_open_to_world_pct,omitempty"`
+	SecurityGroupsPresent     *bool      `json:"security_groups_present,omitempty"`
+	SecurityGroupCount        *int       `json:"security_group_count,omitempty"`
+	SSHOpenSecurityGroupCount *int       `json:"ssh_open_security_group_count,omitempty"`
+	RDPOpenSecurityGroupCount *int       `json:"rdp_open_security_group_count,omitempty"`
+	SSHOpenToWorldPct         Percentage `json:"ssh_open_to_world_pct,omitzero"`
+	RDPOpenToWorldPct         Percentage `json:"rdp_open_to_world_pct,omitzero"`
 }
 
-func (a *AzureArtifact) ToCloudPosture(entra *EntraArtifact) *CloudPosture {
+func (a *AzureArtifact) ToCloudPosture() *CloudPosture {
 	if a == nil || len(a.Accounts) == 0 {
+		return nil
+	}
+	audit := componentsdk.Level(a.CollectedAtLevel).AtLeast(componentsdk.LevelAudit)
+	atAudit := func(count *int) *int {
+		if audit {
+			return count
+		}
 		return nil
 	}
 	posture := &CloudPosture{
@@ -52,85 +76,110 @@ func (a *AzureArtifact) ToCloudPosture(entra *EntraArtifact) *CloudPosture {
 		Accounts:      make([]CloudPostureAccount, 0, len(a.Accounts)),
 	}
 	for _, account := range a.Accounts {
-		posture.Accounts = append(posture.Accounts, CloudPostureAccount{
-			AccountID: account.AccountID,
-			IAM:       cloudPostureIAM(entra),
-			Storage:   cloudPostureStorage(account.Storage),
-			Logging:   cloudPostureLogging(account.Logging),
-			Backup:    cloudPostureBackup(account.Backup),
-			Network:   cloudPostureNetwork(account.Network),
-		})
+		out := CloudPostureAccount{}
+		if audit {
+			out.AccountID = account.AccountID
+		}
+		if account.unreadable == nil {
+			out.Storage = cloudPostureStorage(account.Storage, atAudit)
+			out.Logging = cloudPostureLogging(account.Logging)
+			out.Backup = cloudPostureBackup(account.Backup)
+			out.Network = cloudPostureNetwork(account.Network, atAudit)
+		}
+		posture.Accounts = append(posture.Accounts, out)
 	}
 	return posture
 }
 
-func cloudPostureIAM(entra *EntraArtifact) *CloudPostureIAM {
-	if entra == nil {
-		return nil
-	}
-	iam := &CloudPostureIAM{}
-	if entra.Posture.MFACoverage != nil {
-		iam.MFACoveragePct = entra.Posture.MFACoverage
-	}
-	if entra.PrivilegedAccess != nil && entra.PrivilegedAccess.RootMFAEnabled != nil {
-		iam.RootMFAEnabled = entra.PrivilegedAccess.RootMFAEnabled
-		iam.RootAccessProtected = entra.PrivilegedAccess.RootMFAEnabled
-	}
-	if iam.MFACoveragePct == nil && iam.RootMFAEnabled == nil && iam.RootAccessProtected == nil {
-		return nil
-	}
-	return iam
-}
-
-func cloudPostureStorage(storage *AzureStorage) *CloudPostureStorage {
+func cloudPostureStorage(storage *AzureStorage, atAudit func(*int) *int) *CloudPostureStorage {
 	if storage == nil {
 		return nil
 	}
-	out := &CloudPostureStorage{}
-	if storage.EncryptionCMKPct != nil {
-		out.EncryptionPct = storage.EncryptionCMKPct
+	count := intPtr(storage.StorageAccountsCount)
+	return &CloudPostureStorage{
+		StorageResourcesPresent:                 present(count),
+		StorageResourceCount:                    atAudit(count),
+		EncryptedStorageResourceCount:           atAudit(intPtr(storage.cmkCount)),
+		PublicAccessBlockedStorageResourceCount: atAudit(intPtr(storage.publicAccessBlockedCount)),
+		EncryptionPct:                           share(intPtr(storage.cmkCount), count, componentsdk.RoundDown),
+		PublicAccessBlockedPct:                  share(intPtr(storage.publicAccessBlockedCount), count, componentsdk.RoundDown),
 	}
-	if storage.PublicAccessBlockedPct != nil {
-		out.PublicAccessBlockedPct = storage.PublicAccessBlockedPct
-	}
-	if out.EncryptionPct == nil && out.PublicAccessBlockedPct == nil {
-		return nil
-	}
-	return out
 }
 
 // The Activity Log has no region scope, so one export covers every region and
-// both fields carry the same value.
+// every field carries the same value. The cloudtrail_* fields are the schema's
+// deprecated names for audit_log_*, kept until cloud-posture v2 removes them.
 func cloudPostureLogging(logging *AzureLogging) *CloudPostureLogging {
 	if logging == nil || logging.ActivityLogAdministrativeExported == nil {
 		return nil
 	}
 	return &CloudPostureLogging{
+		AuditLogEnabled:       logging.ActivityLogAdministrativeExported,
+		AuditLogAllRegions:    logging.ActivityLogAdministrativeExported,
 		CloudTrailEnabled:     logging.ActivityLogAdministrativeExported,
 		CloudTrailMultiregion: logging.ActivityLogAdministrativeExported,
 	}
 }
 
 func cloudPostureBackup(backup *AzureBackup) *CloudPostureBackup {
-	if backup == nil || backup.RetentionDaysMin == nil {
+	if backup == nil || !backup.retentionRead {
 		return nil
 	}
-	return &CloudPostureBackup{RetentionDaysMin: backup.RetentionDaysMin}
+	return &CloudPostureBackup{RetentionDaysMin: Days{Value: backup.RetentionDaysMin, Read: true}}
 }
 
-func cloudPostureNetwork(network *AzureNetwork) *CloudPostureNetwork {
-	if network == nil {
+func cloudPostureNetwork(network *AzureNetwork, atAudit func(*int) *int) *CloudPostureNetwork {
+	if network == nil || network.NetworkSecurityGroupsCount == nil {
 		return nil
 	}
-	out := &CloudPostureNetwork{}
-	if network.SSHOpenToWorldPct != nil {
-		out.SSHOpenToWorldPct = network.SSHOpenToWorldPct
+	count := network.NetworkSecurityGroupsCount
+	return &CloudPostureNetwork{
+		SecurityGroupsPresent:     present(count),
+		SecurityGroupCount:        atAudit(count),
+		SSHOpenSecurityGroupCount: atAudit(network.sshOpenCount),
+		RDPOpenSecurityGroupCount: atAudit(network.rdpOpenCount),
+		SSHOpenToWorldPct:         share(network.sshOpenCount, count, componentsdk.RoundUp),
+		RDPOpenToWorldPct:         share(network.rdpOpenCount, count, componentsdk.RoundUp),
 	}
-	if network.RDPOpenToWorldPct != nil {
-		out.RDPOpenToWorldPct = network.RDPOpenToWorldPct
+}
+
+// cloudPostureSources maps each normalized account field to the Azure account
+// field it is taken from, so a gap on the Azure value carries over.
+var cloudPostureSources = []struct{ normalized, detailed string }{
+	{"storage/storage_resources_present", "storage/storage_accounts_count"},
+	{"storage/storage_resource_count", "storage/storage_accounts_count"},
+	{"storage/encrypted_storage_resource_count", "storage/encryption_cmk_pct"},
+	{"storage/public_access_blocked_storage_resource_count", "storage/public_access_blocked_pct"},
+	{"storage/encryption_pct", "storage/encryption_cmk_pct"},
+	{"storage/public_access_blocked_pct", "storage/public_access_blocked_pct"},
+	{"logging/audit_log_enabled", "logging/activity_log_administrative_exported"},
+	{"logging/audit_log_all_regions", "logging/activity_log_administrative_exported"},
+	{"logging/cloudtrail_enabled", "logging/activity_log_administrative_exported"},
+	{"logging/cloudtrail_multiregion", "logging/activity_log_administrative_exported"},
+	{"backup/retention_days_min", "backup/retention_days_min"},
+	{"network/security_groups_present", "network/network_security_groups_count"},
+	{"network/security_group_count", "network/network_security_groups_count"},
+	{"network/ssh_open_security_group_count", "network/ssh_open_to_world_pct"},
+	{"network/rdp_open_security_group_count", "network/rdp_open_to_world_pct"},
+	{"network/ssh_open_to_world_pct", "network/ssh_open_to_world_pct"},
+	{"network/rdp_open_to_world_pct", "network/rdp_open_to_world_pct"},
+}
+
+func (c *Collector) mirrorCloudPostureGaps(azure *AzureArtifact) {
+	if azure == nil {
+		return
 	}
-	if out.SSHOpenToWorldPct == nil && out.RDPOpenToWorldPct == nil {
-		return nil
+	for i, account := range azure.Accounts {
+		if account.unreadable != nil {
+			c.gaps.leaveOut(cloudPosturePath, account.unreadable,
+				accountPointer(i, "storage"), accountPointer(i, "logging"),
+				accountPointer(i, "backup"), accountPointer(i, "network"))
+			continue
+		}
+		for _, source := range cloudPostureSources {
+			c.gaps.rec.Mirror(
+				componentsdk.Location{Path: azurePath, Pointer: accountPointer(i, source.detailed)},
+				componentsdk.Location{Path: cloudPosturePath, Pointer: accountPointer(i, source.normalized)})
+		}
 	}
-	return out
 }

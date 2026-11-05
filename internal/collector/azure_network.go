@@ -8,19 +8,26 @@ import (
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 )
 
-func (c *Collector) collectNetwork(ctx context.Context, subscriptionID string, publicIPs []microsoft.PublicIPAddress, diagnostics *Diagnostics) (*AzureNetwork, error) {
-	out := &AzureNetwork{PublicIPAddressesCount: len(publicIPs)}
-	nsgs, err := c.arm.NetworkSecurityGroups(ctx, subscriptionID)
-	if err != nil {
-		if surfaceUnavailable(err) {
-			diagnostics.Warn("Network security groups unavailable for subscription " + subscriptionID)
-			return out, nil
-		}
-		return nil, err
+func (c *Collector) collectNetwork(ctx context.Context, scope subscriptionScope, publicIPs []microsoft.PublicIPAddress, publicIPsMiss *missing, diagnostics *Diagnostics) *AzureNetwork {
+	out := &AzureNetwork{}
+	if publicIPsMiss == nil {
+		out.PublicIPAddressesCount = intPtr(len(publicIPs))
 	}
-	out.NetworkSecurityGroupsCount = len(nsgs)
+	c.gaps.leaveOut(azurePath, publicIPsMiss, scope.pointer("network/public_ip_addresses_count"))
+
+	nsgs, err := c.arm.NetworkSecurityGroups(ctx, scope.id)
+	if err != nil {
+		diagnostics.warnSubscription("Network security groups", scope.id, err)
+		c.gaps.leaveOut(azurePath, failed(err),
+			scope.pointer("network/network_security_groups_count"),
+			scope.pointer("network/ssh_open_to_world_pct"),
+			scope.pointer("network/rdp_open_to_world_pct"))
+		return out
+	}
+	out.NetworkSecurityGroupsCount = intPtr(len(nsgs))
+	out.sshOpenCount, out.rdpOpenCount = intPtr(0), intPtr(0)
 	if len(nsgs) == 0 {
-		return out, nil
+		return out
 	}
 
 	sshOpen := 0
@@ -35,7 +42,8 @@ func (c *Collector) collectNetwork(ctx context.Context, subscriptionID string, p
 	}
 	out.SSHOpenToWorldPct = PercentInt(sshOpen, len(nsgs))
 	out.RDPOpenToWorldPct = PercentInt(rdpOpen, len(nsgs))
-	return out, nil
+	out.sshOpenCount, out.rdpOpenCount = intPtr(sshOpen), intPtr(rdpOpen)
+	return out
 }
 
 func nsgOpenToWorld(nsg microsoft.NetworkSecurityGroup, port int) bool {

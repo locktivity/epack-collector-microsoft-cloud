@@ -2,6 +2,7 @@ package collector
 
 import (
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -30,6 +31,8 @@ type Config struct {
 	HTTPClient        *http.Client
 	GraphClient       GraphAPI
 	ARMClient         ARMAPI
+
+	Recorder *componentsdk.Recorder
 
 	OnStatus   StatusFunc
 	OnProgress ProgressFunc
@@ -74,11 +77,36 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func (c Config) graphClient() (GraphAPI, error) {
-	if c.GraphClient != nil {
-		return c.GraphClient, nil
+// CredentialHosts lists the hosts the collector sends credentials to: the
+// token endpoint, Microsoft Graph, Azure Resource Manager, and in oidc mode
+// the host GitHub Actions serves the run's identity token from.
+func (c Config) CredentialHosts() []string {
+	bases := []string{
+		orDefault(c.TokenEndpointBase, microsoft.DefaultTokenEndpointBase),
+		orDefault(c.GraphBaseURL, microsoft.DefaultGraphBaseURL),
+		orDefault(c.ARMBaseURL, microsoft.DefaultARMBaseURL),
 	}
-	tokenSource, err := microsoft.NewTokenSource(microsoft.Credentials{
+	if c.AuthMode == "oidc" && c.OIDCRequestURL != "" {
+		bases = append(bases, c.OIDCRequestURL)
+	}
+	hosts := make([]string, 0, len(bases))
+	for _, base := range bases {
+		if parsed, err := url.Parse(base); err == nil && parsed.Hostname() != "" {
+			hosts = append(hosts, parsed.Hostname())
+		}
+	}
+	return hosts
+}
+
+func orDefault(value, fallback string) string {
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+func (c Config) tokenSource(scope string) (*microsoft.TokenSource, error) {
+	return microsoft.NewTokenSource(microsoft.Credentials{
 		TenantID:           c.TenantID,
 		ClientID:           c.ClientID,
 		AuthMode:           c.AuthMode,
@@ -86,14 +114,13 @@ func (c Config) graphClient() (GraphAPI, error) {
 		OIDCRequestURL:     c.OIDCRequestURL,
 		OIDCRequestToken:   c.OIDCRequestToken,
 		FederatedTokenFile: c.FederatedTokenFile,
-		Scope:              microsoft.GraphScope,
+		Scope:              scope,
 		TokenEndpointBase:  c.TokenEndpointBase,
 		HTTPClient:         c.HTTPClient,
 	})
-	if err != nil {
-		return nil, err
-	}
+}
 
+func (c Config) graphClient(tokenSource microsoft.AccessTokenSource) GraphAPI {
 	opts := []microsoft.GraphOption{}
 	if c.GraphBaseURL != "" {
 		opts = append(opts, microsoft.WithGraphBaseURL(c.GraphBaseURL))
@@ -101,29 +128,10 @@ func (c Config) graphClient() (GraphAPI, error) {
 	if c.HTTPClient != nil {
 		opts = append(opts, microsoft.WithGraphHTTPClient(c.HTTPClient))
 	}
-	return microsoft.NewGraphClient(tokenSource, opts...), nil
+	return microsoft.NewGraphClient(tokenSource, opts...)
 }
 
-func (c Config) armClient() (ARMAPI, error) {
-	if c.ARMClient != nil {
-		return c.ARMClient, nil
-	}
-	tokenSource, err := microsoft.NewTokenSource(microsoft.Credentials{
-		TenantID:           c.TenantID,
-		ClientID:           c.ClientID,
-		AuthMode:           c.AuthMode,
-		ClientSecret:       c.ClientSecret,
-		OIDCRequestURL:     c.OIDCRequestURL,
-		OIDCRequestToken:   c.OIDCRequestToken,
-		FederatedTokenFile: c.FederatedTokenFile,
-		Scope:              microsoft.ARMScope,
-		TokenEndpointBase:  c.TokenEndpointBase,
-		HTTPClient:         c.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-
+func (c Config) armClient(tokenSource microsoft.AccessTokenSource) ARMAPI {
 	opts := []microsoft.ARMOption{}
 	if c.ARMBaseURL != "" {
 		opts = append(opts, microsoft.WithARMBaseURL(c.ARMBaseURL))
@@ -131,5 +139,5 @@ func (c Config) armClient() (ARMAPI, error) {
 	if c.HTTPClient != nil {
 		opts = append(opts, microsoft.WithARMHTTPClient(c.HTTPClient))
 	}
-	return microsoft.NewARMClient(tokenSource, opts...), nil
+	return microsoft.NewARMClient(tokenSource, opts...)
 }

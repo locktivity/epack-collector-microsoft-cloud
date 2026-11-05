@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestARM(t *testing.T) {
@@ -49,9 +48,6 @@ func TestARM(t *testing.T) {
 				t.Fatalf("unexpected roleAssignments filter: %s", got)
 			}
 			roleCalls++
-			if roleCalls == 1 {
-				return textResponse(http.StatusTooManyRequests, "retry", map[string]string{"Retry-After": "0"}), nil
-			}
 			return jsonResponse(http.StatusOK, map[string]any{
 				"value":    []map[string]any{{"id": "ra1"}},
 				"nextLink": "https://management.test/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&page=2",
@@ -62,7 +58,7 @@ func TestARM(t *testing.T) {
 		return nil, nil
 	})}
 
-	client := NewARMClient(StaticTokenSource("arm-token"), WithARMBaseURL("https://management.test"), WithARMHTTPClient(httpClient), WithARMSleeper(func(context.Context, time.Duration) error { return nil }))
+	client := NewARMClient(StaticTokenSource("arm-token"), WithARMBaseURL("https://management.test"), WithARMHTTPClient(httpClient))
 	subscription, err := client.Subscription(context.Background(), "sub-1")
 	if err != nil {
 		t.Fatal(err)
@@ -91,8 +87,8 @@ func TestARM(t *testing.T) {
 	if len(assignments) != 2 {
 		t.Fatalf("expected two assignments, got %d", len(assignments))
 	}
-	if roleCalls != 2 {
-		t.Fatalf("expected retry, got %d calls", roleCalls)
+	if roleCalls != 1 {
+		t.Fatalf("expected one first-page call, got %d", roleCalls)
 	}
 }
 
@@ -123,7 +119,7 @@ func TestARMClientRejectsCrossOriginNextLink(t *testing.T) {
 }
 
 func TestARMError(t *testing.T) {
-	err := armAPIError(http.StatusForbidden, "/subscriptions/sub-1", []byte(`{"error":{"code":"AuthorizationFailed","message":"denied"}}`))
+	err := armAPIError(http.StatusForbidden, "/subscriptions/sub-1", nil, []byte(`{"error":{"code":"AuthorizationFailed","message":"denied"}}`))
 	if err.Service != "arm" || err.Code != "AuthorizationFailed" || !strings.Contains(err.Error(), "arm request") {
 		t.Fatalf("unexpected ARM error: %#v message=%s", err, err.Error())
 	}
@@ -133,6 +129,7 @@ func TestARMErrorRedactsResourceIdentifiers(t *testing.T) {
 	err := armAPIError(
 		http.StatusInternalServerError,
 		"/subscriptions/sub-1/resourceGroups/prod-rg/providers/Microsoft.Sql/servers/sql-a/databases/appdb/transparentDataEncryption/current?api-version=2023-08-01",
+		nil,
 		[]byte(`{"error":{"code":"InternalServerError","message":"failed scope /subscriptions/sub-1/resourceGroups/prod-rg/providers/Microsoft.Sql/servers/sql-a/databases/appdb with bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.ABCDEFGHIJKLMNOPQRSTUVWXYZ"}}`),
 	)
 
@@ -299,6 +296,12 @@ func TestARMGovernanceRoutes(t *testing.T) {
 			}
 			if got := r.URL.Query().Get("api-version"); got != "2023-04-01" {
 				t.Fatalf("unexpected policy assignments api-version: %s", got)
+			}
+			// With atScope(), the list has the assignments that apply to the
+			// subscription. Without it, the list adds those on resource groups
+			// and resources.
+			if got := r.URL.Query().Get("$filter"); got != "atScope()" {
+				t.Fatalf("unexpected policy assignments filter: %q", got)
 			}
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "assignment-a"}}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.PolicyInsights/policyStates/latest/summarize":

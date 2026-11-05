@@ -24,7 +24,8 @@
         "min_tls12_pct": 50,
         "encryption_cmk_pct": 50,
         "infrastructure_encryption_pct": 50,
-        "public_access_blocked_pct": 50
+        "public_access_blocked_pct": 50,
+        "network_restricted_pct": 50
       },
       "keyvault": {
         "vaults_count": 2,
