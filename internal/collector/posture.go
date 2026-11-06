@@ -100,6 +100,12 @@ type PrivilegedAccess struct {
 	// not read.
 	mfaRegisteredCount     *int
 	phishingResistantCount *int
+
+	// globalAdminsMFA is whether every Global Administrator is registered
+	// for MFA, for the deprecated cloud-posture iam block. It is nil when
+	// it was not read, and globalAdminsMFAUnread says why.
+	globalAdminsMFA       *bool
+	globalAdminsMFAUnread *missing
 }
 
 type Apps struct {

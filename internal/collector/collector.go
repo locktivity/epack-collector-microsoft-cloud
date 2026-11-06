@@ -121,6 +121,7 @@ func (c *Collector) Collect(ctx context.Context, level componentsdk.Level) (*Res
 	}
 	result.AzureCloudPosture = azure.ToCloudPosture()
 	c.mirrorCloudPostureGaps(azure)
+	c.addDeprecatedIAM(result.AzureCloudPosture, entra)
 	result.AzureAccessPosture = c.accessPosture(level, azure, entra)
 	return result, nil
 }

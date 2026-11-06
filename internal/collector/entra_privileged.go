@@ -89,6 +89,12 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 			"/privileged_access/privileged_mfa_coverage_pct", "/privileged_access/privileged_phishing_resistant_pct")
 	}
 
+	if why := firstMissing(in.registrationsMiss, globalAdminsUnread); why == nil {
+		out.globalAdminsMFA = globalAdminsMFARegistered(superAdminIDs, in.registrations)
+	} else {
+		out.globalAdminsMFAUnread = why
+	}
+
 	if why := firstMissing(in.signInMiss, membersUnread); why == nil {
 		out.InactivePrivilegedUsersCount = inactivePrivilegedUsersCount(privilegedUserIDs, in.signInUsers, c.clock.Now())
 	} else {
