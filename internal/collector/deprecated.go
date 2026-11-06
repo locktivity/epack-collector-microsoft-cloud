@@ -37,7 +37,9 @@ func globalAdminsMFARegistered(superAdminIDs map[string]struct{}, registrations 
 // addDeprecatedIAM writes the iam block in each of posture's subscriptions.
 // The MFA coverage is a copy of the Entra artifact's, so a gap on it carries
 // over. The Global Administrator values carry the gap of the read that left
-// them out.
+// them out. Each block is recorded as moved to the access-posture artifact,
+// so a collect list that leaves that artifact out leaves out the block, with
+// a not_shared gap.
 func (c *Collector) addDeprecatedIAM(posture *CloudPosture, entra *EntraArtifact) {
 	if posture == nil || entra == nil {
 		return
@@ -51,6 +53,8 @@ func (c *Collector) addDeprecatedIAM(posture *CloudPosture, entra *EntraArtifact
 		at := func(field string) componentsdk.Location {
 			return componentsdk.Location{Path: cloudPosturePath, Pointer: accountPointer(i, "iam/"+field)}
 		}
+		c.gaps.rec.Moved(componentsdk.Location{Path: cloudPosturePath, Pointer: accountPointer(i, "iam")},
+			componentsdk.Location{Schema: accessPostureSchema, Path: accessPosturePath})
 		c.gaps.rec.Mirror(componentsdk.Location{Path: entraPath, Pointer: "/posture/mfa_coverage"}, at("mfa_coverage_pct"))
 		switch {
 		case pa == nil:

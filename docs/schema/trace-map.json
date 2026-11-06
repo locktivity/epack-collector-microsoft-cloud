@@ -8967,15 +8967,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/deprecated.go:42"
+            "line": "internal/collector/deprecated.go:44"
           },
           {
             "role": "condition",
-            "line": "internal/collector/deprecated.go:50"
+            "line": "internal/collector/deprecated.go:52"
           },
           {
             "role": "assign",
-            "line": "internal/collector/deprecated.go:64"
+            "line": "internal/collector/deprecated.go:68"
           },
           {
             "role": "input",
@@ -9089,18 +9089,10 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/deprecated.go:42"
+            "line": "internal/collector/deprecated.go:44"
           },
           {
             "role": "input",
-            "line": "internal/collector/deprecated.go:45"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/deprecated.go:46"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/deprecated.go:47"
           },
           {
@@ -9109,11 +9101,19 @@
           },
           {
             "role": "condition",
+            "line": "internal/collector/deprecated.go:49"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/deprecated.go:50"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/deprecated.go:52"
+          },
+          {
             "role": "assign",
-            "line": "internal/collector/deprecated.go:64"
+            "line": "internal/collector/deprecated.go:68"
           },
           {
             "role": "input",
@@ -9257,18 +9257,10 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/deprecated.go:42"
+            "line": "internal/collector/deprecated.go:44"
           },
           {
             "role": "input",
-            "line": "internal/collector/deprecated.go:45"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/deprecated.go:46"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/deprecated.go:47"
           },
           {
@@ -9277,11 +9269,19 @@
           },
           {
             "role": "condition",
+            "line": "internal/collector/deprecated.go:49"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/deprecated.go:50"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/deprecated.go:52"
+          },
+          {
             "role": "assign",
-            "line": "internal/collector/deprecated.go:64"
+            "line": "internal/collector/deprecated.go:68"
           },
           {
             "role": "input",
@@ -15407,10 +15407,6 @@
             "line": "internal/collector/azure_backup.go:29"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
-          },
-          {
             "role": "condition",
             "line": "internal/collector/azure_backup.go:75"
           },
@@ -15860,10 +15856,6 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:13"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:66"
           },
           {
@@ -16162,10 +16154,6 @@
           {
             "role": "input",
             "line": "internal/collector/entra_privileged.go:86"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:13"
           },
           {
             "role": "input",
@@ -16781,10 +16769,6 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_backup.go:48"
           },
           {
@@ -17020,10 +17004,6 @@
             "line": "internal/collector/entra_users.go:128"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
-          },
-          {
             "role": "input",
             "line": "internal/collector/entra_users.go:137"
           },
@@ -17196,10 +17176,6 @@
           {
             "role": "input",
             "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
           },
           {
             "role": "input",
@@ -18052,13 +18028,13 @@
     "internal/collector/azure_storage.go:61": "\tout.NetworkRestrictedPct = PercentInt(networkRestricted, len(accounts))",
     "internal/collector/azure_storage.go:62": "\tout.cmkCount = cmk",
     "internal/collector/azure_storage.go:63": "\tout.publicAccessBlockedCount = publicAccessBlocked",
-    "internal/collector/deprecated.go:42": "\tif posture == nil || entra == nil {",
-    "internal/collector/deprecated.go:45": "\tpa := entra.PrivilegedAccess",
-    "internal/collector/deprecated.go:46": "\tvar rootMFA *bool",
-    "internal/collector/deprecated.go:47": "\tif pa != nil {",
-    "internal/collector/deprecated.go:48": "\t\trootMFA = pa.globalAdminsMFA",
-    "internal/collector/deprecated.go:50": "\tfor i := range posture.Accounts {",
-    "internal/collector/deprecated.go:64": "\t\tiam := CloudPostureIAM{MFACoveragePct: entra.Posture.MFACoverage, RootMFAEnabled: rootMFA, RootAccessProtected: rootMFA}",
+    "internal/collector/deprecated.go:44": "\tif posture == nil || entra == nil {",
+    "internal/collector/deprecated.go:47": "\tpa := entra.PrivilegedAccess",
+    "internal/collector/deprecated.go:48": "\tvar rootMFA *bool",
+    "internal/collector/deprecated.go:49": "\tif pa != nil {",
+    "internal/collector/deprecated.go:50": "\t\trootMFA = pa.globalAdminsMFA",
+    "internal/collector/deprecated.go:52": "\tfor i := range posture.Accounts {",
+    "internal/collector/deprecated.go:68": "\t\tiam := CloudPostureIAM{MFACoveragePct: entra.Posture.MFACoverage, RootMFAEnabled: rootMFA, RootAccessProtected: rootMFA}",
     "internal/collector/diagnostic.go:32": "\t\tTenantErrors:       []string{},",
     "internal/collector/diagnostic.go:33": "\t\tSubscriptionErrors: []string{},",
     "internal/collector/diagnostic.go:34": "\t\tWarnings:           []string{},",

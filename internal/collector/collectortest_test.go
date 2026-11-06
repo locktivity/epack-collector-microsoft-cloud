@@ -516,6 +516,58 @@ func TestCollectLeavesOutTheDetailedFiles(t *testing.T) {
 	}
 }
 
+// The deprecated iam block in each subscription moved to access-posture, so
+// a collect list that leaves out access-posture leaves it out, with a
+// not_shared gap.
+func TestCollectLeavesOutTheDeprecatedIAMWithAccessPosture(t *testing.T) {
+	accounts := func(collect []any) ([]map[string]any, componentsdk.InProcessResult) {
+		config := kitConfig()
+		if collect != nil {
+			config["collect"] = collect
+		}
+		res := runInProcess(t, config, kitSecrets(), kitResponses())
+		if res.ExitCode != 0 || res.Result == nil {
+			t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
+		}
+		for _, artifact := range res.Artifacts {
+			if artifact.Path != cloudPosturePath {
+				continue
+			}
+			var posture struct {
+				Accounts []map[string]any `json:"accounts"`
+			}
+			if err := json.Unmarshal(artifact.Data, &posture); err != nil {
+				t.Fatal(err)
+			}
+			return posture.Accounts, res
+		}
+		t.Fatalf("no %s", cloudPosturePath)
+		return nil, res
+	}
+
+	full, _ := accounts(nil)
+	if len(full) == 0 || full[0]["iam"] == nil {
+		t.Fatalf("accounts = %v, want iam with every kind collected", full)
+	}
+	left, res := accounts([]any{"cloud-posture", "idp-posture"})
+	for i, account := range left {
+		if account["iam"] != nil {
+			t.Errorf("subscription %d has iam = %v, which moved to access-posture", i, account["iam"])
+		}
+		pointer := accountPointer(i, "iam")
+		found := false
+		for _, gap := range res.Result.Gaps {
+			if gap.Path == cloudPosturePath && strings.HasPrefix(gap.Pointer, pointer+"/") {
+				t.Errorf("gap %+v is inside a block the pack does not hold", gap)
+			}
+			found = found || (gap.Path == cloudPosturePath && gap.Pointer == pointer && gap.Code == componentsdk.CodeNotShared)
+		}
+		if !found {
+			t.Errorf("no not_shared gap at %s", pointer)
+		}
+	}
+}
+
 // A permission_denied gap names the Graph permission or Azure role its call
 // needs, at every level.
 func TestDeniedReadsNameWhatToGrant(t *testing.T) {

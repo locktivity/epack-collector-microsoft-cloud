@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The collector is built on epack v0.10.2.
+- The deprecated `accounts[*].iam` block is left out when `collect` leaves out `access-posture`, with a `not_shared` gap, and the gaps inside it are dropped. v0.2.1 wrote it whatever `collect` listed.
+
 ## v0.2.1
 
 - The collector is built on epack v0.10.1.
