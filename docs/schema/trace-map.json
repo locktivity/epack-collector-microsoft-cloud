@@ -15407,6 +15407,10 @@
             "line": "internal/collector/azure_backup.go:29"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:39"
+          },
+          {
             "role": "condition",
             "line": "internal/collector/azure_backup.go:75"
           },
@@ -15856,6 +15860,10 @@
           },
           {
             "role": "input",
+            "line": "internal/collector/entra_users.go:13"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/entra_users.go:66"
           },
           {
@@ -16154,6 +16162,10 @@
           {
             "role": "input",
             "line": "internal/collector/entra_privileged.go:86"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:13"
           },
           {
             "role": "input",
@@ -16769,6 +16781,10 @@
           },
           {
             "role": "input",
+            "line": "internal/collector/azure_backup.go:43"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/azure_backup.go:48"
           },
           {
@@ -17004,6 +17020,10 @@
             "line": "internal/collector/entra_users.go:128"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:136"
+          },
+          {
             "role": "input",
             "line": "internal/collector/entra_users.go:137"
           },
@@ -17176,6 +17196,10 @@
           {
             "role": "input",
             "line": "internal/collector/entra_users.go:128"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:136"
           },
           {
             "role": "input",
