@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.1
+
+- The collector is built on epack v0.10.1.
+- `artifacts/microsoft-cloud.cloud-posture.json` has `accounts[*].iam` again, as a deprecated block that epack v0.10.1 declares. Each subscription's entry holds the tenant's values, as in v0.1. A later minor removes the block.
+- `iam.mfa_coverage_pct` is a copy of Entra's `posture.mfa_coverage`. `iam.root_mfa_enabled` and `root_access_protected` are both whether every enabled Global Administrator is registered for MFA. They are left out with a gap when the registration report can't be read or the Global Administrator role is assigned to a group.
+
 ## v0.2.0
 
 - The collector is built on epack v0.10.0. Its artifact paths stay the same

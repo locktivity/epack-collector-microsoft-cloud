@@ -13,12 +13,15 @@ type CloudPosture struct {
 	Accounts      []CloudPostureAccount `json:"accounts"`
 }
 
+// CloudPostureAccount is one subscription. IAM is a deprecated block,
+// written as before epack v0.10.0 (see deprecated.go).
 type CloudPostureAccount struct {
 	AccountID string               `json:"account_id,omitempty"`
 	Storage   *CloudPostureStorage `json:"storage,omitempty"`
 	Logging   *CloudPostureLogging `json:"logging,omitempty"`
 	Backup    *CloudPostureBackup  `json:"backup,omitempty"`
 	Network   *CloudPostureNetwork `json:"network,omitempty"`
+	IAM       *CloudPostureIAM     `json:"iam,omitempty"`
 }
 
 type CloudPostureStorage struct {

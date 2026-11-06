@@ -45,7 +45,9 @@
     "/accounts/*/network/ssh_open_security_group_count": "Counts the network security groups with an inbound Allow rule for TCP port 22 from *, Any, Internet, 0.0.0.0/0 or ::/0.",
     "/accounts/*/network/rdp_open_security_group_count": "Counts the network security groups with an inbound Allow rule for TCP port 3389 from *, Any, Internet, 0.0.0.0/0 or ::/0.",
     "/accounts/*/network/ssh_open_to_world_pct": "Divides ssh_open_security_group_count by all network security groups, rounded up.",
-    "/accounts/*/network/rdp_open_to_world_pct": "Divides rdp_open_security_group_count by all network security groups, rounded up."
+    "/accounts/*/network/rdp_open_to_world_pct": "Divides rdp_open_security_group_count by all network security groups, rounded up.",
+    "/accounts/*/iam/root_mfa_enabled": "Checks whether every enabled user that roleManagement/directory/roleAssignments gives the Global Administrator role is listed in the userRegistrationDetails report with isMfaRegistered true. It is the tenant's value, written in each subscription.",
+    "/accounts/*/iam/root_access_protected": "Checks whether every enabled user that roleManagement/directory/roleAssignments gives the Global Administrator role is listed in the userRegistrationDetails report with isMfaRegistered true. It is the tenant's value, written in each subscription."
   },
   "evidencepack/access-posture@v1": {
     "/sign_in/sso_configured": "Written as true. People sign in to Azure only through Microsoft Entra ID.",

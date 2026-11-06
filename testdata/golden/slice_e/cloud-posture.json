@@ -22,6 +22,11 @@
         "security_groups_present": true,
         "ssh_open_to_world_pct": 50,
         "rdp_open_to_world_pct": 0
+      },
+      "iam": {
+        "mfa_coverage_pct": 50,
+        "root_mfa_enabled": true,
+        "root_access_protected": true
       }
     }
   ]
