@@ -70,8 +70,9 @@ func TestE2E_RealMicrosoftCloudCollection(t *testing.T) {
 		t.Errorf("entra.collected_at_level = %q, want %q", result.Entra.CollectedAtLevel, level)
 	}
 	assertRFC3339(t, "entra.collected_at", result.Entra.CollectedAt)
-	if !strings.EqualFold(result.Entra.TenantID, cfg.TenantID) {
-		t.Errorf("entra.tenant_id = %q, want %q", result.Entra.TenantID, cfg.TenantID)
+	audit := level.AtLeast(componentsdk.LevelAudit)
+	if audit && !strings.EqualFold(result.Entra.TenantID, cfg.TenantID) || !audit && result.Entra.TenantID != "" {
+		t.Errorf("entra.tenant_id = %q at %s, want it from the audit level only", result.Entra.TenantID, level)
 	}
 	if strings.TrimSpace(result.Entra.OrgDomain) == "" {
 		t.Error("entra.org_domain should not be empty")
@@ -107,8 +108,8 @@ func TestE2E_RealMicrosoftCloudCollection(t *testing.T) {
 
 	subscriptions := configuredSubscriptions(cfg.SubscriptionIDs)
 	for i, account := range result.Azure.Accounts {
-		if _, ok := subscriptions[strings.ToLower(account.AccountID)]; !ok {
-			t.Errorf("azure.accounts[%d].account_id = %q, not in configured subscription_ids", i, account.AccountID)
+		if _, ok := subscriptions[strings.ToLower(account.AccountID)]; audit && !ok || !audit && account.AccountID != "" {
+			t.Errorf("azure.accounts[%d].account_id = %q at %s, want a configured subscription from the audit level only", i, account.AccountID, level)
 		}
 		assertAzurePercentages(t, i, account)
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -38,9 +39,13 @@ var azureAccountBlocks = []string{"defender", "rbac", "policy", "storage", "keyv
 // subscription that cannot be read never shifts the gap pointers of the ones
 // after it.
 func (c *Collector) collectAzureSubscription(ctx context.Context, level componentsdk.Level, index int, subscriptionID string, diagnostics *Diagnostics) AzureAccount {
-	account := AzureAccount{AccountID: subscriptionID}
+	account := AzureAccount{}
+	if level.AtLeast(componentsdk.LevelAudit) {
+		account.AccountID = subscriptionID
+	}
+	scope := subscriptionScope{index: index, id: subscriptionID, name: subscriptionName(level, index, subscriptionID)}
 	if _, err := c.arm.Subscription(ctx, subscriptionID); err != nil {
-		diagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, fmt.Sprintf("%s: %s", subscriptionID, err.Error()))
+		diagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, subscriptionError(level, scope, err))
 		if apiStatus(err) == http.StatusNotFound {
 			err = componentsdk.CodeError(componentsdk.CodeConfigInvalid, err)
 		}
@@ -55,7 +60,6 @@ func (c *Collector) collectAzureSubscription(ctx context.Context, level componen
 		return account
 	}
 
-	scope := subscriptionScope{index: index, id: subscriptionID}
 	account.Defender = c.collectDefender(ctx, scope, diagnostics)
 	account.RBAC, account.roleAssignments, account.rbacMiss = c.collectRBAC(ctx, scope, diagnostics)
 	account.Policy = c.collectAzurePolicy(ctx, scope, diagnostics)
@@ -83,9 +87,42 @@ func (c *Collector) collectAzureSubscription(ctx context.Context, level componen
 	return account
 }
 
+// subscriptionScope is one configured subscription. name is how diagnostics
+// text names it.
 type subscriptionScope struct {
 	index int
 	id    string
+	name  string
+}
+
+// subscriptionName names a subscription by its ID from the audit level, and
+// below it by its place in subscription_ids, since a trust run writes no
+// subscription IDs.
+func subscriptionName(level componentsdk.Level, index int, subscriptionID string) string {
+	if level.AtLeast(componentsdk.LevelAudit) {
+		return subscriptionID
+	}
+	return strconv.Itoa(index + 1)
+}
+
+// subscriptionError is the subscription_errors line for a subscription that
+// could not be read. Below the audit level it names the subscription by its
+// place and gives only the HTTP status and Azure's error code, or the SDK's
+// code when Azure sent no answer, since Azure's message can name the
+// subscription, the tenant, the app, and resource groups.
+func subscriptionError(level componentsdk.Level, scope subscriptionScope, err error) string {
+	if level.AtLeast(componentsdk.LevelAudit) {
+		return fmt.Sprintf("%s: %s", scope.id, err.Error())
+	}
+	var apiErr *microsoft.APIError
+	switch {
+	case !errors.As(err, &apiErr):
+		return fmt.Sprintf("subscription %s: failed with %s", scope.name, componentsdk.Classify(err))
+	case apiErr.Code == "":
+		return fmt.Sprintf("subscription %s: status=%d", scope.name, apiErr.StatusCode)
+	default:
+		return fmt.Sprintf("subscription %s: status=%d code=%s", scope.name, apiErr.StatusCode, microsoft.SanitizeErrorText(apiErr.Code))
+	}
 }
 
 func (s subscriptionScope) pointer(field string) string {
@@ -99,10 +136,10 @@ func (c *Collector) collectDefender(ctx context.Context, scope subscriptionScope
 	case err == nil:
 		out.SecureScorePct = defenderSecureScorePct(score)
 	case apiStatus(err) == http.StatusNotFound:
-		diagnostics.Warn("Defender secure score unavailable for subscription " + scope.id)
+		diagnostics.Warn("Defender secure score unavailable for subscription " + scope.name)
 		c.gaps.leaveOut(azurePath, unlicensed("Defender for Cloud has no secure score for the subscription."), scope.pointer("defender/secure_score_pct"))
 	default:
-		warnDefender(diagnostics, "Defender secure score", scope.id, "defender.secure_score_pct", err)
+		warnDefender(diagnostics, "Defender secure score", scope.name, "defender.secure_score_pct", err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("defender/secure_score_pct"))
 	}
 
@@ -110,32 +147,33 @@ func (c *Collector) collectDefender(ctx context.Context, scope subscriptionScope
 	if err == nil {
 		out.UnpatchedPct = defenderUnpatchedPct(assessments)
 	} else {
-		warnDefender(diagnostics, "Defender assessments", scope.id, "defender.unpatched_pct", err)
+		warnDefender(diagnostics, "Defender assessments", scope.name, "defender.unpatched_pct", err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("defender/unpatched_pct"))
 	}
 	return out
 }
 
 // warnDefender keeps the warning older readers know for a Defender call that
-// still failed after the SDK's retries.
-func warnDefender(diagnostics *Diagnostics, surface, subscriptionID, metric string, err error) {
+// still failed after the SDK's retries. subscription is the subscription's
+// name in diagnostics text.
+func warnDefender(diagnostics *Diagnostics, surface, subscription, metric string, err error) {
 	switch componentsdk.Classify(err) {
 	case componentsdk.CodeRateLimited, componentsdk.CodeVendorError, componentsdk.CodeTimeout:
 		if !surfaceUnavailable(err) {
-			diagnostics.Warn(notCollectedAfterRetries(surface, subscriptionID, metric, err))
+			diagnostics.Warn(notCollectedAfterRetries(surface, subscription, metric, err))
 			return
 		}
 	}
-	diagnostics.warnSubscription(surface, subscriptionID, err)
+	diagnostics.warnSubscription(surface, subscription, err)
 }
 
-func notCollectedAfterRetries(surface, subscriptionID, metric string, err error) string {
+func notCollectedAfterRetries(surface, subscription, metric string, err error) string {
 	reason := "no response"
 	var apiErr *microsoft.APIError
 	if errors.As(err, &apiErr) {
 		reason = fmt.Sprintf("status %d", apiErr.StatusCode)
 	}
-	return fmt.Sprintf("%s request failed after retries (%s) for subscription %s, %s reported as not_collected", surface, reason, subscriptionID, metric)
+	return fmt.Sprintf("%s request failed after retries (%s) for subscription %s, %s reported as not_collected", surface, reason, subscription, metric)
 }
 
 func defenderSecureScorePct(score *microsoft.ARMSecureScore) *int {

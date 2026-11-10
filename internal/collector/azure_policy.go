@@ -10,7 +10,7 @@ import (
 func (c *Collector) collectAzurePolicy(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzurePolicy {
 	assignments, err := c.arm.PolicyAssignments(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Azure Policy assignments", scope.id, err)
+		diagnostics.warnSubscription("Azure Policy assignments", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("policy"))
 		return nil
 	}
@@ -22,7 +22,7 @@ func (c *Collector) collectAzurePolicy(ctx context.Context, scope subscriptionSc
 
 	summary, err := c.arm.PolicyStateSummary(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Azure Policy compliance summary", scope.id, err)
+		diagnostics.warnSubscription("Azure Policy compliance summary", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("policy/compliant_pct"), scope.pointer("policy/noncompliant_resources_count"))
 		return out
 	}

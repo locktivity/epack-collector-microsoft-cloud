@@ -26,7 +26,7 @@ func (c *Collector) collectInventory(ctx context.Context, level componentsdk.Lev
 
 	resources, err := c.arm.Resources(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Azure resource inventory", scope.id, err)
+		diagnostics.warnSubscription("Azure resource inventory", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("inventory"))
 		return nil
 	}

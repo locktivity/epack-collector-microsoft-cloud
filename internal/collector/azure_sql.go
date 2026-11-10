@@ -20,7 +20,7 @@ type sqlReads struct {
 func (c *Collector) collectSQL(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureSQL, sqlReads) {
 	servers, err := c.arm.SQLServers(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("SQL server inventory", scope.id, err)
+		diagnostics.warnSubscription("SQL server inventory", scope.name, err)
 		why := failed(err)
 		c.gaps.leaveOut(azurePath, why, scope.pointer("sql"))
 		return nil, sqlReads{serversMiss: why}
@@ -48,7 +48,7 @@ func (c *Collector) collectSQL(ctx context.Context, scope subscriptionScope, dia
 
 		serverDatabases, err := c.arm.SQLDatabases(ctx, server.ID)
 		if err != nil {
-			diagnostics.warnSubscription("SQL database inventory", scope.id, err)
+			diagnostics.warnSubscription("SQL database inventory", scope.name, err)
 			unlistedServers++
 			if listErr == nil {
 				listErr = err
@@ -63,7 +63,7 @@ func (c *Collector) collectSQL(ctx context.Context, scope subscriptionScope, dia
 			reads.databases = append(reads.databases, database)
 			tde, err := c.arm.SQLTransparentDataEncryption(ctx, database.ID)
 			if err != nil {
-				diagnostics.warnSubscription("SQL transparent data encryption", scope.id, err)
+				diagnostics.warnSubscription("SQL transparent data encryption", scope.name, err)
 				unreadTDE++
 				if tdeErr == nil {
 					tdeErr = err

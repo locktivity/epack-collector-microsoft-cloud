@@ -18,7 +18,7 @@ func (c *Collector) collectCompute(ctx context.Context, scope subscriptionScope,
 	var reads computeReads
 	virtualMachines, err := c.arm.VirtualMachines(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Virtual machine inventory", scope.id, err)
+		diagnostics.warnSubscription("Virtual machine inventory", scope.name, err)
 		reads.virtualMachinesMiss = failed(err)
 		c.gaps.leaveOut(azurePath, reads.virtualMachinesMiss, scope.pointer("compute"))
 	}
@@ -26,7 +26,7 @@ func (c *Collector) collectCompute(ctx context.Context, scope subscriptionScope,
 
 	publicIPs, err := c.arm.PublicIPAddresses(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Public IP inventory", scope.id, err)
+		diagnostics.warnSubscription("Public IP inventory", scope.name, err)
 		reads.publicIPsMiss = failed(err)
 	}
 	reads.publicIPs = publicIPs

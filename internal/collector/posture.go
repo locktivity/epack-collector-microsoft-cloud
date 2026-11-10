@@ -8,7 +8,7 @@ type EntraArtifact struct {
 	SchemaVersion     string             `json:"schema_version"`
 	CollectedAt       string             `json:"collected_at"`
 	CollectedAtLevel  string             `json:"collected_at_level"`
-	TenantID          string             `json:"tenant_id"`
+	TenantID          string             `json:"tenant_id,omitempty"`
 	OrgDomain         string             `json:"org_domain"`
 	Posture           Posture            `json:"posture"`
 	Users             Users              `json:"users"`
@@ -181,7 +181,7 @@ type AzureArtifact struct {
 }
 
 type AzureAccount struct {
-	AccountID string          `json:"account_id"`
+	AccountID string          `json:"account_id,omitempty"`
 	Defender  *AzureDefender  `json:"defender,omitempty"`
 	RBAC      *AzureRBAC      `json:"rbac,omitempty"`
 	Policy    *AzurePolicy    `json:"policy,omitempty"`
@@ -195,7 +195,8 @@ type AzureAccount struct {
 	Inventory *AzureInventory `json:"inventory,omitempty"`
 
 	// unreadable is why the subscription itself could not be read, in which
-	// case the account carries only its ID.
+	// case the account carries only its ID, and nothing below the audit
+	// level.
 	unreadable *missing
 	// roleAssignments are the subscription's Azure role assignments, and
 	// rbacMiss is why they could not be read.

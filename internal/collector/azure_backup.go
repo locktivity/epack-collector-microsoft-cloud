@@ -19,7 +19,7 @@ type backupPopulation struct {
 func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, population backupPopulation, diagnostics *Diagnostics) *AzureBackup {
 	vaults, err := c.arm.RecoveryServicesVaults(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Recovery Services vault inventory", scope.id, err)
+		diagnostics.warnSubscription("Recovery Services vault inventory", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err), scope.pointer("backup"))
 		return nil
 	}
@@ -42,21 +42,21 @@ func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, 
 	for _, vault := range vaults {
 		vaultProtectedItems, err := c.arm.BackupProtectedItems(ctx, vault.ID)
 		if err != nil {
-			diagnostics.warnSubscription("Backup protected items", scope.id, err)
+			diagnostics.warnSubscription("Backup protected items", scope.name, err)
 			items.add(err)
 		}
 		protectedItems = append(protectedItems, vaultProtectedItems...)
 
 		vaultPolicies, err := c.arm.BackupPolicies(ctx, vault.ID)
 		if err != nil {
-			diagnostics.warnSubscription("Backup policies", scope.id, err)
+			diagnostics.warnSubscription("Backup policies", scope.name, err)
 			policyReads.add(err)
 		}
 		policies = append(policies, vaultPolicies...)
 
 		vaultJobs, err := c.arm.BackupJobs(ctx, vault.ID, "operation eq 'Backup'")
 		if err != nil {
-			diagnostics.warnSubscription("Backup job history", scope.id, err)
+			diagnostics.warnSubscription("Backup job history", scope.name, err)
 			jobReads.add(err)
 		}
 		jobs = append(jobs, vaultJobs...)

@@ -2,7 +2,6 @@
   "schema_version": "1.0.0",
   "collected_at": "2026-05-26T14:12:09Z",
   "collected_at_level": "trust",
-  "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
   "org_domain": "contoso.com",
   "posture": {
     "mfa_coverage": 50,

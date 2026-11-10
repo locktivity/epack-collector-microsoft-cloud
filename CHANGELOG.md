@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v0.2.3
+
+- The collector is built on epack v0.10.5.
+- A trust run no longer writes the tenant or subscription IDs. `tenant_id` in `entra` and `accounts[*].account_id` in `azure` are written from the audit level, so at trust a subscription the collector can't read has an empty entry. At trust, `subscription_errors` and the warnings name a subscription by its place in `subscription_ids`, such as `subscription 2`, and a subscription error gives only the HTTP status and Azure's error code. The audit and internal levels write what they did before.
+- The collector result lists the run's targets: the tenant and the configured subscriptions. The tenant is the Entra artifact as a whole, named by its ID and labelled with its default domain, so a trust run, which doesn't write the tenant ID, still shows the domain. A trust run gives no counts.
+
+## v0.2.2
+
 - The collector is built on epack v0.10.2.
 - The deprecated `accounts[*].iam` block is left out when `collect` leaves out `access-posture`, with a `not_shared` gap, and the gaps inside it are dropped. v0.2.1 wrote it whatever `collect` listed.
 

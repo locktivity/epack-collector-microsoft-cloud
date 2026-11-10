@@ -568,6 +568,107 @@ func TestCollectLeavesOutTheDeprecatedIAMWithAccessPosture(t *testing.T) {
 	}
 }
 
+// kitRefusedSubscriptionID is a second configured subscription that ARM
+// refuses to show the app.
+const kitRefusedSubscriptionID = "bbbbbbbb-1111-2222-3333-cccccccccccc"
+
+// accountIDResponses answer a run over kitSubscriptionID, whose Defender has
+// no secure score, and kitRefusedSubscriptionID, which ARM refuses.
+func accountIDResponses() []collectortest.Response {
+	responses := replaceResponse(kitResponses(), collectortest.Response{
+		URL:    kitARMBase + "/subscriptions/" + kitSubscriptionID + "/providers/Microsoft.Security/secureScores/ascScore?api-version=2020-01-01",
+		Status: http.StatusNotFound,
+		Body:   `{"error":{"code":"NotFound","message":"Not found."}}`,
+	})
+	return append(responses, refusedSubscriptionResponse())
+}
+
+// refusedSubscriptionResponse is ARM refusing to show the app
+// kitRefusedSubscriptionID, with an error that names the app, the tenant,
+// and the subscription.
+func refusedSubscriptionResponse() collectortest.Response {
+	return collectortest.Response{
+		URL:    kitARMBase + "/subscriptions/" + kitRefusedSubscriptionID + "?api-version=2020-01-01",
+		Status: http.StatusForbidden,
+		Body: kitJSON(map[string]any{"error": map[string]any{
+			"code":    "AuthorizationFailed",
+			"message": "The client '" + kitClientID + "' in tenant '" + strings.ToUpper(kitTenantID) + "' does not have authorization to perform action 'Microsoft.Resources/subscriptions/read' over scope '/subscriptions/" + kitRefusedSubscriptionID + "' or the scope is invalid.",
+		}}),
+	}
+}
+
+// A trust run writes no tenant, subscription, or app ID: not in the data
+// artifacts, their diagnostics, or the collector result. Its diagnostics name
+// a subscription by its place in subscription_ids. An audit run writes the
+// tenant and subscription IDs as before.
+func TestTrustRunWritesNoAccountIDs(t *testing.T) {
+	run := func(level string) (componentsdk.InProcessResult, EntraArtifact, map[string]any) {
+		t.Helper()
+		config := kitConfig()
+		config["level"] = level
+		config["subscription_ids"] = []any{kitSubscriptionID, kitRefusedSubscriptionID}
+		res := runInProcess(t, config, kitSecrets(), accountIDResponses())
+		if res.ExitCode != 0 || res.Result == nil {
+			t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
+		}
+		var entra EntraArtifact
+		var azure map[string]any
+		for _, artifact := range res.Artifacts {
+			switch artifact.Path {
+			case entraPath:
+				if err := json.Unmarshal(artifact.Data, &entra); err != nil {
+					t.Fatal(err)
+				}
+			case azurePath:
+				if err := json.Unmarshal(artifact.Data, &azure); err != nil {
+					t.Fatal(err)
+				}
+			}
+		}
+		return res, entra, azure
+	}
+
+	trust, entra, azure := run("trust")
+	for _, artifact := range trust.Artifacts {
+		data := strings.ToLower(string(artifact.Data))
+		for _, id := range []string{kitTenantID, kitClientID, kitSubscriptionID, kitRefusedSubscriptionID} {
+			if strings.Contains(data, id) {
+				t.Errorf("%s names %s at trust: %s", artifact.Path, id, artifact.Data)
+			}
+		}
+	}
+	if accounts := azure["accounts"].([]any); len(accounts) != 2 || len(accounts[1].(map[string]any)) != 0 {
+		t.Errorf("accounts = %v, want two with the refused one empty", accounts)
+	}
+	wantError := "subscription 2: status=403 code=AuthorizationFailed"
+	if got := entra.Diagnostics.SubscriptionErrors; len(got) != 1 || got[0] != wantError {
+		t.Errorf("subscription_errors = %q, want %q", got, wantError)
+	}
+	if !containsString(entra.Diagnostics.Warnings, "Defender secure score unavailable for subscription 1") {
+		t.Errorf("warnings = %q, want the first subscription named by its place", entra.Diagnostics.Warnings)
+	}
+	for _, check := range trust.Result.Checks {
+		t.Errorf("trust run has check finding %+v", check)
+	}
+
+	_, entra, azure = run("audit")
+	if entra.TenantID != kitTenantID {
+		t.Errorf("tenant_id = %q at audit, want %s", entra.TenantID, kitTenantID)
+	}
+	accounts := azure["accounts"].([]any)
+	for i, id := range []string{kitSubscriptionID, kitRefusedSubscriptionID} {
+		if got := accounts[i].(map[string]any)["account_id"]; got != id {
+			t.Errorf("accounts[%d].account_id = %v at audit, want %s", i, got, id)
+		}
+	}
+	if got := entra.Diagnostics.SubscriptionErrors; len(got) != 1 || !strings.HasPrefix(got[0], kitRefusedSubscriptionID+": arm request") || !strings.Contains(got[0], kitClientID) {
+		t.Errorf("subscription_errors = %q at audit, want the ID and Azure's text as before", got)
+	}
+	if !containsString(entra.Diagnostics.Warnings, "Defender secure score unavailable for subscription "+kitSubscriptionID) {
+		t.Errorf("warnings = %q at audit, want the first subscription named by its ID", entra.Diagnostics.Warnings)
+	}
+}
+
 // A permission_denied gap names the Graph permission or Azure role its call
 // needs, at every level.
 func TestDeniedReadsNameWhatToGrant(t *testing.T) {

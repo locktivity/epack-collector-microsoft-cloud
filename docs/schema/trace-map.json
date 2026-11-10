@@ -126,12 +126,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "helper",
@@ -242,15 +238,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -258,7 +254,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -403,12 +399,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "assign",
@@ -471,7 +463,7 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:21"
+            "line": "internal/collector/azure_defender.go:22"
           },
           {
             "role": "condition",
@@ -496,15 +488,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:74"
+            "line": "internal/collector/entra_users.go:76"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:88"
+            "line": "internal/collector/entra_users.go:90"
           },
           {
             "role": "assign",
@@ -584,15 +576,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -771,12 +763,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -971,12 +959,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -1176,12 +1160,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -1398,12 +1378,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -1603,12 +1579,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -1787,15 +1759,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -1803,7 +1775,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -1998,12 +1970,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -2165,12 +2133,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "assign",
@@ -2282,15 +2246,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -2298,7 +2262,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -2418,12 +2382,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -2725,12 +2685,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "helper",
@@ -2841,15 +2797,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -2857,7 +2813,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -3008,12 +2964,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "assign",
@@ -3095,15 +3047,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:74"
+            "line": "internal/collector/entra_users.go:76"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:88"
+            "line": "internal/collector/entra_users.go:90"
           },
           {
             "role": "assign",
@@ -3183,15 +3135,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -3370,12 +3322,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -3570,12 +3518,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -3775,12 +3719,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -3997,12 +3937,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -4202,12 +4138,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -4307,19 +4239,23 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:43"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:41"
+            "line": "internal/collector/azure_defender.go:44"
           },
           {
             "role": "input",
@@ -4351,15 +4287,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
           },
           {
             "role": "input",
@@ -4489,15 +4425,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -4505,7 +4441,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -4700,12 +4636,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -4879,12 +4811,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "assign",
@@ -5005,15 +4933,15 @@
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "input",
@@ -5021,7 +4949,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:85"
+            "line": "internal/collector/entra_users.go:87"
           },
           {
             "role": "input",
@@ -5141,12 +5069,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -5369,8 +5293,12 @@
       "/accounts/*/account_id": {
         "code": [
           {
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:43"
+          },
+          {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:41"
+            "line": "internal/collector/azure_defender.go:44"
           }
         ]
       },
@@ -5406,16 +5334,16 @@
             "line": "internal/collector/azure_compute.go:27"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:72"
+            "line": "internal/collector/azure_defender.go:76"
           },
           {
             "role": "input",
@@ -5556,12 +5484,8 @@
             "end": 319
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           }
         ],
         "gaps": [
@@ -5622,12 +5546,8 @@
             "end": 303
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           }
         ],
         "gaps": [
@@ -5719,24 +5639,24 @@
             "line": "internal/collector/azure_compute.go:27"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:77"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:73"
+            "line": "internal/collector/azure_defender.go:78"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:74"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:75"
+            "line": "internal/collector/azure_defender.go:79"
           },
           {
             "role": "input",
@@ -5878,12 +5798,8 @@
             "end": 207
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           }
         ],
         "gaps": [
@@ -5978,20 +5894,20 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:69"
+            "line": "internal/collector/azure_defender.go:73"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:70"
+            "line": "internal/collector/azure_defender.go:74"
           }
         ],
         "gaps": [
@@ -6108,21 +6024,21 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:59"
+            "line": "internal/collector/azure_defender.go:63"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_defender.go:95",
-            "end": 117
+            "line": "internal/collector/azure_defender.go:132",
+            "end": 154
           }
         ],
         "gaps": [
@@ -6136,37 +6052,33 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:97"
+            "line": "internal/collector/azure_defender.go:134"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:98"
+            "line": "internal/collector/azure_defender.go:135"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:99"
+            "line": "internal/collector/azure_defender.go:136"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:100"
+            "line": "internal/collector/azure_defender.go:137"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:109"
+            "line": "internal/collector/azure_defender.go:146"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_defender.go:141",
-            "end": 149
+            "line": "internal/collector/azure_defender.go:179",
+            "end": 187
           }
         ],
         "gaps": [
@@ -6181,33 +6093,29 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:134"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:97"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:109"
+            "line": "internal/collector/azure_defender.go:146"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:110"
+            "line": "internal/collector/azure_defender.go:147"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:111"
+            "line": "internal/collector/azure_defender.go:148"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_defender.go:151",
-            "end": 168
+            "line": "internal/collector/azure_defender.go:189",
+            "end": 206
           }
         ],
         "gaps": [
@@ -6221,16 +6129,16 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:82"
+            "line": "internal/collector/azure_defender.go:86"
           },
           {
             "role": "helper",
@@ -6577,20 +6485,20 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
+            "line": "internal/collector/azure_defender.go:69"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:66"
+            "line": "internal/collector/azure_defender.go:70"
           }
         ],
         "gaps": [
@@ -6718,24 +6626,24 @@
             "line": "internal/collector/azure_compute.go:27"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
+            "line": "internal/collector/azure_defender.go:69"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:78"
+            "line": "internal/collector/azure_defender.go:82"
           },
           {
             "role": "helper",
@@ -6844,12 +6752,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -6898,24 +6802,24 @@
             "line": "internal/collector/azure_compute.go:25"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:69"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:79"
+            "line": "internal/collector/azure_defender.go:83"
           },
           {
             "role": "condition",
@@ -7027,24 +6931,24 @@
             "line": "internal/collector/azure_compute.go:25"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:69"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:79"
+            "line": "internal/collector/azure_defender.go:83"
           },
           {
             "role": "condition",
@@ -7124,24 +7028,24 @@
             "line": "internal/collector/azure_compute.go:25"
           },
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:69"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:79"
+            "line": "internal/collector/azure_defender.go:83"
           },
           {
             "role": "condition",
@@ -7241,12 +7145,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7301,16 +7201,16 @@
             "line": "internal/collector/azure_compute.go:32"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:77"
+            "line": "internal/collector/azure_defender.go:81"
           },
           {
             "role": "helper",
@@ -7329,12 +7229,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7389,12 +7285,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7445,12 +7337,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7501,16 +7389,16 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:61"
+            "line": "internal/collector/azure_defender.go:65"
           },
           {
             "role": "helper",
@@ -7529,12 +7417,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7561,12 +7445,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -7610,12 +7490,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -7658,16 +7534,16 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:60"
+            "line": "internal/collector/azure_defender.go:64"
           },
           {
             "role": "helper",
@@ -7736,20 +7612,20 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:67"
+            "line": "internal/collector/azure_defender.go:71"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:68"
+            "line": "internal/collector/azure_defender.go:72"
           }
         ],
         "gaps": [
@@ -7764,12 +7640,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7865,12 +7737,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7921,12 +7789,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -7977,12 +7841,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -8010,12 +7870,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -8103,20 +7959,20 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:67"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:64"
+            "line": "internal/collector/azure_defender.go:68"
           }
         ],
         "gaps": [
@@ -8386,7 +8242,7 @@
         "code": [
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:21"
+            "line": "internal/collector/azure_defender.go:22"
           }
         ]
       },
@@ -8394,7 +8250,7 @@
         "code": [
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:22"
+            "line": "internal/collector/azure_defender.go:23"
           }
         ]
       },
@@ -8462,20 +8318,29 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:43"
+            "line": "internal/collector/azure_defender.go:48"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "helper",
+            "line": "internal/collector/azure_defender.go:113",
+            "end": 126
           },
           {
             "role": "assign",
@@ -8489,20 +8354,29 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:43"
+            "line": "internal/collector/azure_defender.go:48"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "helper",
+            "line": "internal/collector/azure_defender.go:113",
+            "end": 126
           },
           {
             "role": "assign",
@@ -8622,7 +8496,7 @@
         "code": [
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:20"
+            "line": "internal/collector/azure_defender.go:21"
           }
         ]
       }
@@ -8632,19 +8506,23 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:43"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:41"
+            "line": "internal/collector/azure_defender.go:44"
           },
           {
             "role": "input",
@@ -8703,39 +8581,39 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:72"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:76"
           },
           {
             "role": "input",
@@ -8908,12 +8786,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
@@ -8955,15 +8829,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
           },
           {
             "role": "condition",
@@ -8987,47 +8861,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:44"
+            "line": "internal/collector/entra_users.go:46"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:164"
-          },
-          {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:169"
+            "line": "internal/collector/entra_users.go:162"
           },
           {
             "role": "input",
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:166"
+          },
+          {
+            "role": "condition",
             "line": "internal/collector/entra_users.go:170"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:171"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:186"
+            "line": "internal/collector/entra_users.go:172"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:188"
           },
           {
             "role": "input",
@@ -9077,15 +8951,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
           },
           {
             "role": "condition",
@@ -9193,15 +9067,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "input",
@@ -9245,15 +9119,15 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
           },
           {
             "role": "condition",
@@ -9361,15 +9235,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "input",
@@ -9427,47 +9301,47 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:50"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:65"
+            "line": "internal/collector/azure_defender.go:52"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:78"
+            "line": "internal/collector/azure_defender.go:67"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:69"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:82"
           },
           {
             "role": "input",
@@ -9582,12 +9456,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -9627,12 +9497,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -9672,12 +9538,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -9717,12 +9579,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -9782,39 +9640,39 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:77"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:81"
           },
           {
             "role": "input",
@@ -9861,12 +9719,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -9982,12 +9836,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10084,12 +9934,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10133,12 +9979,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10187,12 +10029,8 @@
         ],
         "code": [
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10308,12 +10146,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10410,43 +10244,43 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:23"
+            "line": "internal/collector/azure_defender.go:24"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:25"
+            "line": "internal/collector/azure_defender.go:26"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:29"
+            "line": "internal/collector/azure_defender.go:30"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/azure_defender.go:47"
           },
           {
-            "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "role": "condition",
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:63"
+            "line": "internal/collector/azure_defender.go:50"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:64"
+            "line": "internal/collector/azure_defender.go:52"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:67"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:68"
           },
           {
             "role": "input",
@@ -10599,12 +10433,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10746,12 +10576,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -10963,7 +10789,7 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:21"
+            "line": "internal/collector/azure_defender.go:22"
           },
           {
             "role": "condition",
@@ -11013,7 +10839,7 @@
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           }
         ],
         "gaps": [
@@ -11393,20 +11219,29 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:43"
+            "line": "internal/collector/azure_defender.go:48"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "helper",
+            "line": "internal/collector/azure_defender.go:113",
+            "end": 126
           },
           {
             "role": "assign",
@@ -11420,20 +11255,29 @@
         ],
         "code": [
           {
+            "role": "input",
+            "line": "internal/collector/azure_defender.go:46"
+          },
+          {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
+            "line": "internal/collector/azure_defender.go:47"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_defender.go:43"
+            "line": "internal/collector/azure_defender.go:48"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_defender.go:44"
+            "line": "internal/collector/azure_defender.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:45"
+            "line": "internal/collector/azure_defender.go:50"
+          },
+          {
+            "role": "helper",
+            "line": "internal/collector/azure_defender.go:113",
+            "end": 126
           },
           {
             "role": "assign",
@@ -11561,7 +11405,7 @@
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:80"
+            "line": "internal/collector/entra_users.go:82"
           }
         ],
         "gaps": [
@@ -11776,7 +11620,7 @@
         "code": [
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:23"
+            "line": "internal/collector/entra_users.go:22"
           },
           {
             "role": "helper",
@@ -12129,31 +11973,31 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:43"
+            "line": "internal/collector/entra_users.go:45"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:162"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:183"
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:185"
           }
         ],
         "gaps": [
@@ -12176,47 +12020,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:44"
+            "line": "internal/collector/entra_users.go:46"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:164"
-          },
-          {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:169"
+            "line": "internal/collector/entra_users.go:162"
           },
           {
             "role": "input",
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:166"
+          },
+          {
+            "role": "condition",
             "line": "internal/collector/entra_users.go:170"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:171"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:186"
+            "line": "internal/collector/entra_users.go:172"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:188"
           }
         ],
         "gaps": [
@@ -12239,47 +12083,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:45"
+            "line": "internal/collector/entra_users.go:47"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:162"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:165"
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:167"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
+            "line": "internal/collector/entra_users.go:170"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:172"
+            "line": "internal/collector/entra_users.go:174"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:173"
+            "line": "internal/collector/entra_users.go:175"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:187"
+            "line": "internal/collector/entra_users.go:189"
           }
         ],
         "gaps": [
@@ -12302,47 +12146,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:46"
+            "line": "internal/collector/entra_users.go:48"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:166"
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:162"
           },
           {
-            "role": "condition",
+            "role": "input",
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/entra_users.go:168"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:175"
+            "line": "internal/collector/entra_users.go:170"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:177"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:176"
+            "line": "internal/collector/entra_users.go:178"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:188"
+            "line": "internal/collector/entra_users.go:190"
           }
         ],
         "gaps": [
@@ -12388,15 +12232,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:76"
+            "line": "internal/collector/entra_users.go:78"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:77"
+            "line": "internal/collector/entra_users.go:79"
           }
         ],
         "gaps": [
@@ -12419,47 +12263,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:47"
+            "line": "internal/collector/entra_users.go:49"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:162"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:167"
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:169"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
+            "line": "internal/collector/entra_users.go:170"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:178"
+            "line": "internal/collector/entra_users.go:180"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:179"
+            "line": "internal/collector/entra_users.go:181"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:189"
+            "line": "internal/collector/entra_users.go:191"
           }
         ],
         "gaps": [
@@ -12491,7 +12335,7 @@
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           }
         ],
         "gaps": [
@@ -12580,11 +12424,11 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:69"
+            "line": "internal/collector/entra_users.go:71"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:70"
+            "line": "internal/collector/entra_users.go:72"
           }
         ],
         "gaps": [
@@ -12746,7 +12590,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:67"
+            "line": "internal/collector/entra_users.go:69"
           }
         ],
         "gaps": [
@@ -12834,11 +12678,11 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "helper",
@@ -12931,11 +12775,11 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "helper",
@@ -13244,23 +13088,23 @@
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:65"
+            "line": "internal/collector/entra_users.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:138"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:139"
           }
         ],
         "gaps": [
@@ -13313,7 +13157,7 @@
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:81"
+            "line": "internal/collector/entra_users.go:83"
           }
         ],
         "gaps": [
@@ -13971,8 +13815,12 @@
       "/tenant_id": {
         "code": [
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:24"
+          },
+          {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:22"
+            "line": "internal/collector/entra_users.go:25"
           }
         ]
       },
@@ -13987,27 +13835,27 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:30"
+            "line": "internal/collector/entra_users.go:32"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:133"
+            "line": "internal/collector/entra_users.go:135"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:134"
+            "line": "internal/collector/entra_users.go:136"
           },
           {
             "role": "helper",
@@ -14035,27 +13883,27 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "assign",
             "line": "internal/collector/entra_users.go:28"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "role": "assign",
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:130"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:131"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:138"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
           }
         ],
         "gaps": [
@@ -14073,27 +13921,27 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:29"
+            "line": "internal/collector/entra_users.go:31"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/entra_users.go:130"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:131"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:132"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:133"
           },
           {
             "role": "helper",
@@ -14116,20 +13964,20 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:52"
+            "line": "internal/collector/entra_users.go:54"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:59"
+            "line": "internal/collector/entra_users.go:61"
           },
           {
             "role": "helper",
-            "line": "internal/collector/entra_users.go:252"
+            "line": "internal/collector/entra_users.go:254"
           },
           {
             "role": "helper",
-            "line": "internal/collector/entra_users.go:254",
-            "end": 267
+            "line": "internal/collector/entra_users.go:256",
+            "end": 269
           }
         ],
         "gaps": [
@@ -14147,15 +13995,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:52"
+            "line": "internal/collector/entra_users.go:54"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:56"
+            "line": "internal/collector/entra_users.go:58"
           },
           {
             "role": "helper",
-            "line": "internal/collector/entra_users.go:252"
+            "line": "internal/collector/entra_users.go:254"
           }
         ],
         "gaps": [
@@ -14178,15 +14026,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "assign",
-            "line": "internal/collector/entra_users.go:27"
+            "line": "internal/collector/entra_users.go:29"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           }
         ],
         "gaps": [
@@ -14222,7 +14070,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14282,7 +14130,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14371,12 +14219,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -14400,7 +14244,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14500,12 +14344,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -14529,7 +14369,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14610,7 +14450,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14697,12 +14537,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -14747,7 +14583,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:75"
+            "line": "internal/collector/entra_users.go:77"
           },
           {
             "role": "condition",
@@ -14828,15 +14664,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:27"
+            "line": "internal/collector/entra_users.go:29"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
@@ -14876,15 +14712,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:27"
+            "line": "internal/collector/entra_users.go:29"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
@@ -14969,12 +14805,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -14982,15 +14814,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:27"
+            "line": "internal/collector/entra_users.go:29"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
@@ -15042,23 +14874,23 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:31"
+            "line": "internal/collector/entra_users.go:33"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:133"
+            "line": "internal/collector/entra_users.go:135"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:134"
+            "line": "internal/collector/entra_users.go:136"
           },
           {
             "role": "condition",
@@ -15141,12 +14973,8 @@
             "line": "internal/collector/azure_backup.go:81"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/azure_defender.go:42"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/azure_defender.go:58"
+            "line": "internal/collector/azure_defender.go:46"
           },
           {
             "role": "input",
@@ -15154,31 +14982,31 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
+            "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:27"
+            "line": "internal/collector/entra_users.go:29"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:31"
+            "line": "internal/collector/entra_users.go:33"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:133"
+            "line": "internal/collector/entra_users.go:135"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:134"
+            "line": "internal/collector/entra_users.go:136"
           },
           {
             "role": "condition",
@@ -15232,7 +15060,7 @@
         "code": [
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:23"
+            "line": "internal/collector/entra_users.go:22"
           },
           {
             "role": "condition",
@@ -15275,23 +15103,23 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:65"
+            "line": "internal/collector/entra_users.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:138"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:139"
           },
           {
             "role": "condition",
@@ -15351,23 +15179,23 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:65"
+            "line": "internal/collector/entra_users.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:138"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:139"
           },
           {
             "role": "condition",
@@ -15500,15 +15328,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:65"
+            "line": "internal/collector/entra_users.go:30"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:67"
           },
           {
             "role": "input",
@@ -15666,31 +15494,31 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:65"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:67"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:130"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:131"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:138"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
           },
           {
             "role": "input",
@@ -15864,15 +15692,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "condition",
@@ -16015,15 +15843,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "condition",
@@ -16169,15 +15997,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "condition",
@@ -16320,15 +16148,15 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:71"
+            "line": "internal/collector/entra_users.go:73"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:72"
+            "line": "internal/collector/entra_users.go:74"
           },
           {
             "role": "condition",
@@ -16441,7 +16269,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "condition",
@@ -16558,7 +16386,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "condition",
@@ -16696,7 +16524,7 @@
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:66"
+            "line": "internal/collector/entra_users.go:68"
           },
           {
             "role": "condition",
@@ -16817,63 +16645,63 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:52"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:57"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:58"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:54"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:59"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:256"
+            "line": "internal/collector/entra_users.go:60"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:257"
+            "line": "internal/collector/entra_users.go:131"
           },
           {
             "role": "condition",
+            "line": "internal/collector/entra_users.go:138"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/entra_users.go:258"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:261"
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:259"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:262"
+            "line": "internal/collector/entra_users.go:260"
           },
           {
             "role": "input",
             "line": "internal/collector/entra_users.go:263"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:264"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:265"
           },
           {
             "role": "condition",
@@ -16997,75 +16825,75 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:43"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:48"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:45"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
+            "line": "internal/collector/entra_users.go:50"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
+            "line": "internal/collector/entra_users.go:138"
           },
           {
-            "role": "condition",
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:164"
-          },
-          {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:169"
+            "line": "internal/collector/entra_users.go:162"
           },
           {
             "role": "input",
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:166"
+          },
+          {
+            "role": "condition",
             "line": "internal/collector/entra_users.go:170"
           },
           {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:183"
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:171"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:184"
+            "line": "internal/collector/entra_users.go:172"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:185"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:186"
           },
           {
             "role": "condition",
@@ -17175,75 +17003,75 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:36"
-          },
-          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:43"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:49"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:128"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:38"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:45"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:158"
+            "line": "internal/collector/entra_users.go:51"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:130"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:159"
+            "line": "internal/collector/entra_users.go:138"
           },
           {
-            "role": "condition",
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
+          },
+          {
+            "role": "input",
             "line": "internal/collector/entra_users.go:160"
           },
           {
-            "role": "input",
+            "role": "condition",
             "line": "internal/collector/entra_users.go:161"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:162"
+          },
+          {
             "role": "input",
-            "line": "internal/collector/entra_users.go:165"
+            "line": "internal/collector/entra_users.go:163"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:167"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:168"
+            "line": "internal/collector/entra_users.go:170"
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:172"
+            "line": "internal/collector/entra_users.go:174"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:173"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/entra_users.go:183"
+            "line": "internal/collector/entra_users.go:175"
           },
           {
             "role": "input",
             "line": "internal/collector/entra_users.go:185"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:187"
           },
           {
             "role": "condition",
@@ -17318,27 +17146,27 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:130"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:131"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:138"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
           },
           {
             "role": "condition",
@@ -17378,27 +17206,27 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/entra_users.go:26"
-          },
-          {
-            "role": "input",
             "line": "internal/collector/entra_users.go:28"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:128"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:129"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/entra_users.go:136"
+            "line": "internal/collector/entra_users.go:30"
           },
           {
             "role": "input",
-            "line": "internal/collector/entra_users.go:137"
+            "line": "internal/collector/entra_users.go:130"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:131"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/entra_users.go:138"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/entra_users.go:139"
           },
           {
             "role": "condition",
@@ -17444,7 +17272,7 @@
     "internal/collector/azure_backup.go:19": "func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, population backupPopulation, diagnostics *Diagnostics) *AzureBackup {",
     "internal/collector/azure_backup.go:20": "\tvaults, err := c.arm.RecoveryServicesVaults(ctx, scope.id)",
     "internal/collector/azure_backup.go:21": "\tif err != nil {",
-    "internal/collector/azure_backup.go:22": "\t\tdiagnostics.warnSubscription(\"Recovery Services vault inventory\", scope.id, err)",
+    "internal/collector/azure_backup.go:22": "\t\tdiagnostics.warnSubscription(\"Recovery Services vault inventory\", scope.name, err)",
     "internal/collector/azure_backup.go:23": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"backup\"))",
     "internal/collector/azure_backup.go:24": "\t\treturn nil",
     "internal/collector/azure_backup.go:25": "\t}",
@@ -17467,21 +17295,21 @@
     "internal/collector/azure_backup.go:42": "\tfor _, vault := range vaults {",
     "internal/collector/azure_backup.go:43": "\t\tvaultProtectedItems, err := c.arm.BackupProtectedItems(ctx, vault.ID)",
     "internal/collector/azure_backup.go:44": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:45": "\t\t\tdiagnostics.warnSubscription(\"Backup protected items\", scope.id, err)",
+    "internal/collector/azure_backup.go:45": "\t\t\tdiagnostics.warnSubscription(\"Backup protected items\", scope.name, err)",
     "internal/collector/azure_backup.go:46": "\t\t\titems.add(err)",
     "internal/collector/azure_backup.go:47": "\t\t}",
     "internal/collector/azure_backup.go:48": "\t\tprotectedItems = append(protectedItems, vaultProtectedItems...)",
     "internal/collector/azure_backup.go:49": "",
     "internal/collector/azure_backup.go:50": "\t\tvaultPolicies, err := c.arm.BackupPolicies(ctx, vault.ID)",
     "internal/collector/azure_backup.go:51": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:52": "\t\t\tdiagnostics.warnSubscription(\"Backup policies\", scope.id, err)",
+    "internal/collector/azure_backup.go:52": "\t\t\tdiagnostics.warnSubscription(\"Backup policies\", scope.name, err)",
     "internal/collector/azure_backup.go:53": "\t\t\tpolicyReads.add(err)",
     "internal/collector/azure_backup.go:54": "\t\t}",
     "internal/collector/azure_backup.go:55": "\t\tpolicies = append(policies, vaultPolicies...)",
     "internal/collector/azure_backup.go:56": "",
     "internal/collector/azure_backup.go:57": "\t\tvaultJobs, err := c.arm.BackupJobs(ctx, vault.ID, \"operation eq 'Backup'\")",
     "internal/collector/azure_backup.go:58": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:59": "\t\t\tdiagnostics.warnSubscription(\"Backup job history\", scope.id, err)",
+    "internal/collector/azure_backup.go:59": "\t\t\tdiagnostics.warnSubscription(\"Backup job history\", scope.name, err)",
     "internal/collector/azure_backup.go:60": "\t\t\tjobReads.add(err)",
     "internal/collector/azure_backup.go:61": "\t\t}",
     "internal/collector/azure_backup.go:62": "\t\tjobs = append(jobs, vaultJobs...)",
@@ -17633,88 +17461,103 @@
     "internal/collector/azure_compute.go:58": "\tout.DiskEncryptionPct = PercentInt(encrypted, len(virtualMachines))",
     "internal/collector/azure_compute.go:59": "\tif publicIPKnown {",
     "internal/collector/azure_compute.go:60": "\t\tout.PublicIPPct = PercentInt(publicAttached, len(virtualMachines))",
-    "internal/collector/azure_defender.go:20": "\t\tSchemaVersion:    SchemaVersion,",
-    "internal/collector/azure_defender.go:21": "\t\tCollectedAt:      c.clock.Now().UTC().Format(\"2006-01-02T15:04:05Z\"),",
-    "internal/collector/azure_defender.go:22": "\t\tCollectedAtLevel: string(level),",
-    "internal/collector/azure_defender.go:23": "\t\tAccounts:         make([]AzureAccount, 0, len(c.config.SubscriptionIDs)),",
-    "internal/collector/azure_defender.go:25": "\tfor i, subscriptionID := range c.config.SubscriptionIDs {",
-    "internal/collector/azure_defender.go:29": "\t\tartifact.Accounts = append(artifact.Accounts, c.collectAzureSubscription(ctx, level, i, subscriptionID, diagnostics))",
-    "internal/collector/azure_defender.go:41": "\taccount := AzureAccount{AccountID: subscriptionID}",
-    "internal/collector/azure_defender.go:42": "\tif _, err := c.arm.Subscription(ctx, subscriptionID); err != nil {",
-    "internal/collector/azure_defender.go:43": "\t\tdiagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, fmt.Sprintf(\"%s: %s\", subscriptionID, err.Error()))",
-    "internal/collector/azure_defender.go:44": "\t\tif apiStatus(err) == http.StatusNotFound {",
-    "internal/collector/azure_defender.go:45": "\t\t\terr = componentsdk.CodeError(componentsdk.CodeConfigInvalid, err)",
-    "internal/collector/azure_defender.go:47": "\t\taccount.unreadable = failed(err)",
-    "internal/collector/azure_defender.go:58": "\tscope := subscriptionScope{index: index, id: subscriptionID}",
-    "internal/collector/azure_defender.go:59": "\taccount.Defender = c.collectDefender(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:60": "\taccount.RBAC, account.roleAssignments, account.rbacMiss = c.collectRBAC(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:61": "\taccount.Policy = c.collectAzurePolicy(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:63": "\tstorage, storageAccounts, storageMiss := c.collectStorage(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:64": "\taccount.Storage = storage",
-    "internal/collector/azure_defender.go:65": "\tkeyVault, keyVaults, keyVaultsMiss := c.collectKeyVault(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:66": "\taccount.KeyVault = keyVault",
-    "internal/collector/azure_defender.go:67": "\tsql, sqlReads := c.collectSQL(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:68": "\taccount.SQL = sql",
-    "internal/collector/azure_defender.go:69": "\tcompute, computeReads := c.collectCompute(ctx, scope, diagnostics)",
-    "internal/collector/azure_defender.go:70": "\taccount.Compute = compute",
-    "internal/collector/azure_defender.go:72": "\taccount.Backup = c.collectBackup(ctx, scope, backupPopulation{",
-    "internal/collector/azure_defender.go:73": "\t\tvirtualMachines: computeReads.virtualMachines,",
-    "internal/collector/azure_defender.go:74": "\t\tdatabases:       sqlReads.databases,",
-    "internal/collector/azure_defender.go:75": "\t\twhy:             firstMissing(computeReads.virtualMachinesMiss, sqlReads.serversMiss, sqlReads.databasesMiss),",
-    "internal/collector/azure_defender.go:77": "\taccount.Network = c.collectNetwork(ctx, scope, computeReads.publicIPs, computeReads.publicIPsMiss, diagnostics)",
-    "internal/collector/azure_defender.go:78": "\taccount.Logging = c.collectLogging(ctx, scope, monitoredResources{",
-    "internal/collector/azure_defender.go:79": "\t\tlist: monitoredResourceList(storageAccounts, keyVaults, sqlReads.masters, sqlReads.databases, computeReads.virtualMachines),",
-    "internal/collector/azure_defender.go:82": "\taccount.Inventory = c.collectInventory(ctx, level, scope, diagnostics)",
-    "internal/collector/azure_defender.go:95": "func (c *Collector) collectDefender(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzureDefender {",
-    "internal/collector/azure_defender.go:96": "\tout := \u0026AzureDefender{}",
-    "internal/collector/azure_defender.go:97": "\tscore, err := c.arm.DefenderSecureScore(ctx, scope.id)",
-    "internal/collector/azure_defender.go:98": "\tswitch {",
-    "internal/collector/azure_defender.go:99": "\tcase err == nil:",
-    "internal/collector/azure_defender.go:100": "\t\tout.SecureScorePct = defenderSecureScorePct(score)",
-    "internal/collector/azure_defender.go:101": "\tcase apiStatus(err) == http.StatusNotFound:",
-    "internal/collector/azure_defender.go:102": "\t\tdiagnostics.Warn(\"Defender secure score unavailable for subscription \" + scope.id)",
-    "internal/collector/azure_defender.go:103": "\t\tc.gaps.leaveOut(azurePath, unlicensed(\"Defender for Cloud has no secure score for the subscription.\"), scope.pointer(\"defender/secure_score_pct\"))",
-    "internal/collector/azure_defender.go:104": "\tdefault:",
-    "internal/collector/azure_defender.go:105": "\t\twarnDefender(diagnostics, \"Defender secure score\", scope.id, \"defender.secure_score_pct\", err)",
-    "internal/collector/azure_defender.go:106": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"defender/secure_score_pct\"))",
-    "internal/collector/azure_defender.go:107": "\t}",
-    "internal/collector/azure_defender.go:108": "",
-    "internal/collector/azure_defender.go:109": "\tassessments, err := c.arm.DefenderAssessments(ctx, scope.id)",
-    "internal/collector/azure_defender.go:110": "\tif err == nil {",
-    "internal/collector/azure_defender.go:111": "\t\tout.UnpatchedPct = defenderUnpatchedPct(assessments)",
-    "internal/collector/azure_defender.go:112": "\t} else {",
-    "internal/collector/azure_defender.go:113": "\t\twarnDefender(diagnostics, \"Defender assessments\", scope.id, \"defender.unpatched_pct\", err)",
-    "internal/collector/azure_defender.go:114": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"defender/unpatched_pct\"))",
-    "internal/collector/azure_defender.go:115": "\t}",
-    "internal/collector/azure_defender.go:116": "\treturn out",
-    "internal/collector/azure_defender.go:117": "}",
-    "internal/collector/azure_defender.go:141": "func defenderSecureScorePct(score *microsoft.ARMSecureScore) *int {",
-    "internal/collector/azure_defender.go:142": "\tif score == nil {",
-    "internal/collector/azure_defender.go:143": "\t\treturn nil",
+    "internal/collector/azure_defender.go:21": "\t\tSchemaVersion:    SchemaVersion,",
+    "internal/collector/azure_defender.go:22": "\t\tCollectedAt:      c.clock.Now().UTC().Format(\"2006-01-02T15:04:05Z\"),",
+    "internal/collector/azure_defender.go:23": "\t\tCollectedAtLevel: string(level),",
+    "internal/collector/azure_defender.go:24": "\t\tAccounts:         make([]AzureAccount, 0, len(c.config.SubscriptionIDs)),",
+    "internal/collector/azure_defender.go:26": "\tfor i, subscriptionID := range c.config.SubscriptionIDs {",
+    "internal/collector/azure_defender.go:30": "\t\tartifact.Accounts = append(artifact.Accounts, c.collectAzureSubscription(ctx, level, i, subscriptionID, diagnostics))",
+    "internal/collector/azure_defender.go:43": "\tif level.AtLeast(componentsdk.LevelAudit) {",
+    "internal/collector/azure_defender.go:44": "\t\taccount.AccountID = subscriptionID",
+    "internal/collector/azure_defender.go:46": "\tscope := subscriptionScope{index: index, id: subscriptionID, name: subscriptionName(level, index, subscriptionID)}",
+    "internal/collector/azure_defender.go:47": "\tif _, err := c.arm.Subscription(ctx, subscriptionID); err != nil {",
+    "internal/collector/azure_defender.go:48": "\t\tdiagnostics.SubscriptionErrors = append(diagnostics.SubscriptionErrors, subscriptionError(level, scope, err))",
+    "internal/collector/azure_defender.go:49": "\t\tif apiStatus(err) == http.StatusNotFound {",
+    "internal/collector/azure_defender.go:50": "\t\t\terr = componentsdk.CodeError(componentsdk.CodeConfigInvalid, err)",
+    "internal/collector/azure_defender.go:52": "\t\taccount.unreadable = failed(err)",
+    "internal/collector/azure_defender.go:63": "\taccount.Defender = c.collectDefender(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:64": "\taccount.RBAC, account.roleAssignments, account.rbacMiss = c.collectRBAC(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:65": "\taccount.Policy = c.collectAzurePolicy(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:67": "\tstorage, storageAccounts, storageMiss := c.collectStorage(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:68": "\taccount.Storage = storage",
+    "internal/collector/azure_defender.go:69": "\tkeyVault, keyVaults, keyVaultsMiss := c.collectKeyVault(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:70": "\taccount.KeyVault = keyVault",
+    "internal/collector/azure_defender.go:71": "\tsql, sqlReads := c.collectSQL(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:72": "\taccount.SQL = sql",
+    "internal/collector/azure_defender.go:73": "\tcompute, computeReads := c.collectCompute(ctx, scope, diagnostics)",
+    "internal/collector/azure_defender.go:74": "\taccount.Compute = compute",
+    "internal/collector/azure_defender.go:76": "\taccount.Backup = c.collectBackup(ctx, scope, backupPopulation{",
+    "internal/collector/azure_defender.go:77": "\t\tvirtualMachines: computeReads.virtualMachines,",
+    "internal/collector/azure_defender.go:78": "\t\tdatabases:       sqlReads.databases,",
+    "internal/collector/azure_defender.go:79": "\t\twhy:             firstMissing(computeReads.virtualMachinesMiss, sqlReads.serversMiss, sqlReads.databasesMiss),",
+    "internal/collector/azure_defender.go:81": "\taccount.Network = c.collectNetwork(ctx, scope, computeReads.publicIPs, computeReads.publicIPsMiss, diagnostics)",
+    "internal/collector/azure_defender.go:82": "\taccount.Logging = c.collectLogging(ctx, scope, monitoredResources{",
+    "internal/collector/azure_defender.go:83": "\t\tlist: monitoredResourceList(storageAccounts, keyVaults, sqlReads.masters, sqlReads.databases, computeReads.virtualMachines),",
+    "internal/collector/azure_defender.go:86": "\taccount.Inventory = c.collectInventory(ctx, level, scope, diagnostics)",
+    "internal/collector/azure_defender.go:113": "func subscriptionError(level componentsdk.Level, scope subscriptionScope, err error) string {",
+    "internal/collector/azure_defender.go:114": "\tif level.AtLeast(componentsdk.LevelAudit) {",
+    "internal/collector/azure_defender.go:115": "\t\treturn fmt.Sprintf(\"%s: %s\", scope.id, err.Error())",
+    "internal/collector/azure_defender.go:116": "\t}",
+    "internal/collector/azure_defender.go:117": "\tvar apiErr *microsoft.APIError",
+    "internal/collector/azure_defender.go:118": "\tswitch {",
+    "internal/collector/azure_defender.go:119": "\tcase !errors.As(err, \u0026apiErr):",
+    "internal/collector/azure_defender.go:120": "\t\treturn fmt.Sprintf(\"subscription %s: failed with %s\", scope.name, componentsdk.Classify(err))",
+    "internal/collector/azure_defender.go:121": "\tcase apiErr.Code == \"\":",
+    "internal/collector/azure_defender.go:122": "\t\treturn fmt.Sprintf(\"subscription %s: status=%d\", scope.name, apiErr.StatusCode)",
+    "internal/collector/azure_defender.go:123": "\tdefault:",
+    "internal/collector/azure_defender.go:124": "\t\treturn fmt.Sprintf(\"subscription %s: status=%d code=%s\", scope.name, apiErr.StatusCode, microsoft.SanitizeErrorText(apiErr.Code))",
+    "internal/collector/azure_defender.go:125": "\t}",
+    "internal/collector/azure_defender.go:126": "}",
+    "internal/collector/azure_defender.go:132": "func (c *Collector) collectDefender(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzureDefender {",
+    "internal/collector/azure_defender.go:133": "\tout := \u0026AzureDefender{}",
+    "internal/collector/azure_defender.go:134": "\tscore, err := c.arm.DefenderSecureScore(ctx, scope.id)",
+    "internal/collector/azure_defender.go:135": "\tswitch {",
+    "internal/collector/azure_defender.go:136": "\tcase err == nil:",
+    "internal/collector/azure_defender.go:137": "\t\tout.SecureScorePct = defenderSecureScorePct(score)",
+    "internal/collector/azure_defender.go:138": "\tcase apiStatus(err) == http.StatusNotFound:",
+    "internal/collector/azure_defender.go:139": "\t\tdiagnostics.Warn(\"Defender secure score unavailable for subscription \" + scope.name)",
+    "internal/collector/azure_defender.go:140": "\t\tc.gaps.leaveOut(azurePath, unlicensed(\"Defender for Cloud has no secure score for the subscription.\"), scope.pointer(\"defender/secure_score_pct\"))",
+    "internal/collector/azure_defender.go:141": "\tdefault:",
+    "internal/collector/azure_defender.go:142": "\t\twarnDefender(diagnostics, \"Defender secure score\", scope.name, \"defender.secure_score_pct\", err)",
+    "internal/collector/azure_defender.go:143": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"defender/secure_score_pct\"))",
     "internal/collector/azure_defender.go:144": "\t}",
-    "internal/collector/azure_defender.go:145": "\tif score.Properties.Score.Percentage \u003e 0 {",
-    "internal/collector/azure_defender.go:146": "\t\treturn PercentFloat(score.Properties.Score.Percentage, 1)",
-    "internal/collector/azure_defender.go:147": "\t}",
-    "internal/collector/azure_defender.go:148": "\treturn PercentFloat(score.Properties.Score.Current, score.Properties.Score.Max)",
-    "internal/collector/azure_defender.go:149": "}",
-    "internal/collector/azure_defender.go:151": "func defenderUnpatchedPct(assessments []microsoft.SecurityAssessment) *int {",
-    "internal/collector/azure_defender.go:152": "\tunhealthy := 0",
-    "internal/collector/azure_defender.go:153": "\tdenominator := 0",
-    "internal/collector/azure_defender.go:154": "\tfor _, assessment := range assessments {",
-    "internal/collector/azure_defender.go:155": "\t\tif !patchOrVulnerabilityAssessment(assessment) {",
-    "internal/collector/azure_defender.go:156": "\t\t\tcontinue",
-    "internal/collector/azure_defender.go:157": "\t\t}",
-    "internal/collector/azure_defender.go:158": "\t\tstatus := strings.ToLower(assessment.Properties.Status.Code)",
-    "internal/collector/azure_defender.go:159": "\t\tswitch status {",
-    "internal/collector/azure_defender.go:160": "\t\tcase \"healthy\":",
-    "internal/collector/azure_defender.go:161": "\t\t\tdenominator++",
-    "internal/collector/azure_defender.go:162": "\t\tcase \"unhealthy\":",
-    "internal/collector/azure_defender.go:163": "\t\t\tdenominator++",
-    "internal/collector/azure_defender.go:164": "\t\t\tunhealthy++",
-    "internal/collector/azure_defender.go:165": "\t\t}",
-    "internal/collector/azure_defender.go:166": "\t}",
-    "internal/collector/azure_defender.go:167": "\treturn PercentInt(unhealthy, denominator)",
-    "internal/collector/azure_defender.go:168": "}",
+    "internal/collector/azure_defender.go:145": "",
+    "internal/collector/azure_defender.go:146": "\tassessments, err := c.arm.DefenderAssessments(ctx, scope.id)",
+    "internal/collector/azure_defender.go:147": "\tif err == nil {",
+    "internal/collector/azure_defender.go:148": "\t\tout.UnpatchedPct = defenderUnpatchedPct(assessments)",
+    "internal/collector/azure_defender.go:149": "\t} else {",
+    "internal/collector/azure_defender.go:150": "\t\twarnDefender(diagnostics, \"Defender assessments\", scope.name, \"defender.unpatched_pct\", err)",
+    "internal/collector/azure_defender.go:151": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"defender/unpatched_pct\"))",
+    "internal/collector/azure_defender.go:152": "\t}",
+    "internal/collector/azure_defender.go:153": "\treturn out",
+    "internal/collector/azure_defender.go:154": "}",
+    "internal/collector/azure_defender.go:179": "func defenderSecureScorePct(score *microsoft.ARMSecureScore) *int {",
+    "internal/collector/azure_defender.go:180": "\tif score == nil {",
+    "internal/collector/azure_defender.go:181": "\t\treturn nil",
+    "internal/collector/azure_defender.go:182": "\t}",
+    "internal/collector/azure_defender.go:183": "\tif score.Properties.Score.Percentage \u003e 0 {",
+    "internal/collector/azure_defender.go:184": "\t\treturn PercentFloat(score.Properties.Score.Percentage, 1)",
+    "internal/collector/azure_defender.go:185": "\t}",
+    "internal/collector/azure_defender.go:186": "\treturn PercentFloat(score.Properties.Score.Current, score.Properties.Score.Max)",
+    "internal/collector/azure_defender.go:187": "}",
+    "internal/collector/azure_defender.go:189": "func defenderUnpatchedPct(assessments []microsoft.SecurityAssessment) *int {",
+    "internal/collector/azure_defender.go:190": "\tunhealthy := 0",
+    "internal/collector/azure_defender.go:191": "\tdenominator := 0",
+    "internal/collector/azure_defender.go:192": "\tfor _, assessment := range assessments {",
+    "internal/collector/azure_defender.go:193": "\t\tif !patchOrVulnerabilityAssessment(assessment) {",
+    "internal/collector/azure_defender.go:194": "\t\t\tcontinue",
+    "internal/collector/azure_defender.go:195": "\t\t}",
+    "internal/collector/azure_defender.go:196": "\t\tstatus := strings.ToLower(assessment.Properties.Status.Code)",
+    "internal/collector/azure_defender.go:197": "\t\tswitch status {",
+    "internal/collector/azure_defender.go:198": "\t\tcase \"healthy\":",
+    "internal/collector/azure_defender.go:199": "\t\t\tdenominator++",
+    "internal/collector/azure_defender.go:200": "\t\tcase \"unhealthy\":",
+    "internal/collector/azure_defender.go:201": "\t\t\tdenominator++",
+    "internal/collector/azure_defender.go:202": "\t\t\tunhealthy++",
+    "internal/collector/azure_defender.go:203": "\t\t}",
+    "internal/collector/azure_defender.go:204": "\t}",
+    "internal/collector/azure_defender.go:205": "\treturn PercentInt(unhealthy, denominator)",
+    "internal/collector/azure_defender.go:206": "}",
     "internal/collector/azure_inventory.go:18": "\townerTagKeys       = []string{\"owner\", \"applicationowner\", \"businessowner\", \"serviceowner\", \"contact\", \"managedby\"}",
     "internal/collector/azure_inventory.go:19": "\tenvironmentTagKeys = []string{\"environment\", \"env\", \"stage\"}",
     "internal/collector/azure_inventory.go:22": "func (c *Collector) collectInventory(ctx context.Context, level componentsdk.Level, scope subscriptionScope, diagnostics *Diagnostics) *AzureInventory {",
@@ -17724,7 +17567,7 @@
     "internal/collector/azure_inventory.go:26": "",
     "internal/collector/azure_inventory.go:27": "\tresources, err := c.arm.Resources(ctx, scope.id)",
     "internal/collector/azure_inventory.go:28": "\tif err != nil {",
-    "internal/collector/azure_inventory.go:29": "\t\tdiagnostics.warnSubscription(\"Azure resource inventory\", scope.id, err)",
+    "internal/collector/azure_inventory.go:29": "\t\tdiagnostics.warnSubscription(\"Azure resource inventory\", scope.name, err)",
     "internal/collector/azure_inventory.go:30": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"inventory\"))",
     "internal/collector/azure_inventory.go:31": "\t\treturn nil",
     "internal/collector/azure_inventory.go:32": "\t}",
@@ -17800,7 +17643,7 @@
     "internal/collector/azure_logging.go:25": "\t\tout.SubscriptionDiagnosticSettingsEnabled = boolPtr(diagnosticSettingsEnabled(subscriptionSettings))",
     "internal/collector/azure_logging.go:26": "\t\tout.ActivityLogAdministrativeExported = boolPtr(activityLogAdministrativeExported(subscriptionSettings))",
     "internal/collector/azure_logging.go:27": "\t} else {",
-    "internal/collector/azure_logging.go:28": "\t\tdiagnostics.warnSubscription(\"Subscription diagnostic settings\", scope.id, err)",
+    "internal/collector/azure_logging.go:28": "\t\tdiagnostics.warnSubscription(\"Subscription diagnostic settings\", scope.name, err)",
     "internal/collector/azure_logging.go:29": "\t\tc.gaps.leaveOut(azurePath, failed(err),",
     "internal/collector/azure_logging.go:30": "\t\t\tscope.pointer(\"logging/subscription_diagnostic_settings_enabled\"),",
     "internal/collector/azure_logging.go:31": "\t\t\tscope.pointer(\"logging/activity_log_administrative_exported\"))",
@@ -17824,7 +17667,7 @@
     "internal/collector/azure_logging.go:49": "\t\tlogged, err := c.resourceLogged(ctx, resource)",
     "internal/collector/azure_logging.go:50": "\t\tif err != nil {",
     "internal/collector/azure_logging.go:51": "\t\t\tif unread == 0 {",
-    "internal/collector/azure_logging.go:52": "\t\t\t\tdiagnostics.warnSubscription(\"Resource diagnostic settings\", scope.id, err)",
+    "internal/collector/azure_logging.go:52": "\t\t\t\tdiagnostics.warnSubscription(\"Resource diagnostic settings\", scope.name, err)",
     "internal/collector/azure_logging.go:53": "\t\t\t\tfirstErr = err",
     "internal/collector/azure_logging.go:54": "\t\t\t}",
     "internal/collector/azure_logging.go:55": "\t\t\tunread++",
@@ -17913,7 +17756,7 @@
     "internal/collector/azure_network.go:17": "",
     "internal/collector/azure_network.go:18": "\tnsgs, err := c.arm.NetworkSecurityGroups(ctx, scope.id)",
     "internal/collector/azure_network.go:19": "\tif err != nil {",
-    "internal/collector/azure_network.go:20": "\t\tdiagnostics.warnSubscription(\"Network security groups\", scope.id, err)",
+    "internal/collector/azure_network.go:20": "\t\tdiagnostics.warnSubscription(\"Network security groups\", scope.name, err)",
     "internal/collector/azure_network.go:21": "\t\tc.gaps.leaveOut(azurePath, failed(err),",
     "internal/collector/azure_network.go:22": "\t\t\tscope.pointer(\"network/network_security_groups_count\"),",
     "internal/collector/azure_network.go:23": "\t\t\tscope.pointer(\"network/ssh_open_to_world_pct\"),",
@@ -17944,7 +17787,7 @@
     "internal/collector/azure_policy.go:10": "func (c *Collector) collectAzurePolicy(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) *AzurePolicy {",
     "internal/collector/azure_policy.go:11": "\tassignments, err := c.arm.PolicyAssignments(ctx, scope.id)",
     "internal/collector/azure_policy.go:12": "\tif err != nil {",
-    "internal/collector/azure_policy.go:13": "\t\tdiagnostics.warnSubscription(\"Azure Policy assignments\", scope.id, err)",
+    "internal/collector/azure_policy.go:13": "\t\tdiagnostics.warnSubscription(\"Azure Policy assignments\", scope.name, err)",
     "internal/collector/azure_policy.go:14": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"policy\"))",
     "internal/collector/azure_policy.go:15": "\t\treturn nil",
     "internal/collector/azure_policy.go:16": "\t}",
@@ -17956,7 +17799,7 @@
     "internal/collector/azure_policy.go:22": "",
     "internal/collector/azure_policy.go:23": "\tsummary, err := c.arm.PolicyStateSummary(ctx, scope.id)",
     "internal/collector/azure_policy.go:24": "\tif err != nil {",
-    "internal/collector/azure_policy.go:25": "\t\tdiagnostics.warnSubscription(\"Azure Policy compliance summary\", scope.id, err)",
+    "internal/collector/azure_policy.go:25": "\t\tdiagnostics.warnSubscription(\"Azure Policy compliance summary\", scope.name, err)",
     "internal/collector/azure_policy.go:26": "\t\tc.gaps.leaveOut(azurePath, failed(err), scope.pointer(\"policy/compliant_pct\"), scope.pointer(\"policy/noncompliant_resources_count\"))",
     "internal/collector/azure_policy.go:27": "\t\treturn out",
     "internal/collector/azure_policy.go:28": "\t}",
@@ -17969,7 +17812,7 @@
     "internal/collector/azure_rbac.go:30": "func (c *Collector) collectRBAC(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureRBAC, []microsoft.ARMRoleAssignment, *missing) {",
     "internal/collector/azure_rbac.go:31": "\tassignments, err := c.arm.RoleAssignments(ctx, scope.id)",
     "internal/collector/azure_rbac.go:32": "\tif err != nil {",
-    "internal/collector/azure_rbac.go:33": "\t\tdiagnostics.warnSubscription(\"RBAC role assignments\", scope.id, err)",
+    "internal/collector/azure_rbac.go:33": "\t\tdiagnostics.warnSubscription(\"RBAC role assignments\", scope.name, err)",
     "internal/collector/azure_rbac.go:34": "\t\twhy := failed(err)",
     "internal/collector/azure_rbac.go:35": "\t\tc.gaps.leaveOut(azurePath, why, scope.pointer(\"rbac\"))",
     "internal/collector/azure_rbac.go:36": "\t\treturn nil, nil, why",
@@ -18482,89 +18325,90 @@
     "internal/collector/entra_users.go:19": "\t\tSchemaVersion:    SchemaVersion,",
     "internal/collector/entra_users.go:20": "\t\tCollectedAt:      c.clock.Now().UTC().Format(\"2006-01-02T15:04:05Z\"),",
     "internal/collector/entra_users.go:21": "\t\tCollectedAtLevel: string(level),",
-    "internal/collector/entra_users.go:22": "\t\tTenantID:         org.ID,",
-    "internal/collector/entra_users.go:23": "\t\tOrgDomain:        org.PrimaryDomain(),",
-    "internal/collector/entra_users.go:26": "\tif usersMiss == nil {",
-    "internal/collector/entra_users.go:27": "\t\tartifact.Users.TotalCount = intPtr(summary.TotalCount)",
-    "internal/collector/entra_users.go:28": "\t\tartifact.Users.EnabledMemberUsersCount = intPtr(len(summary.EnabledMemberIDs))",
-    "internal/collector/entra_users.go:29": "\t\tartifact.Users.GuestPct = PercentInt(summary.GuestCount, summary.TotalCount)",
-    "internal/collector/entra_users.go:30": "\t\tartifact.Users.DisabledPct = PercentInt(summary.DisabledCount, summary.TotalCount)",
-    "internal/collector/entra_users.go:31": "\t\tartifact.Users.disabledCount = intPtr(summary.DisabledCount)",
-    "internal/collector/entra_users.go:36": "\tif why := firstMissing(usersMiss, registrationsMiss); why != nil {",
-    "internal/collector/entra_users.go:43": "\t\tartifact.Posture.DenominatorEnabledMemberUsers = intPtr(registrationMetrics.Listed)",
-    "internal/collector/entra_users.go:44": "\t\tartifact.Posture.MFACoverage = registrationMetrics.MFACoverage",
-    "internal/collector/entra_users.go:45": "\t\tartifact.Posture.MFAPhishingResistant = registrationMetrics.MFAPhishingResistant",
-    "internal/collector/entra_users.go:46": "\t\tartifact.Posture.MFAWeakMethodOnly = registrationMetrics.MFAWeakMethodOnly",
-    "internal/collector/entra_users.go:47": "\t\tartifact.Posture.SSPRRegistered = registrationMetrics.SSPRRegistered",
-    "internal/collector/entra_users.go:48": "\t\tartifact.Posture.mfaRegisteredCount = intPtr(registrationMetrics.Registered)",
-    "internal/collector/entra_users.go:49": "\t\tartifact.Posture.phishingResistantCount = intPtr(registrationMetrics.PhishingResistant)",
-    "internal/collector/entra_users.go:52": "\tif signInMiss == nil {",
-    "internal/collector/entra_users.go:56": "\t\tartifact.Users.InactivePct = enabled.pct()",
-    "internal/collector/entra_users.go:57": "\t\tartifact.Users.inactiveCount = intPtr(enabled.inactive)",
-    "internal/collector/entra_users.go:58": "\t\tartifact.Users.signInEnabledCount = intPtr(enabled.total)",
-    "internal/collector/entra_users.go:59": "\t\tartifact.Users.InactiveGuestPct = countInactive(signInUsers, func(user microsoft.User) bool {",
-    "internal/collector/entra_users.go:65": "\tartifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, usersMiss)",
-    "internal/collector/entra_users.go:66": "\tartifact.PrivilegedAccess = c.collectPrivilegedAccess(ctx, diagnostics, privilegedSources{",
-    "internal/collector/entra_users.go:67": "\t\tusers:             users,",
-    "internal/collector/entra_users.go:69": "\t\tsignInUsers:       signInUsers,",
-    "internal/collector/entra_users.go:70": "\t\tsignInMiss:        signInMiss,",
-    "internal/collector/entra_users.go:71": "\t\tregistrations:     registrations,",
-    "internal/collector/entra_users.go:72": "\t\tregistrationsMiss: registrationsMiss,",
-    "internal/collector/entra_users.go:74": "\tvar appCreds appCredentials",
-    "internal/collector/entra_users.go:75": "\tartifact.Apps, appCreds = c.collectApps(ctx, diagnostics)",
-    "internal/collector/entra_users.go:76": "\tif artifact.Apps != nil {",
-    "internal/collector/entra_users.go:77": "\t\tartifact.Posture.SSOCoverage = artifact.Apps.SSOCoveragePct",
-    "internal/collector/entra_users.go:80": "\tartifact.DirectoryActivity = c.collectDirectoryActivity(ctx, level, diagnostics)",
-    "internal/collector/entra_users.go:81": "\tartifact.SignInMonitoring = c.collectSignInMonitoring(ctx, level, diagnostics)",
-    "internal/collector/entra_users.go:85": "\t\tusersMiss:  usersMiss,",
-    "internal/collector/entra_users.go:88": "\t\tapps:       appCreds,",
-    "internal/collector/entra_users.go:128": "\tsummary := userSummary{TotalCount: len(users), EnabledMemberIDs: map[string]struct{}{}}",
-    "internal/collector/entra_users.go:129": "\tfor _, user := range users {",
-    "internal/collector/entra_users.go:130": "\t\tif user.UserType == \"Guest\" {",
-    "internal/collector/entra_users.go:131": "\t\t\tsummary.GuestCount++",
-    "internal/collector/entra_users.go:133": "\t\tif user.AccountEnabled != nil \u0026\u0026 !*user.AccountEnabled {",
-    "internal/collector/entra_users.go:134": "\t\t\tsummary.DisabledCount++",
-    "internal/collector/entra_users.go:136": "\t\tif user.ID != \"\" \u0026\u0026 user.EnabledMember() {",
-    "internal/collector/entra_users.go:137": "\t\t\tsummary.EnabledMemberIDs[user.ID] = struct{}{}",
-    "internal/collector/entra_users.go:158": "\tlisted := map[string]microsoft.UserRegistrationDetail{}",
-    "internal/collector/entra_users.go:159": "\tfor _, registration := range registrations {",
-    "internal/collector/entra_users.go:160": "\t\tif _, ok := enabledMemberIDs[registration.ID]; ok {",
-    "internal/collector/entra_users.go:161": "\t\t\tlisted[registration.ID] = registration",
-    "internal/collector/entra_users.go:164": "\tregistered := 0",
-    "internal/collector/entra_users.go:165": "\tphishingResistant := 0",
-    "internal/collector/entra_users.go:166": "\tweakOnly := 0",
-    "internal/collector/entra_users.go:167": "\tssprRegistered := 0",
-    "internal/collector/entra_users.go:168": "\tfor _, registration := range listed {",
-    "internal/collector/entra_users.go:169": "\t\tif registration.IsMFARegistered {",
-    "internal/collector/entra_users.go:170": "\t\t\tregistered++",
-    "internal/collector/entra_users.go:172": "\t\tif hasPhishingResistantMethod(registration.MethodsRegistered) {",
-    "internal/collector/entra_users.go:173": "\t\t\tphishingResistant++",
-    "internal/collector/entra_users.go:175": "\t\tif registration.IsMFARegistered \u0026\u0026 hasOnlyWeakMFAMethods(registration.MethodsRegistered) {",
-    "internal/collector/entra_users.go:176": "\t\t\tweakOnly++",
-    "internal/collector/entra_users.go:178": "\t\tif registration.IsSSPRRegistered {",
-    "internal/collector/entra_users.go:179": "\t\t\tssprRegistered++",
-    "internal/collector/entra_users.go:183": "\t\tListed:               len(listed),",
-    "internal/collector/entra_users.go:184": "\t\tRegistered:           registered,",
-    "internal/collector/entra_users.go:185": "\t\tPhishingResistant:    phishingResistant,",
-    "internal/collector/entra_users.go:186": "\t\tMFACoverage:          PercentInt(registered, len(listed)),",
-    "internal/collector/entra_users.go:187": "\t\tMFAPhishingResistant: PercentInt(phishingResistant, len(listed)),",
-    "internal/collector/entra_users.go:188": "\t\tMFAWeakMethodOnly:    PercentInt(weakOnly, len(listed)),",
-    "internal/collector/entra_users.go:189": "\t\tSSPRRegistered:       PercentInt(ssprRegistered, len(listed)),",
-    "internal/collector/entra_users.go:252": "func (i inactivity) pct() *int { return PercentInt(i.inactive, i.total) }",
-    "internal/collector/entra_users.go:254": "func countInactive(users []microsoft.User, include func(microsoft.User) bool, now time.Time) inactivity {",
-    "internal/collector/entra_users.go:255": "\tvar out inactivity",
-    "internal/collector/entra_users.go:256": "\tcutoff := inactiveCutoff(now)",
-    "internal/collector/entra_users.go:257": "\tfor _, user := range users {",
-    "internal/collector/entra_users.go:258": "\t\tif !include(user) {",
-    "internal/collector/entra_users.go:259": "\t\t\tcontinue",
-    "internal/collector/entra_users.go:260": "\t\t}",
-    "internal/collector/entra_users.go:261": "\t\tout.total++",
-    "internal/collector/entra_users.go:262": "\t\tif !signedInSince(user, cutoff) {",
-    "internal/collector/entra_users.go:263": "\t\t\tout.inactive++",
-    "internal/collector/entra_users.go:264": "\t\t}",
-    "internal/collector/entra_users.go:265": "\t}",
-    "internal/collector/entra_users.go:266": "\treturn out",
-    "internal/collector/entra_users.go:267": "}",
+    "internal/collector/entra_users.go:22": "\t\tOrgDomain:        org.PrimaryDomain(),",
+    "internal/collector/entra_users.go:24": "\tif level.AtLeast(componentsdk.LevelAudit) {",
+    "internal/collector/entra_users.go:25": "\t\tartifact.TenantID = org.ID",
+    "internal/collector/entra_users.go:28": "\tif usersMiss == nil {",
+    "internal/collector/entra_users.go:29": "\t\tartifact.Users.TotalCount = intPtr(summary.TotalCount)",
+    "internal/collector/entra_users.go:30": "\t\tartifact.Users.EnabledMemberUsersCount = intPtr(len(summary.EnabledMemberIDs))",
+    "internal/collector/entra_users.go:31": "\t\tartifact.Users.GuestPct = PercentInt(summary.GuestCount, summary.TotalCount)",
+    "internal/collector/entra_users.go:32": "\t\tartifact.Users.DisabledPct = PercentInt(summary.DisabledCount, summary.TotalCount)",
+    "internal/collector/entra_users.go:33": "\t\tartifact.Users.disabledCount = intPtr(summary.DisabledCount)",
+    "internal/collector/entra_users.go:38": "\tif why := firstMissing(usersMiss, registrationsMiss); why != nil {",
+    "internal/collector/entra_users.go:45": "\t\tartifact.Posture.DenominatorEnabledMemberUsers = intPtr(registrationMetrics.Listed)",
+    "internal/collector/entra_users.go:46": "\t\tartifact.Posture.MFACoverage = registrationMetrics.MFACoverage",
+    "internal/collector/entra_users.go:47": "\t\tartifact.Posture.MFAPhishingResistant = registrationMetrics.MFAPhishingResistant",
+    "internal/collector/entra_users.go:48": "\t\tartifact.Posture.MFAWeakMethodOnly = registrationMetrics.MFAWeakMethodOnly",
+    "internal/collector/entra_users.go:49": "\t\tartifact.Posture.SSPRRegistered = registrationMetrics.SSPRRegistered",
+    "internal/collector/entra_users.go:50": "\t\tartifact.Posture.mfaRegisteredCount = intPtr(registrationMetrics.Registered)",
+    "internal/collector/entra_users.go:51": "\t\tartifact.Posture.phishingResistantCount = intPtr(registrationMetrics.PhishingResistant)",
+    "internal/collector/entra_users.go:54": "\tif signInMiss == nil {",
+    "internal/collector/entra_users.go:58": "\t\tartifact.Users.InactivePct = enabled.pct()",
+    "internal/collector/entra_users.go:59": "\t\tartifact.Users.inactiveCount = intPtr(enabled.inactive)",
+    "internal/collector/entra_users.go:60": "\t\tartifact.Users.signInEnabledCount = intPtr(enabled.total)",
+    "internal/collector/entra_users.go:61": "\t\tartifact.Users.InactiveGuestPct = countInactive(signInUsers, func(user microsoft.User) bool {",
+    "internal/collector/entra_users.go:67": "\tartifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, usersMiss)",
+    "internal/collector/entra_users.go:68": "\tartifact.PrivilegedAccess = c.collectPrivilegedAccess(ctx, diagnostics, privilegedSources{",
+    "internal/collector/entra_users.go:69": "\t\tusers:             users,",
+    "internal/collector/entra_users.go:71": "\t\tsignInUsers:       signInUsers,",
+    "internal/collector/entra_users.go:72": "\t\tsignInMiss:        signInMiss,",
+    "internal/collector/entra_users.go:73": "\t\tregistrations:     registrations,",
+    "internal/collector/entra_users.go:74": "\t\tregistrationsMiss: registrationsMiss,",
+    "internal/collector/entra_users.go:76": "\tvar appCreds appCredentials",
+    "internal/collector/entra_users.go:77": "\tartifact.Apps, appCreds = c.collectApps(ctx, diagnostics)",
+    "internal/collector/entra_users.go:78": "\tif artifact.Apps != nil {",
+    "internal/collector/entra_users.go:79": "\t\tartifact.Posture.SSOCoverage = artifact.Apps.SSOCoveragePct",
+    "internal/collector/entra_users.go:82": "\tartifact.DirectoryActivity = c.collectDirectoryActivity(ctx, level, diagnostics)",
+    "internal/collector/entra_users.go:83": "\tartifact.SignInMonitoring = c.collectSignInMonitoring(ctx, level, diagnostics)",
+    "internal/collector/entra_users.go:87": "\t\tusersMiss:  usersMiss,",
+    "internal/collector/entra_users.go:90": "\t\tapps:       appCreds,",
+    "internal/collector/entra_users.go:130": "\tsummary := userSummary{TotalCount: len(users), EnabledMemberIDs: map[string]struct{}{}}",
+    "internal/collector/entra_users.go:131": "\tfor _, user := range users {",
+    "internal/collector/entra_users.go:132": "\t\tif user.UserType == \"Guest\" {",
+    "internal/collector/entra_users.go:133": "\t\t\tsummary.GuestCount++",
+    "internal/collector/entra_users.go:135": "\t\tif user.AccountEnabled != nil \u0026\u0026 !*user.AccountEnabled {",
+    "internal/collector/entra_users.go:136": "\t\t\tsummary.DisabledCount++",
+    "internal/collector/entra_users.go:138": "\t\tif user.ID != \"\" \u0026\u0026 user.EnabledMember() {",
+    "internal/collector/entra_users.go:139": "\t\t\tsummary.EnabledMemberIDs[user.ID] = struct{}{}",
+    "internal/collector/entra_users.go:160": "\tlisted := map[string]microsoft.UserRegistrationDetail{}",
+    "internal/collector/entra_users.go:161": "\tfor _, registration := range registrations {",
+    "internal/collector/entra_users.go:162": "\t\tif _, ok := enabledMemberIDs[registration.ID]; ok {",
+    "internal/collector/entra_users.go:163": "\t\t\tlisted[registration.ID] = registration",
+    "internal/collector/entra_users.go:166": "\tregistered := 0",
+    "internal/collector/entra_users.go:167": "\tphishingResistant := 0",
+    "internal/collector/entra_users.go:168": "\tweakOnly := 0",
+    "internal/collector/entra_users.go:169": "\tssprRegistered := 0",
+    "internal/collector/entra_users.go:170": "\tfor _, registration := range listed {",
+    "internal/collector/entra_users.go:171": "\t\tif registration.IsMFARegistered {",
+    "internal/collector/entra_users.go:172": "\t\t\tregistered++",
+    "internal/collector/entra_users.go:174": "\t\tif hasPhishingResistantMethod(registration.MethodsRegistered) {",
+    "internal/collector/entra_users.go:175": "\t\t\tphishingResistant++",
+    "internal/collector/entra_users.go:177": "\t\tif registration.IsMFARegistered \u0026\u0026 hasOnlyWeakMFAMethods(registration.MethodsRegistered) {",
+    "internal/collector/entra_users.go:178": "\t\t\tweakOnly++",
+    "internal/collector/entra_users.go:180": "\t\tif registration.IsSSPRRegistered {",
+    "internal/collector/entra_users.go:181": "\t\t\tssprRegistered++",
+    "internal/collector/entra_users.go:185": "\t\tListed:               len(listed),",
+    "internal/collector/entra_users.go:186": "\t\tRegistered:           registered,",
+    "internal/collector/entra_users.go:187": "\t\tPhishingResistant:    phishingResistant,",
+    "internal/collector/entra_users.go:188": "\t\tMFACoverage:          PercentInt(registered, len(listed)),",
+    "internal/collector/entra_users.go:189": "\t\tMFAPhishingResistant: PercentInt(phishingResistant, len(listed)),",
+    "internal/collector/entra_users.go:190": "\t\tMFAWeakMethodOnly:    PercentInt(weakOnly, len(listed)),",
+    "internal/collector/entra_users.go:191": "\t\tSSPRRegistered:       PercentInt(ssprRegistered, len(listed)),",
+    "internal/collector/entra_users.go:254": "func (i inactivity) pct() *int { return PercentInt(i.inactive, i.total) }",
+    "internal/collector/entra_users.go:256": "func countInactive(users []microsoft.User, include func(microsoft.User) bool, now time.Time) inactivity {",
+    "internal/collector/entra_users.go:257": "\tvar out inactivity",
+    "internal/collector/entra_users.go:258": "\tcutoff := inactiveCutoff(now)",
+    "internal/collector/entra_users.go:259": "\tfor _, user := range users {",
+    "internal/collector/entra_users.go:260": "\t\tif !include(user) {",
+    "internal/collector/entra_users.go:261": "\t\t\tcontinue",
+    "internal/collector/entra_users.go:262": "\t\t}",
+    "internal/collector/entra_users.go:263": "\t\tout.total++",
+    "internal/collector/entra_users.go:264": "\t\tif !signedInSince(user, cutoff) {",
+    "internal/collector/entra_users.go:265": "\t\t\tout.inactive++",
+    "internal/collector/entra_users.go:266": "\t\t}",
+    "internal/collector/entra_users.go:267": "\t}",
+    "internal/collector/entra_users.go:268": "\treturn out",
+    "internal/collector/entra_users.go:269": "}",
     "internal/collector/gaps.go:41": "func failed(err error) *missing { return \u0026missing{err: err} }",
     "internal/collector/gaps.go:55": "func firstMissing(reasons ...*missing) *missing {",
     "internal/collector/gaps.go:56": "\tfor _, reason := range reasons {",

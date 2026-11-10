@@ -54,12 +54,13 @@ func (d *Diagnostics) warnNotCollected(surface string, err error) {
 
 // warnSubscription adds the "unavailable" warning older readers know for a
 // 403 or 404 from an Azure surface, and names the code for anything else.
-func (d *Diagnostics) warnSubscription(surface, subscriptionID string, err error) {
+// subscription is the subscription's name in diagnostics text.
+func (d *Diagnostics) warnSubscription(surface, subscription string, err error) {
 	if surfaceUnavailable(err) {
-		d.Warn(surface + " unavailable for subscription " + subscriptionID)
+		d.Warn(surface + " unavailable for subscription " + subscription)
 		return
 	}
-	d.warnNotCollected(surface+" for subscription "+subscriptionID, err)
+	d.warnNotCollected(surface+" for subscription "+subscription, err)
 }
 
 func apiStatus(err error) int {

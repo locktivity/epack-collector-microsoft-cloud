@@ -59,7 +59,21 @@ func Run(ctx componentsdk.CollectorContext) error {
 	if err != nil {
 		return err
 	}
+	declareTargets(config.Recorder)
 	return ctx.Emit(result.Artifacts())
+}
+
+// declareTargets declares the tenant the run signed in to, which the Entra
+// artifact describes, named by its ID and labelled by its default domain,
+// and the subscriptions it was configured for. Every configured subscription
+// keeps its entry, so one the collector can't read leaves the subscriptions
+// incomplete.
+func declareTargets(rec *componentsdk.Recorder) {
+	rec.Targets(componentsdk.TargetTenant, componentsdk.Location{Path: entraPath, Pointer: ""}, "/tenant_id").
+		ChosenBy(componentsdk.ChosenByConfig, "tenant_id").
+		Label("/org_domain")
+	rec.Targets(componentsdk.TargetSubscription, componentsdk.Location{Path: azurePath, Pointer: "/accounts"}, "/account_id").
+		ChosenBy(componentsdk.ChosenByConfig, "subscription_ids")
 }
 
 // runClock reads the run's clock, which tests pin.
