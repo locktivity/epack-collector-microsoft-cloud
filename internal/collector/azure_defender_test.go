@@ -45,11 +45,11 @@ func TestSubscriptionProbe(t *testing.T) {
 		t.Fatalf("expected the readable subscriptions to be collected, got %#v", result.Azure.Accounts[1])
 	}
 	unreadable := result.Azure.Accounts[2]
-	if unreadable.AccountID != "cccccccc-1111-2222-3333-dddddddddddd" || unreadable.Defender != nil || unreadable.Storage != nil || unreadable.Logging != nil {
-		t.Fatalf("expected the unreadable subscription to carry only its ID, got %#v", unreadable)
+	if unreadable.AccountID != "" || unreadable.Defender != nil || unreadable.Storage != nil || unreadable.Logging != nil {
+		t.Fatalf("expected the unreadable subscription to carry nothing at trust, got %#v", unreadable)
 	}
-	if len(result.Azure.Diagnostics.SubscriptionErrors) != 1 {
-		t.Fatalf("expected one subscription error, got %#v", result.Azure.Diagnostics.SubscriptionErrors)
+	if errs := result.Azure.Diagnostics.SubscriptionErrors; len(errs) != 1 || errs[0] != "subscription 3: status=403" {
+		t.Fatalf("expected one subscription error naming the third subscription, got %#v", errs)
 	}
 	assertGap(t, rec, azurePath, "/accounts/2/storage", componentsdk.CodePermissionDenied)
 	assertGap(t, rec, cloudPosturePath, "/accounts/2/storage", componentsdk.CodePermissionDenied)
@@ -78,8 +78,8 @@ func TestUnreadableSubscriptionKeepsItsAccountEntry(t *testing.T) {
 	if result.Azure == nil || len(result.Azure.Accounts) != 1 || result.Azure.Accounts[0].Defender != nil {
 		t.Fatalf("expected one account carrying only its ID, got %#v", result.Azure)
 	}
-	if len(result.Azure.Diagnostics.SubscriptionErrors) != 1 {
-		t.Fatalf("expected Azure subscription error, got %#v", result.Azure.Diagnostics.SubscriptionErrors)
+	if errs := result.Azure.Diagnostics.SubscriptionErrors; len(errs) != 1 || errs[0] != "subscription 1: status=404 code=SubscriptionNotFound" {
+		t.Fatalf("expected Azure subscription error, got %#v", errs)
 	}
 	if len(result.Entra.Diagnostics.SubscriptionErrors) != 1 {
 		t.Fatalf("expected final diagnostics on Entra artifact, got %#v", result.Entra.Diagnostics.SubscriptionErrors)
@@ -87,6 +87,34 @@ func TestUnreadableSubscriptionKeepsItsAccountEntry(t *testing.T) {
 	gap := assertGap(t, rec, azurePath, "/accounts/0/defender", componentsdk.CodeConfigInvalid)
 	if gap.VendorCode != "SubscriptionNotFound" {
 		t.Fatalf("expected the ARM error code on the gap, got %#v", gap)
+	}
+}
+
+// Below the audit level a subscription error gives the subscription's place
+// and the HTTP status and Azure's error code, or the SDK's code when Azure
+// sent no answer, and none of Azure's message. From the audit level it gives
+// the ID and the error's text.
+func TestSubscriptionErrorText(t *testing.T) {
+	scope := subscriptionScope{index: 1, id: "bbbbbbbb-1111-2222-3333-cccccccccccc", name: "2"}
+	refused := &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/subscriptions/" + scope.id, Code: "AuthorizationFailed",
+		Message: "The client '11111111-2222-3333-4444-555555555555' cannot read scope '/subscriptions/" + scope.id + "/resourceGroups/prod-rg'."}
+	cases := []struct {
+		name  string
+		level componentsdk.Level
+		err   error
+		want  string
+	}{
+		{"refused", componentsdk.LevelTrust, refused, "subscription 2: status=403 code=AuthorizationFailed"},
+		{"no code", componentsdk.LevelTrust, &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden}, "subscription 2: status=403"},
+		{"no answer", componentsdk.LevelTrust, &microsoft.RequestError{Service: "arm", Route: "/subscriptions/" + scope.id, Err: &net.OpError{Op: "read", Net: "tcp", Err: syscall.ECONNRESET}}, "subscription 2: failed with vendor_error"},
+		{"audit", componentsdk.LevelAudit, refused, scope.id + ": " + refused.Error()},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := subscriptionError(tc.level, scope, tc.err); got != tc.want {
+				t.Fatalf("subscriptionError = %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 
@@ -128,8 +156,8 @@ func TestDefenderExhaustedRetriesReportNotCollected(t *testing.T) {
 		t.Fatalf("expected the rest of the subscription to be collected, got %#v", account)
 	}
 	for _, expected := range []string{
-		"Defender secure score request failed after retries (no response) for subscription " + subscriptionID + ", defender.secure_score_pct reported as not_collected",
-		"Defender assessments request failed after retries (status 500) for subscription " + subscriptionID + ", defender.unpatched_pct reported as not_collected",
+		"Defender secure score request failed after retries (no response) for subscription 1, defender.secure_score_pct reported as not_collected",
+		"Defender assessments request failed after retries (status 500) for subscription 1, defender.unpatched_pct reported as not_collected",
 	} {
 		if !containsString(artifact.Diagnostics.Warnings, expected) {
 			t.Fatalf("expected warning %q, got %#v", expected, artifact.Diagnostics.Warnings)

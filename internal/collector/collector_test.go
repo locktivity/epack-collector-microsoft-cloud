@@ -800,13 +800,32 @@ func TestCollectorScaffold(t *testing.T) {
 	}
 }
 
+// The tenant ID is written from the audit level. The domain the tenant
+// publishes is written at every level.
 func TestTenantIdentity(t *testing.T) {
-	artifact := collectTestArtifact(t, testConfig())
-	if artifact.TenantID != "72f988bf-86f1-41af-91ab-2d7cd011db47" {
-		t.Fatalf("unexpected tenant_id: %s", artifact.TenantID)
-	}
-	if artifact.OrgDomain != "contoso.com" {
-		t.Fatalf("unexpected org_domain: %s", artifact.OrgDomain)
+	for _, tc := range []struct {
+		level  componentsdk.Level
+		tenant string
+	}{
+		{componentsdk.LevelTrust, ""},
+		{componentsdk.LevelAudit, "72f988bf-86f1-41af-91ab-2d7cd011db47"},
+	} {
+		t.Run(string(tc.level), func(t *testing.T) {
+			c, err := New(testConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+			result, err := c.Collect(context.Background(), tc.level)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.Entra.TenantID != tc.tenant {
+				t.Fatalf("tenant_id = %q, want %q", result.Entra.TenantID, tc.tenant)
+			}
+			if result.Entra.OrgDomain != "contoso.com" {
+				t.Fatalf("unexpected org_domain: %s", result.Entra.OrgDomain)
+			}
+		})
 	}
 }
 

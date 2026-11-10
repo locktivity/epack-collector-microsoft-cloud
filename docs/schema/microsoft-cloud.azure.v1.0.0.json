@@ -22,7 +22,7 @@
         "additionalProperties": false,
         "required": ["account_id"],
         "properties": {
-          "account_id": { "type": "string", "x-epack-label": "Subscription ID", "x-epack-summary": "ID of the Azure subscription the entry describes." },
+          "account_id": { "type": "string", "x-epack-level": "audit", "x-epack-label": "Subscription ID", "x-epack-summary": "ID of the Azure subscription the entry describes." },
           "defender": {
             "type": "object",
             "additionalProperties": false,
@@ -228,8 +228,8 @@
       "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
       "properties": {
         "tenant_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Tenant errors", "x-epack-summary": "Errors from reading tenant-wide Entra data." },
-        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. Each one starts with the subscription ID." },
-        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing." },
+        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. From the audit level each one starts with the subscription ID. Below it, each one starts with the subscription's place in subscription_ids, such as subscription 2, and gives only the HTTP status and Azure's error code." },
+        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing. A warning about one subscription names it the way subscription_errors does." },
         "truncation": {
           "type": "object",
           "additionalProperties": {

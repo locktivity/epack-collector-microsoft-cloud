@@ -30,7 +30,7 @@ var readOnlyRoleDefinitionIDs = map[string]struct{}{
 func (c *Collector) collectRBAC(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureRBAC, []microsoft.ARMRoleAssignment, *missing) {
 	assignments, err := c.arm.RoleAssignments(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("RBAC role assignments", scope.id, err)
+		diagnostics.warnSubscription("RBAC role assignments", scope.name, err)
 		why := failed(err)
 		c.gaps.leaveOut(azurePath, why, scope.pointer("rbac"))
 		return nil, nil, why

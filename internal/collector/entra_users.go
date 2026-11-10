@@ -19,8 +19,10 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		SchemaVersion:    SchemaVersion,
 		CollectedAt:      c.clock.Now().UTC().Format("2006-01-02T15:04:05Z"),
 		CollectedAtLevel: string(level),
-		TenantID:         org.ID,
 		OrgDomain:        org.PrimaryDomain(),
+	}
+	if level.AtLeast(componentsdk.LevelAudit) {
+		artifact.TenantID = org.ID
 	}
 
 	if usersMiss == nil {

@@ -16,7 +16,7 @@ When normalized identity posture fields are available, the collector also emits:
 - `artifacts/microsoft-cloud.idp-posture.json`
 - Schema: `evidencepack/idp-posture@v1`
 
-Every run also emits the Azure artifacts, with one entry in `accounts` for each subscription in `subscription_ids`, in the configured order. A subscription the collector cannot read keeps its entry with only `account_id`.
+Every run also emits the Azure artifacts, with one entry in `accounts` for each subscription in `subscription_ids`, in the configured order. A subscription the collector cannot read keeps its entry with only `account_id`, which is written from the `audit` level, so at `trust` the entry is empty.
 
 - `artifacts/microsoft-cloud.azure.json`
 - Schema: `microsoft-cloud/azure@v1`
@@ -47,11 +47,13 @@ The optional `level` config controls collection depth. Levels are cumulative.
 
 | Level | Adds | Does not emit |
 |-------|------|---------------|
-| `trust` | Tenant identity, MFA registration coverage, Conditional Access posture, security defaults, privileged role counts, app credential hygiene, identity secure score, Azure RBAC, Defender, Policy, storage, key vault, SQL, compute, backup, network, and logging posture. | Usernames, emails, app names, resource names, sign-in rows, raw policy bodies. |
-| `audit` | Trust plus Azure resource inventory aggregates and ownership tag coverage. | Raw resource names, raw tag values, resource IDs. |
+| `trust` | Tenant domain, MFA registration coverage, Conditional Access posture, security defaults, privileged role counts, app credential hygiene, identity secure score, Azure RBAC, Defender, Policy, storage, key vault, SQL, compute, backup, network, and logging posture. | Tenant and subscription IDs, usernames, emails, app names, resource names, sign-in rows, raw policy bodies. |
+| `audit` | Trust plus the tenant and subscription IDs, Azure resource inventory aggregates, and ownership tag coverage. | Raw resource names, raw tag values, resource IDs. |
 | `internal` | Audit plus aggregate Entra directory activity and sign-in monitoring counts for the last 7 days. | Raw audit events, raw sign-in rows, usernames, emails, IP addresses, device details. |
 
 If `level` is omitted, the collector runs at `trust`.
+
+The detailed artifacts write `tenant_id` and each subscription's `account_id` from the `audit` level. At `trust`, `subscription_errors` and the warnings name a subscription by its place in `subscription_ids`, such as `subscription 2`. A subscription error then gives only the HTTP status and Azure's error code, and none of Azure's message, which can name the subscription, the tenant, the app, and resource groups.
 
 The normalized artifacts write the counts behind their percentages, the privileged and Global Administrator counts, each subscription's `account_id`, and the access posture's `scopes` from the `audit` level. At `trust`, flags such as `users_present` and `privileged_users_present` say whether each population has any members. A percentage over an empty population is `null`.
 

@@ -4,7 +4,6 @@
   "collected_at_level": "trust",
   "accounts": [
     {
-      "account_id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
       "defender": {
         "secure_score_pct": 70,
         "unpatched_pct": 50

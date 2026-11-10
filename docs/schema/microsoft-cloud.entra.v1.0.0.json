@@ -18,7 +18,7 @@
     "schema_version": { "type": "string", "const": "1.0.0", "x-epack-label": "Schema version", "x-epack-summary": "Version of this artifact's schema." },
     "collected_at": { "type": "string", "format": "date-time", "x-epack-label": "Collected at", "x-epack-summary": "When the collection ran." },
     "collected_at_level": { "type": "string", "enum": ["trust", "audit", "internal"], "x-epack-label": "Collection level", "x-epack-summary": "The collection level the run used." },
-    "tenant_id": { "type": "string", "x-epack-label": "Tenant ID", "x-epack-summary": "ID of the Microsoft Entra tenant the values come from." },
+    "tenant_id": { "type": "string", "x-epack-level": "audit", "x-epack-label": "Tenant ID", "x-epack-summary": "ID of the Microsoft Entra tenant the values come from." },
     "org_domain": { "type": "string", "x-epack-label": "Organization domain", "x-epack-summary": "The tenant's default verified domain." },
     "posture": {
       "type": "object",
@@ -259,8 +259,8 @@
       "required": ["tenant_errors", "subscription_errors", "warnings", "truncation", "license"],
       "properties": {
         "tenant_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Tenant errors", "x-epack-summary": "Errors from reading tenant-wide Entra data." },
-        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. Each one starts with the subscription ID." },
-        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing." },
+        "subscription_errors": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Subscription errors", "x-epack-summary": "Errors from reading a subscription. From the audit level each one starts with the subscription ID. Below it, each one starts with the subscription's place in subscription_ids, such as subscription 2, and gives only the HTTP status and Azure's error code." },
+        "warnings": { "type": "array", "items": { "type": "string" }, "x-epack-label": "Warnings", "x-epack-summary": "Warnings from the run, such as a metric left out because a permission or license is missing. A warning about one subscription names it the way subscription_errors does." },
         "truncation": {
           "type": "object",
           "additionalProperties": {

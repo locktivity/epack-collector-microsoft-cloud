@@ -191,11 +191,25 @@ If a tenant lacks a required Entra license, the collector still emits the availa
 
 If the app registration can read Graph but lacks Azure Reader on a listed subscription, the collector emits Entra artifacts and records a subscription error. Assign Reader to the app service principal at the subscription scope and rerun.
 
+At `audit` and `internal`, the error starts with the subscription ID:
+
 ```json
 {
   "diagnostics": {
     "subscription_errors": [
       "22222222-2222-2222-2222-222222222222: arm request /subscriptions/[subscription_id] failed: status=403 code=AuthorizationFailed message=denied"
+    ]
+  }
+}
+```
+
+At `trust`, it starts with the subscription's place in `subscription_ids` and gives only the HTTP status and Azure's error code:
+
+```json
+{
+  "diagnostics": {
+    "subscription_errors": [
+      "subscription 1: status=403 code=AuthorizationFailed"
     ]
   }
 }

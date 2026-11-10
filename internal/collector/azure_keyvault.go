@@ -9,7 +9,7 @@ import (
 func (c *Collector) collectKeyVault(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureKeyVault, []microsoft.KeyVault, *missing) {
 	vaults, err := c.arm.KeyVaults(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Key Vault inventory", scope.id, err)
+		diagnostics.warnSubscription("Key Vault inventory", scope.name, err)
 		why := failed(err)
 		c.gaps.leaveOut(azurePath, why, scope.pointer("keyvault"))
 		return nil, nil, why

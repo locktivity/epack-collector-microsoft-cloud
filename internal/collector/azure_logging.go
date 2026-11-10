@@ -25,7 +25,7 @@ func (c *Collector) collectLogging(ctx context.Context, scope subscriptionScope,
 		out.SubscriptionDiagnosticSettingsEnabled = boolPtr(diagnosticSettingsEnabled(subscriptionSettings))
 		out.ActivityLogAdministrativeExported = boolPtr(activityLogAdministrativeExported(subscriptionSettings))
 	} else {
-		diagnostics.warnSubscription("Subscription diagnostic settings", scope.id, err)
+		diagnostics.warnSubscription("Subscription diagnostic settings", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err),
 			scope.pointer("logging/subscription_diagnostic_settings_enabled"),
 			scope.pointer("logging/activity_log_administrative_exported"))
@@ -49,7 +49,7 @@ func (c *Collector) collectLogging(ctx context.Context, scope subscriptionScope,
 		logged, err := c.resourceLogged(ctx, resource)
 		if err != nil {
 			if unread == 0 {
-				diagnostics.warnSubscription("Resource diagnostic settings", scope.id, err)
+				diagnostics.warnSubscription("Resource diagnostic settings", scope.name, err)
 				firstErr = err
 			}
 			unread++

@@ -10,7 +10,7 @@ import (
 func (c *Collector) collectStorage(ctx context.Context, scope subscriptionScope, diagnostics *Diagnostics) (*AzureStorage, []microsoft.StorageAccount, *missing) {
 	accounts, err := c.arm.StorageAccounts(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Storage accounts", scope.id, err)
+		diagnostics.warnSubscription("Storage accounts", scope.name, err)
 		why := failed(err)
 		c.gaps.leaveOut(azurePath, why, scope.pointer("storage"))
 		return nil, nil, why

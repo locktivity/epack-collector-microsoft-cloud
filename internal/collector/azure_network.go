@@ -17,7 +17,7 @@ func (c *Collector) collectNetwork(ctx context.Context, scope subscriptionScope,
 
 	nsgs, err := c.arm.NetworkSecurityGroups(ctx, scope.id)
 	if err != nil {
-		diagnostics.warnSubscription("Network security groups", scope.id, err)
+		diagnostics.warnSubscription("Network security groups", scope.name, err)
 		c.gaps.leaveOut(azurePath, failed(err),
 			scope.pointer("network/network_security_groups_count"),
 			scope.pointer("network/ssh_open_to_world_pct"),
