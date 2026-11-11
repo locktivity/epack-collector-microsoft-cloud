@@ -21,6 +21,36 @@ func TestNetworkExposure(t *testing.T) {
 	assertPtrInt(t, "RDP open to world", network.RDPOpenToWorldPct, 0)
 }
 
+// Azure applies a group's rules in priority order, lowest first, and the
+// first rule that matches decides. A deny rule only closes the port when its
+// source is any address.
+func TestNetworkExposureAppliesRulesInPriorityOrder(t *testing.T) {
+	rule := func(access, source string, priority int) microsoft.SecurityRule {
+		return microsoft.SecurityRule{Properties: microsoft.SecurityRuleProperties{
+			Priority: priority, Access: access, Direction: "Inbound", Protocol: "Tcp",
+			SourceAddressPrefix: source, DestinationPortRange: "22",
+		}}
+	}
+	cases := []struct {
+		name  string
+		rules []microsoft.SecurityRule
+		want  bool
+	}{
+		{"allow from anywhere", []microsoft.SecurityRule{rule("Allow", "*", 200)}, true},
+		{"deny from anywhere first", []microsoft.SecurityRule{rule("Allow", "*", 200), rule("Deny", "Internet", 100)}, false},
+		{"deny from anywhere after", []microsoft.SecurityRule{rule("Allow", "Internet", 100), rule("Deny", "*", 200)}, true},
+		{"deny from one network first", []microsoft.SecurityRule{rule("Allow", "*", 200), rule("Deny", "203.0.113.0/24", 100)}, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			nsg := microsoft.NetworkSecurityGroup{Properties: microsoft.NetworkSecurityGroupProperties{SecurityRules: tc.rules}}
+			if got := nsgOpenToWorld(nsg, 22); got != tc.want {
+				t.Fatalf("open to SSH = %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
 func TestNetworkExposureZeroDenominator(t *testing.T) {
 	arm := fakeARMClient()
 	arm.networkSecurityGroups["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = nil

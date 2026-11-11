@@ -92,8 +92,11 @@ func (c *ARMClient) DefenderAssessments(ctx context.Context, subscriptionID stri
 	return getARMPaged[SecurityAssessment](ctx, c, "arm.defender.assessments.list", route)
 }
 
+// RoleAssignments lists the role assignments that apply to a subscription:
+// those at the subscription, above it, and on its resource groups and
+// resources. Each one's scope says where it is.
 func (c *ARMClient) RoleAssignments(ctx context.Context, subscriptionID string) ([]ARMRoleAssignment, error) {
-	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&$filter=atScope%28%29"
+	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01"
 	return getARMPaged[ARMRoleAssignment](ctx, c, "arm.role_assignments.list", route)
 }
 
@@ -228,10 +231,12 @@ func armOperation(name string) componentsdk.Operation {
 }
 
 // getARMPaged fails the whole list when any page fails, so a partial list
-// never reads as a complete one.
+// never reads as a complete one. A next link to a page already read fails it
+// too, since following it would never end.
 func getARMPaged[T any](ctx context.Context, c *ARMClient, operation, route string) ([]T, error) {
 	op := armOperation(operation)
 	out := []T{}
+	read := map[string]struct{}{}
 	next := route
 	for next != "" {
 		var page struct {
@@ -245,6 +250,10 @@ func getARMPaged[T any](ctx context.Context, c *ARMClient, operation, route stri
 			return nil, invalidResponse("arm", next, "has no value array")
 		}
 		out = append(out, *page.Value...)
+		read[next] = struct{}{}
+		if _, ok := read[page.NextLink]; ok {
+			return nil, invalidResponse("arm", next, "links to a page already read")
+		}
 		next = page.NextLink
 	}
 	return out, nil

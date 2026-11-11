@@ -36,17 +36,20 @@ func (p Percentage) IsZero() bool { return !p.Read }
 // MarshalJSON writes the value, or null.
 func (p Percentage) MarshalJSON() ([]byte, error) { return json.Marshal(p.Value) }
 
-// IDPPostureUserSecurity counts the tenant's enabled member users. The MFA
-// percentages cover the members the registration report lists, and the
-// inactive percentage covers every enabled user, guests included. So the
-// artifact has no count beside them. Entra has no data on locked-out users or
-// password strength, and those values are left out with an unsupported gap.
+// IDPPostureUserSecurity counts the tenant's enabled member users, guests
+// left out. The MFA percentages cover the members the registration report
+// lists, so the MFA counts are written only when it lists every enabled
+// member. Entra has no data on locked-out users or password strength, and
+// those values are left out with an unsupported gap.
 type IDPPostureUserSecurity struct {
-	UsersPresent            *bool      `json:"users_present,omitempty"`
-	UserCount               *int       `json:"user_count,omitempty"`
-	MFACoveragePct          Percentage `json:"mfa_coverage_pct,omitzero"`
-	MFAPhishingResistantPct Percentage `json:"mfa_phishing_resistant_pct,omitzero"`
-	InactivePct             Percentage `json:"inactive_pct,omitzero"`
+	UsersPresent               *bool      `json:"users_present,omitempty"`
+	UserCount                  *int       `json:"user_count,omitempty"`
+	MFAUserCount               *int       `json:"mfa_user_count,omitempty"`
+	PhishingResistantUserCount *int       `json:"phishing_resistant_user_count,omitempty"`
+	MFACoveragePct             Percentage `json:"mfa_coverage_pct,omitzero"`
+	MFAPhishingResistantPct    Percentage `json:"mfa_phishing_resistant_pct,omitzero"`
+	InactiveUserCount          *int       `json:"inactive_user_count,omitempty"`
+	InactivePct                Percentage `json:"inactive_pct,omitzero"`
 }
 
 // IDPPostureAppSecurity counts the tenant's enabled enterprise apps. The
@@ -69,6 +72,8 @@ type IDPPosturePrivilegedAccess struct {
 	PrivilegedPhishingResistantUserCount *int       `json:"privileged_phishing_resistant_user_count,omitempty"`
 	PrivilegedMFACoveragePct             Percentage `json:"privileged_mfa_coverage_pct,omitzero"`
 	PrivilegedPhishingResistantPct       Percentage `json:"privileged_phishing_resistant_pct,omitzero"`
+	StandingPrivilegedUsersPresent       *bool      `json:"standing_privileged_users_present,omitempty"`
+	StandingPrivilegedUsersCount         *int       `json:"standing_privileged_users_count,omitempty"`
 }
 
 // IDPPostureLifecycle counts every user in the directory. The collector does
@@ -118,7 +123,15 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 	if members != nil {
 		userSecurity.MFACoveragePct = registrationShare(e.Posture.mfaRegisteredCount, e.Posture.DenominatorEnabledMemberUsers, *members)
 		userSecurity.MFAPhishingResistantPct = registrationShare(e.Posture.phishingResistantCount, e.Posture.DenominatorEnabledMemberUsers, *members)
-		userSecurity.InactivePct = share(e.Users.inactiveCount, e.Users.signInEnabledCount, componentsdk.RoundUp)
+		userSecurity.InactiveUserCount = atAudit(e.Users.inactiveMemberCount)
+		userSecurity.InactivePct = share(e.Users.inactiveMemberCount, members, componentsdk.RoundUp)
+		// The percentages are taken over the members the report lists. When
+		// it lists every enabled member, that is user_count, and the counts
+		// behind the percentages hold.
+		if listed := e.Posture.DenominatorEnabledMemberUsers; listed != nil && *listed == *members {
+			userSecurity.MFAUserCount = atAudit(e.Posture.mfaRegisteredCount)
+			userSecurity.PhishingResistantUserCount = atAudit(e.Posture.phishingResistantCount)
+		}
 	}
 	if userSecurity != (IDPPostureUserSecurity{}) {
 		posture.UserSecurity = &userSecurity
@@ -139,13 +152,15 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 	if pa := e.PrivilegedAccess; pa != nil {
 		privileged := pa.PrivilegedUsersCount
 		posture.PrivilegedAccess = &IDPPosturePrivilegedAccess{
-			PrivilegedUsersPresent:               present(privileged),
+			PrivilegedUsersPresent:               pa.privilegedUsersPresent,
 			PrivilegedUsersCount:                 atAudit(privileged),
 			SuperAdminCount:                      atAudit(pa.SuperAdminCount),
 			PrivilegedMFAUserCount:               atAudit(pa.mfaRegisteredCount),
 			PrivilegedPhishingResistantUserCount: atAudit(pa.phishingResistantCount),
 			PrivilegedMFACoveragePct:             share(pa.mfaRegisteredCount, privileged, componentsdk.RoundDown),
 			PrivilegedPhishingResistantPct:       share(pa.phishingResistantCount, privileged, componentsdk.RoundDown),
+			StandingPrivilegedUsersPresent:       pa.standingPrivilegedUsersPresent,
+			StandingPrivilegedUsersCount:         atAudit(pa.standingPrivilegedUsersCount),
 		}
 	}
 
@@ -235,8 +250,11 @@ var idpPostureSources = []struct {
 }{
 	{"/user_security/users_present", []string{"/users/enabled_member_users_count"}},
 	{"/user_security/user_count", []string{"/users/enabled_member_users_count"}},
+	{"/user_security/mfa_user_count", []string{"/posture/mfa_coverage"}},
+	{"/user_security/phishing_resistant_user_count", []string{"/posture/mfa_phishing_resistant"}},
 	{"/user_security/mfa_coverage_pct", []string{"/posture/mfa_coverage"}},
 	{"/user_security/mfa_phishing_resistant_pct", []string{"/posture/mfa_phishing_resistant"}},
+	{"/user_security/inactive_user_count", []string{"/users/enabled_member_users_count", "/users/inactive_pct"}},
 	{"/user_security/inactive_pct", []string{"/users/enabled_member_users_count", "/users/inactive_pct"}},
 	{"/app_security/apps_present", []string{"/apps/enabled_enterprise_apps_count"}},
 	{"/app_security/app_count", []string{"/apps/enabled_enterprise_apps_count"}},
@@ -249,6 +267,8 @@ var idpPostureSources = []struct {
 	{"/privileged_access/privileged_phishing_resistant_user_count", []string{"/privileged_access/privileged_phishing_resistant_pct"}},
 	{"/privileged_access/privileged_mfa_coverage_pct", []string{"/privileged_access/privileged_mfa_coverage_pct"}},
 	{"/privileged_access/privileged_phishing_resistant_pct", []string{"/privileged_access/privileged_phishing_resistant_pct"}},
+	{"/privileged_access/standing_privileged_users_present", []string{"/privileged_access/privileged_users_count", "/privileged_access/standing_assignment_count"}},
+	{"/privileged_access/standing_privileged_users_count", []string{"/privileged_access/privileged_users_count", "/privileged_access/standing_assignment_count"}},
 	{"/lifecycle/accounts_present", []string{"/users/total_count"}},
 	{"/lifecycle/account_count", []string{"/users/total_count"}},
 	{"/lifecycle/suspended_account_count", []string{"/users/disabled_pct"}},
@@ -259,14 +279,33 @@ var idpPostureSources = []struct {
 	{"/policy/legacy_auth_blocked", []string{"/policy/legacy_auth_blocked"}},
 }
 
-func (c *Collector) mirrorIDPPostureGaps() {
+func (c *Collector) mirrorIDPPostureGaps(posture *IDPPosture) {
 	for _, source := range idpPostureSources {
+		if presenceKnown(posture, source.normalized) {
+			continue
+		}
 		for _, detailed := range source.detailed {
 			c.gaps.rec.Mirror(
 				componentsdk.Location{Path: entraPath, Pointer: detailed},
 				componentsdk.Location{Path: idpPosturePath, Pointer: source.normalized})
 		}
 	}
+}
+
+// presenceKnown reports whether the posture writes the present flag at
+// pointer although the count it comes from may be left out, so no gap on the
+// count carries over to it.
+func presenceKnown(posture *IDPPosture, pointer string) bool {
+	pa := posture.PrivilegedAccess
+	switch {
+	case pa == nil:
+		return false
+	case pointer == "/privileged_access/privileged_users_present":
+		return pa.PrivilegedUsersPresent != nil
+	case pointer == "/privileged_access/standing_privileged_users_present":
+		return pa.StandingPrivilegedUsersPresent != nil
+	}
+	return false
 }
 
 // idpPostureUnsupported lists the normalized values Entra has no data for,
@@ -298,6 +337,24 @@ func (c *Collector) markIDPPostureUnsupported(level componentsdk.Level) {
 			continue
 		}
 		c.gaps.rec.NotCollectedCode(componentsdk.Location{Path: idpPosturePath, Pointer: u.pointer}, componentsdk.CodeUnsupported, u.reason)
+	}
+}
+
+// partlyListedMembers is the detail of the gap on the MFA counts when the
+// registration report lists some of the tenant's enabled members but not all.
+const partlyListedMembers = "Microsoft's MFA registration report doesn't list every enabled member yet, so how many of them have MFA isn't known. The MFA percentages are taken over the members it lists."
+
+// markPartlyListedMembers records why the normalized MFA counts are left out
+// when the registration report lists some enabled members but not all. The
+// percentages stay, taken over the members it lists. Only audit and higher
+// runs write the counts.
+func (c *Collector) markPartlyListedMembers(entra *EntraArtifact, level componentsdk.Level) {
+	members, listed := entra.Users.EnabledMemberUsersCount, entra.Posture.DenominatorEnabledMemberUsers
+	if !level.AtLeast(componentsdk.LevelAudit) || members == nil || listed == nil || *listed == 0 || *listed == *members {
+		return
+	}
+	for _, pointer := range []string{"/user_security/mfa_user_count", "/user_security/phishing_resistant_user_count"} {
+		c.gaps.rec.NotCollectedCode(componentsdk.Location{Path: idpPosturePath, Pointer: pointer}, componentsdk.CodeVendorError, partlyListedMembers)
 	}
 }
 

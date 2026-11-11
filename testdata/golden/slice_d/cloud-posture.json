@@ -6,8 +6,9 @@
     {
       "storage": {
         "storage_resources_present": true,
-        "encryption_pct": 50,
-        "public_access_blocked_pct": 50
+        "encryption_pct": 100,
+        "public_access_blocked_pct": 50,
+        "network_restricted_pct": 50
       },
       "logging": {
         "audit_log_enabled": true,

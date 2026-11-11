@@ -131,6 +131,14 @@ func (c *GraphClient) RoleAssignments(ctx context.Context) ([]UnifiedRoleAssignm
 	return getPaged[UnifiedRoleAssignment](ctx, c, "graph.role_assignments.list", "/roleManagement/directory/roleAssignments?$expand=principal&$top=999")
 }
 
+func (c *GraphClient) NamedLocations(ctx context.Context) ([]NamedLocation, error) {
+	return getPaged[NamedLocation](ctx, c, "graph.conditional_access.named_locations.list", "/identity/conditionalAccess/namedLocations")
+}
+
+func (c *GraphClient) RoleDefinitions(ctx context.Context) ([]UnifiedRoleDefinition, error) {
+	return getPaged[UnifiedRoleDefinition](ctx, c, "graph.role_definitions.list", "/roleManagement/directory/roleDefinitions?$select=id,templateId,isPrivileged,rolePermissions")
+}
+
 func (c *GraphClient) RoleEligibilitySchedules(ctx context.Context) ([]UnifiedRoleEligibilitySchedule, error) {
 	return getPaged[UnifiedRoleEligibilitySchedule](ctx, c, "graph.role_eligibility_schedules.list", "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999")
 }
@@ -174,19 +182,21 @@ func (c *GraphClient) DirectoryAudits(ctx context.Context, since time.Time) ([]D
 // graphPermissions names the Microsoft Graph application permission each call
 // needs, as docs/configuration.md lists them.
 var graphPermissions = map[string]string{
-	"graph.organization.get":                 "Organization.Read.All",
-	"graph.users.list":                       "User.Read.All",
-	"graph.users.sign_in_activity.list":      "AuditLog.Read.All",
-	"graph.user_registration_details.list":   "AuditLog.Read.All",
-	"graph.conditional_access.policies.list": "Policy.Read.All",
-	"graph.security_defaults.get":            "Policy.Read.All",
-	"graph.role_assignments.list":            "RoleManagement.Read.Directory",
-	"graph.role_eligibility_schedules.list":  "RoleEligibilitySchedule.Read.Directory",
-	"graph.service_principals.list":          "Application.Read.All",
-	"graph.applications.list":                "Application.Read.All",
-	"graph.secure_scores.list":               "SecurityEvents.Read.All",
-	"graph.sign_ins.list":                    "AuditLog.Read.All",
-	"graph.directory_audits.list":            "AuditLog.Read.All",
+	"graph.organization.get":                        "Organization.Read.All",
+	"graph.users.list":                              "User.Read.All",
+	"graph.users.sign_in_activity.list":             "AuditLog.Read.All",
+	"graph.user_registration_details.list":          "AuditLog.Read.All",
+	"graph.conditional_access.policies.list":        "Policy.Read.All",
+	"graph.conditional_access.named_locations.list": "Policy.Read.All",
+	"graph.security_defaults.get":                   "Policy.Read.All",
+	"graph.role_assignments.list":                   "RoleManagement.Read.Directory",
+	"graph.role_definitions.list":                   "RoleManagement.Read.Directory",
+	"graph.role_eligibility_schedules.list":         "RoleEligibilitySchedule.Read.Directory",
+	"graph.service_principals.list":                 "Application.Read.All",
+	"graph.applications.list":                       "Application.Read.All",
+	"graph.secure_scores.list":                      "SecurityEvents.Read.All",
+	"graph.sign_ins.list":                           "AuditLog.Read.All",
+	"graph.directory_audits.list":                   "AuditLog.Read.All",
 }
 
 // graphOperation names a Graph call with the permission it needs, so a
@@ -196,7 +206,8 @@ func graphOperation(name string) componentsdk.Operation {
 }
 
 // getPaged fails the whole list when any page fails, so a partial list never
-// reads as a complete one.
+// reads as a complete one. A next link to a page already read fails it too,
+// since following it would never end.
 func getPaged[T any](ctx context.Context, c *GraphClient, operation, route string) ([]T, error) {
 	return getPagedWithHeader[T](ctx, c, operation, route, nil)
 }
@@ -206,6 +217,7 @@ func getPaged[T any](ctx context.Context, c *GraphClient, operation, route strin
 func getPagedWithHeader[T any](ctx context.Context, c *GraphClient, operation, route string, header http.Header) ([]T, error) {
 	op := graphOperation(operation)
 	out := []T{}
+	read := map[string]struct{}{}
 	next := route
 	for next != "" {
 		var page struct {
@@ -219,6 +231,10 @@ func getPagedWithHeader[T any](ctx context.Context, c *GraphClient, operation, r
 			return nil, invalidResponse("graph", next, "has no value array")
 		}
 		out = append(out, *page.Value...)
+		read[next] = struct{}{}
+		if _, ok := read[page.NextLink]; ok {
+			return nil, invalidResponse("graph", next, "links to a page already read")
+		}
 		next = page.NextLink
 	}
 	return out, nil

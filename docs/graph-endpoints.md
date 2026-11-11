@@ -10,6 +10,7 @@ in v1.
 | Authentication method registration report | `/reports/authenticationMethods/userRegistrationDetails` | `AuditLog.Read.All` | A |
 | User `signInActivity` | `/users` with `$select=signInActivity` | `User.Read.All` plus `AuditLog.Read.All` | B2 |
 | Conditional Access policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | B1 |
+| Conditional Access named locations, read only when a policy names one | `/identity/conditionalAccess/namedLocations` | `Policy.Read.All` | B1 |
 | Security defaults | `/policies/identitySecurityDefaultsEnforcementPolicy` | `Policy.Read.All` | B1 |
 | Directory role assignments and definitions | `/roleManagement/directory/roleAssignments`, `/roleManagement/directory/roleDefinitions` | `RoleManagement.Read.Directory` | B2 |
 | PIM role eligibility schedules | `/roleManagement/directory/roleEligibilitySchedules` | `RoleEligibilitySchedule.Read.Directory` | B2 |

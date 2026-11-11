@@ -1,0 +1,515 @@
+{
+  "accounts": {
+    "admin_disabled": {
+      "case": "Disabled account with an active Global Administrator assignment and Contributor on the subscription. The collector does not count it as a privileged user, a Global Administrator, or an Azure member, but its role assignment counts toward the PIM values.",
+      "cloud_roles": [
+        "Contributor"
+      ],
+      "display_name": "Sandbox Admin Disabled",
+      "eligible_roles": [],
+      "enabled": false,
+      "kind": "member",
+      "mail_nickname": "admin.disabled",
+      "roles": [
+        "Global Administrator"
+      ]
+    },
+    "admin_eligible": {
+      "case": "Eligible for User Administrator through PIM, with no expiry, and never activated, so it holds no active role. seed/seed.sh makes the eligible assignment, since the Azure CLI token Terraform applies with can't. No MFA method. Never signs in.",
+      "cloud_roles": [],
+      "display_name": "Sandbox Admin Eligible",
+      "eligible_roles": [
+        "User Administrator"
+      ],
+      "enabled": true,
+      "kind": "member",
+      "mail_nickname": "admin.eligible",
+      "roles": []
+    },
+    "admin_mfa": {
+      "case": "Global Administrator with a mobile phone method that seed/seed.sh adds. Owner of the subscription. Never signs in.",
+      "cloud_roles": [
+        "Owner"
+      ],
+      "display_name": "Sandbox Admin MFA",
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "member",
+      "mail_nickname": "admin.mfa",
+      "mfa": "mobilePhone",
+      "phone": "+1 2025550101",
+      "roles": [
+        "Global Administrator"
+      ]
+    },
+    "admin_nomfa": {
+      "case": "Security Administrator, a privileged role, with no MFA method. Never signs in.",
+      "cloud_roles": [],
+      "display_name": "Sandbox Admin No MFA",
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "member",
+      "mail_nickname": "admin.nomfa",
+      "roles": [
+        "Security Administrator"
+      ]
+    },
+    "breakglass": {
+      "case": "The break-glass account: a cloud-only work account on the tenant's initial domain, made by hand before Terraform runs (checklist step 1), with Global Administrator. It registers Microsoft Authenticator at its first sign-in (checklist step 3) and is excluded from every Conditional Access policy. Terraform reads it and does not manage it. It signs in only when someone uses it by hand, so it is active for 90 days after that.",
+      "cloud_roles": [],
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "existing",
+      "mail_nickname": "owner",
+      "mfa": "microsoftAuthenticatorPush",
+      "roles": [
+        "Global Administrator"
+      ]
+    },
+    "creator": {
+      "case": "The tenant's creator, a personal Microsoft account kept for the sandboxes. Signing it up for Azure pay-as-you-go made the directory and the subscription (checklist step 1), and Entra lists it as a member whose user name has the #EXT# form. Global Administrator, Owner of the subscription, and holder of the one Entra ID P2 license. It registers Microsoft Authenticator in the tenant (checklist step 3), but whether Microsoft's registration report lists a personal account, and as registered, is settled by the first live run. Signs in only when someone applies or checks the sandbox, so it is active or inactive depending on when that last happened.",
+      "cloud_roles": [
+        "Owner"
+      ],
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "creator",
+      "license": "AAD_PREMIUM_P2",
+      "mfa": "microsoftAuthenticatorPush",
+      "roles": [
+        "Global Administrator"
+      ],
+      "usage_location": "US"
+    },
+    "guest": {
+      "case": "Guest with Reader on the subscription, which makes it the one external Azure member. A new tenant can't send B2B invitations, so Terraform makes it as a cloud-only user and seed/seed.sh changes its user type to Guest, which is what the collector reads. Never signs in.",
+      "cloud_roles": [
+        "Reader"
+      ],
+      "display_name": "Sandbox Guest",
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "guest",
+      "mail_nickname": "sandbox.guest",
+      "roles": []
+    },
+    "user_disabled": {
+      "case": "Disabled ordinary member with no roles and no MFA method.",
+      "cloud_roles": [],
+      "display_name": "Sandbox User Disabled",
+      "eligible_roles": [],
+      "enabled": false,
+      "kind": "member",
+      "mail_nickname": "user.disabled",
+      "roles": []
+    },
+    "user_mfa": {
+      "case": "Ordinary member with a mobile phone method that seed/seed.sh adds. Never signs in.",
+      "cloud_roles": [],
+      "display_name": "Sandbox User MFA",
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "member",
+      "mail_nickname": "user.mfa",
+      "mfa": "mobilePhone",
+      "phone": "+1 2025550102",
+      "roles": []
+    },
+    "user_nomfa": {
+      "case": "Ordinary member with no MFA method and Contributor on the subscription. Never signs in.",
+      "cloud_roles": [
+        "Contributor"
+      ],
+      "display_name": "Sandbox User No MFA",
+      "eligible_roles": [],
+      "enabled": true,
+      "kind": "member",
+      "mail_nickname": "user.nomfa",
+      "roles": []
+    }
+  },
+  "apps": {
+    "collector": {
+      "azure_roles": [
+        "Reader"
+      ],
+      "case": "The app the collector signs in as, with a federated credential for the sandbox-microsoft-cloud environment and no secret. It holds exactly the Graph application permissions docs/configuration.md lists, with admin consent, and Reader on the subscription.",
+      "display_name": "epack-sandbox-collector",
+      "graph_permissions": [
+        "Organization.Read.All",
+        "User.Read.All",
+        "AuditLog.Read.All",
+        "Policy.Read.All",
+        "RoleManagement.Read.Directory",
+        "RoleEligibilitySchedule.Read.Directory",
+        "Application.Read.All",
+        "SecurityEvents.Read.All"
+      ]
+    },
+    "credentials": {
+      "azure_roles": [
+        "Cost Management Reader"
+      ],
+      "case": "An app whose credentials keep the same status as time passes, and whose service principal holds Cost Management Reader on the subscription, a read-only role, so the access posture counts it among its credentials.",
+      "credentials": {
+        "expired": {
+          "case": "Client secret that ends a day after Terraform creates it, and stays expired from then on.",
+          "end": "2026-11-11T00:00:00Z",
+          "kind": "password",
+          "lifetime": "24h",
+          "start": "2026-11-10T00:00:00Z"
+        },
+        "long_lived": {
+          "case": "Client secret valid from the apply to 2099-12-31: active, longer than a year, and more than 50 years past any run before 2050. Graph refuses a start date in the past, so it starts when Terraform makes it.",
+          "end": "2099-12-31T00:00:00Z",
+          "kind": "password",
+          "start": "2026-11-10T00:00:00Z"
+        },
+        "ten_year": {
+          "case": "Certificate, public key only, valid from 2026-01-01 to 2036-01-01: active, longer than a year, not expiring within 30 days until December 2035, and more than 90 days old, so the access posture counts the app as overdue for rotation.",
+          "end": "2036-01-01T00:00:00Z",
+          "file": "terraform/files/credentials-certificate.pem",
+          "kind": "certificate",
+          "start": "2026-01-01T00:00:00Z"
+        }
+      },
+      "display_name": "epack-sandbox-credentials"
+    },
+    "plan": {
+      "azure_roles": [
+        "Reader"
+      ],
+      "case": "The app the nightly terraform plan signs in as, with the same federated credential and no secret. It holds the Graph read permissions the azuread resources and data sources refresh with, and Reader on the subscription.",
+      "display_name": "epack-sandbox-terraform-plan",
+      "graph_permissions": [
+        "Application.Read.All",
+        "Domain.Read.All",
+        "Group.Read.All",
+        "Policy.Read.All",
+        "RoleManagement.Read.Directory",
+        "User.Read.All"
+      ]
+    },
+    "saml": {
+      "assignment_required": true,
+      "azure_roles": [],
+      "case": "An enterprise app set to SAML single sign-on that requires user assignment. It has no signing certificate, since a new one would expire on a moving date.",
+      "display_name": "epack-sandbox-saml",
+      "sso_mode": "saml"
+    }
+  },
+  "cloud_role_ids": {
+    "Contributor": "b24988ac-6180-42a0-ab88-20f7382dd24c",
+    "Owner": "8e3af657-a8ff-443c-a75c-2fe8c4bcb635",
+    "Reader": "acdd72a7-3385-48ef-bd42-f606fba81ae7"
+  },
+  "directory_role_ids": {
+    "Global Administrator": "62e90394-69f5-4237-9190-012177145e10",
+    "Security Administrator": "194ae4cb-b126-40b2-bd5b-6091b380977d",
+    "User Administrator": "fe930be7-5e62-47db-91af-98c3a49a38b1"
+  },
+  "groups": {
+    "sql_admins": {
+      "case": "Microsoft Entra admin of both SQL servers. The collector does not read groups. No group holds a directory or Azure role, since the collector would then leave the values over role holders out with not_read.",
+      "display_name": "Sandbox SQL admins",
+      "members": [
+        "admin_mfa"
+      ]
+    }
+  },
+  "security_groups": {
+    "closed": {
+      "case": "Allows SSH from 10.0.0.0/8 only.",
+      "rules": {
+        "allow-ssh-private": {
+          "access": "allow",
+          "direction": "inbound",
+          "ports": [
+            "22"
+          ],
+          "priority": 100,
+          "protocol": "Tcp",
+          "sources": [
+            "10.0.0.0/8"
+          ]
+        }
+      }
+    },
+    "open": {
+      "case": "Allows SSH from the Internet service tag and RDP from any address.",
+      "rules": {
+        "allow-rdp-any": {
+          "access": "allow",
+          "direction": "inbound",
+          "ports": [
+            "3389"
+          ],
+          "priority": 110,
+          "protocol": "Tcp",
+          "sources": [
+            "*"
+          ]
+        },
+        "allow-ssh-internet": {
+          "access": "allow",
+          "direction": "inbound",
+          "ports": [
+            "22"
+          ],
+          "priority": 100,
+          "protocol": "Tcp",
+          "sources": [
+            "Internet"
+          ]
+        }
+      }
+    }
+  },
+  "sign_in_policies": {
+    "block_legacy": {
+      "blocks": "legacy_auth",
+      "case": "Blocks Exchange ActiveSync and other legacy clients for all users on all cloud apps, excluding breakglass, as Microsoft's template does.",
+      "display_name": "Sandbox block legacy authentication",
+      "exclude": {
+        "accounts": [
+          "breakglass"
+        ]
+      },
+      "include": "all",
+      "state": "enabled"
+    },
+    "compliant_device_report_only": {
+      "case": "Report-only, so the collector counts it in no value. It would require a compliant device for Global Administrators other than breakglass.",
+      "display_name": "Sandbox require a compliant device for Global Administrators",
+      "exclude": {
+        "accounts": [
+          "breakglass"
+        ]
+      },
+      "include": {
+        "roles": [
+          "Global Administrator"
+        ]
+      },
+      "requires": "compliantDevice",
+      "state": "enabledForReportingButNotEnforced"
+    },
+    "mfa_all": {
+      "case": "Requires MFA for all users on all cloud apps and all client apps, excluding breakglass by user, so the collector can count the members it covers. breakglass still has MFA registered.",
+      "display_name": "Sandbox require MFA for all users",
+      "exclude": {
+        "accounts": [
+          "breakglass"
+        ]
+      },
+      "include": "all",
+      "requires": "mfa",
+      "state": "enabled"
+    },
+    "whatif_block_other_clients": {
+      "blocks": "legacy_auth",
+      "case": "Report-only. Blocks the legacy clients Microsoft calls other and leaves Exchange ActiveSync out.",
+      "conditions": [
+        "other_clients_only"
+      ],
+      "display_name": "Sandbox what-if block other legacy clients",
+      "include": "all",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_admin_roles": {
+      "case": "Report-only. Covers whoever holds Global Administrator or Security Administrator now. admin.eligible, eligible for User Administrator only, is outside it.",
+      "display_name": "Sandbox what-if MFA for administrator roles",
+      "include": {
+        "roles": [
+          "Global Administrator",
+          "Security Administrator"
+        ]
+      },
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_browser": {
+      "case": "Report-only. Requires MFA of browser sign-ins only, so it leaves out mobile and desktop apps and legacy clients.",
+      "conditions": [
+        "browser_only"
+      ],
+      "display_name": "Sandbox what-if MFA for browser sign-ins",
+      "include": "all",
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_except_saml": {
+      "case": "Report-only. Requires MFA of sign-ins to every app except the sandbox's SAML app.",
+      "display_name": "Sandbox what-if MFA for every app but the SAML app",
+      "exclude_apps": [
+        "saml"
+      ],
+      "include": "all",
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_group": {
+      "case": "Report-only. Covers the members of the SQL admins group, admin.mfa alone.",
+      "display_name": "Sandbox what-if MFA for the SQL admins group",
+      "include": {
+        "groups": [
+          "sql_admins"
+        ]
+      },
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_listed_users": {
+      "case": "Report-only. Lists three users by name and excludes one of them, user.nomfa, so it covers admin.mfa and user.mfa.",
+      "display_name": "Sandbox what-if MFA for listed users",
+      "exclude": {
+        "accounts": [
+          "user_nomfa"
+        ]
+      },
+      "include": {
+        "accounts": [
+          "admin_mfa",
+          "user_mfa",
+          "user_nomfa"
+        ]
+      },
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_modern": {
+      "case": "Report-only. Requires MFA of browser and app sign-ins and leaves out the legacy clients, which can't do MFA.",
+      "conditions": [
+        "modern_clients_only"
+      ],
+      "display_name": "Sandbox what-if MFA for modern clients",
+      "include": "all",
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    },
+    "whatif_mfa_office365": {
+      "apps": [
+        "Office365"
+      ],
+      "case": "Report-only. Requires MFA of sign-ins to Microsoft's Office 365 apps only, so a sign-in to the SAML app is outside it.",
+      "display_name": "Sandbox what-if MFA for Office 365",
+      "include": "all",
+      "requires": "mfa",
+      "state": "enabledForReportingButNotEnforced",
+      "what_if_variant": true
+    }
+  },
+  "source": "roster.json in the epack-collector-sandboxes sandbox, converted by cmd/derive",
+  "storage": {
+    "locked": {
+      "anonymous_access": false,
+      "case": "HTTPS only, TLS 1.2, blob public access off, public network access disabled, infrastructure encryption on, a customer-managed key from the RBAC vault, and an audit diagnostic setting on its blob service.",
+      "infrastructure_encryption": true,
+      "key_source": "Microsoft.Keyvault",
+      "public_network_access": "Disabled"
+    },
+    "mixed": {
+      "anonymous_access": false,
+      "case": "A common customer case: blob public access off, so it refuses anonymous reads, but public network access enabled with no network rules, so the firewall's default action is Allow. HTTPS only, TLS 1.2, Microsoft-managed keys, no infrastructure encryption, and no diagnostic setting. It tells apart a public access measure that reads only anonymous access from one that also reads the network.",
+      "key_source": "Microsoft.Storage"
+    },
+    "public": {
+      "anonymous_access": true,
+      "case": "HTTP allowed, TLS 1.2, blob public access allowed, public network access enabled with no firewall, Microsoft-managed keys, and no diagnostic setting.",
+      "https_only": false,
+      "key_source": "Microsoft.Storage"
+    }
+  },
+  "tenant": {
+    "initial_domain": "example0000.onmicrosoft.com",
+    "license": "AAD_PREMIUM_P2",
+    "security_defaults": false
+  },
+  "terms": {
+    "account_kinds": {
+      "creator": "member",
+      "existing": "member",
+      "member": "member",
+      "guest": "guest"
+    },
+    "mfa_methods": {
+      "mobilePhone": "mfa",
+      "microsoftAuthenticatorPush": "mfa"
+    },
+    "roles": {
+      "Global Administrator": "super_admin",
+      "Security Administrator": "admin",
+      "User Administrator": "admin"
+    },
+    "cloud_roles": {
+      "Owner": "admin",
+      "Contributor": "admin",
+      "Reader": "none"
+    },
+    "policy_states": {
+      "enabled": "enforced",
+      "enabledForReportingButNotEnforced": "report_only",
+      "disabled": "off"
+    },
+    "requirements": {
+      "mfa": "mfa",
+      "compliantDevice": "managed_device"
+    },
+    "blocks": {
+      "legacy_auth": "legacy_auth"
+    },
+    "conditions": {
+      "browser_only": {
+        "client": [
+          "browser"
+        ]
+      },
+      "modern_clients_only": {
+        "client": [
+          "browser",
+          "apps"
+        ]
+      },
+      "other_clients_only": {
+        "client": [
+          "legacy"
+        ]
+      }
+    },
+    "sso_modes": {
+      "saml": "sso"
+    },
+    "protocols": {
+      "Tcp": "tcp",
+      "Udp": "udp",
+      "*": "any"
+    },
+    "network_sources": {
+      "*": "any",
+      "Internet": "any",
+      "10.0.0.0/8": "limited"
+    },
+    "key_sources": {
+      "Microsoft.Storage": "provider_key",
+      "Microsoft.Keyvault": "customer_key"
+    }
+  },
+  "unsettled": {
+    "breakglass": [
+      "signed_in"
+    ],
+    "creator": [
+      "mfa",
+      "signed_in"
+    ]
+  },
+  "vendor": "microsoft-entra",
+  "version": 1
+}

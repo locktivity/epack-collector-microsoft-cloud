@@ -61,11 +61,20 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		artifact.Users.InactiveGuestPct = countInactive(signInUsers, func(user microsoft.User) bool {
 			return user.AccountEnabled != nil && *user.AccountEnabled && user.UserType == "Guest"
 		}, c.clock.Now()).pct()
+		if usersMiss == nil {
+			artifact.Users.inactiveMemberCount = intPtr(inactiveEnabledMembers(summary.EnabledMemberIDs, signInUsers, c.clock.Now()))
+		}
 	}
 	c.gaps.leaveOut(entraPath, signInMiss, "/users/inactive_pct", "/users/inactive_guest_pct")
 
-	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, usersMiss)
+	assignments, assignmentsMiss := c.roleAssignments(ctx, diagnostics)
+	roles := roleAssignmentList{assignments: assignments, miss: assignmentsMiss}
+	definitions, definitionsMiss := c.roleDefinitions(ctx, diagnostics)
+	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, usersMiss, roles)
 	artifact.PrivilegedAccess = c.collectPrivilegedAccess(ctx, diagnostics, privilegedSources{
+		roles:             roles,
+		definitions:       definitions,
+		definitionsMiss:   definitionsMiss,
 		users:             users,
 		usersMiss:         usersMiss,
 		signInUsers:       signInUsers,
@@ -269,6 +278,20 @@ func countInactive(users []microsoft.User, include func(microsoft.User) bool, no
 }
 
 func inactiveCutoff(now time.Time) time.Time { return now.AddDate(0, 0, -90) }
+
+// inactiveEnabledMembers counts the enabled members who have not signed in for 90
+// days. A member missing from the sign-in activity list has not signed in.
+func inactiveEnabledMembers(enabledMemberIDs map[string]struct{}, signInUsers []microsoft.User, now time.Time) int {
+	byID := usersByID(signInUsers)
+	cutoff := inactiveCutoff(now)
+	inactive := 0
+	for id := range enabledMemberIDs {
+		if user, ok := byID[id]; !ok || !signedInSince(user, cutoff) {
+			inactive++
+		}
+	}
+	return inactive
+}
 
 // signedInSince reports whether the user's last successful sign-in is at or
 // after cutoff. A failed sign-in attempt does not count.

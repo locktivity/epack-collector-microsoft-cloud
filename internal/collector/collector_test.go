@@ -26,6 +26,10 @@ type fakeGraph struct {
 	securityDefErr       error
 	roleAssignments      []microsoft.UnifiedRoleAssignment
 	roleAssignmentsErr   error
+	roleDefinitions      []microsoft.UnifiedRoleDefinition
+	roleDefinitionsErr   error
+	namedLocations       []microsoft.NamedLocation
+	namedLocationsErr    error
 	roleSchedules        []microsoft.UnifiedRoleEligibilitySchedule
 	roleSchedulesErr     error
 	servicePrincipals    []microsoft.ServicePrincipal
@@ -121,6 +125,7 @@ func fakeGraphClient() *fakeGraph {
 			{ID: "ra3", PrincipalID: "u3", RoleDefinitionID: "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3"},
 			{ID: "ra4", PrincipalID: "u1", RoleDefinitionID: "not-privileged"},
 		},
+		roleDefinitions: testRoleDefinitions(),
 		roleSchedules: []microsoft.UnifiedRoleEligibilitySchedule{
 			{ID: "rs1", PrincipalID: "u2", RoleDefinitionID: "194ae4cb-b126-40b2-bd5b-6091b380977d", RoleDefinition: &microsoft.UnifiedRoleDefinition{TemplateID: "194ae4cb-b126-40b2-bd5b-6091b380977d"}},
 			{ID: "rs2", PrincipalID: "u1", RoleDefinitionID: "not-privileged", RoleDefinition: &microsoft.UnifiedRoleDefinition{TemplateID: "not-privileged"}},
@@ -611,6 +616,14 @@ func (f *fakeGraph) RoleAssignments(context.Context) ([]microsoft.UnifiedRoleAss
 	return f.roleAssignments, f.roleAssignmentsErr
 }
 
+func (f *fakeGraph) RoleDefinitions(context.Context) ([]microsoft.UnifiedRoleDefinition, error) {
+	return f.roleDefinitions, f.roleDefinitionsErr
+}
+
+func (f *fakeGraph) NamedLocations(context.Context) ([]microsoft.NamedLocation, error) {
+	return f.namedLocations, f.namedLocationsErr
+}
+
 func (f *fakeGraph) RoleEligibilitySchedules(context.Context) ([]microsoft.UnifiedRoleEligibilitySchedule, error) {
 	return f.roleSchedules, f.roleSchedulesErr
 }
@@ -1066,10 +1079,7 @@ const (
 	kitClientAppID2 = "aaaaaaaa-0000-4000-8000-000000000002"
 )
 
-const (
-	azureReaderRoleDefinitionID      = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
-	azureContributorRoleDefinitionID = "b24988ac-6180-42a0-ab88-20f7382dd24c"
-)
+const azureReaderRoleDefinitionID = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
 
 // fakeRoleAssignment is an Azure role assignment on the subscription, with
 // the role definition's full resource ID.

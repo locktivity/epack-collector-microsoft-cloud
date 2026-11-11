@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"net/http"
+	"slices"
 	"strings"
 	"testing"
 
@@ -193,12 +194,56 @@ func TestAccessPostureAdmins(t *testing.T) {
 	access, rec := collectAccess(t, cfg, componentsdk.LevelAudit)
 	admins := access.Admins
 	assertPtrBool(t, "admins_present", admins.AdminsPresent, true)
-	assertPtrInt(t, "admin_count", admins.AdminCount, 2)
-	assertPct(t, "admin_share_pct", admins.AdminSharePct, 67)
+	assertPtrInt(t, "admin_count", admins.AdminCount, 3)
+	assertPct(t, "admin_share_pct", admins.AdminSharePct, 100)
 	assertPtrBool(t, "local_admins_present", admins.LocalAdminsPresent, false)
 	assertPtrInt(t, "local_admin_count", admins.LocalAdminCount, 0)
 	assertNullPct(t, "local_admin_mfa_coverage_pct", admins.LocalAdminMFACoveragePct)
 	assertNoGap(t, rec, accessPosturePath, "/admins/local_admin_mfa_coverage_pct")
+}
+
+// Role Based Access Control Administrator assigns roles, as User Access
+// Administrator does.
+func TestAccessPostureRBACAdministratorIsAnAdmin(t *testing.T) {
+	arm := fakeARMClient()
+	arm.roleAssignments[kitSubscriptionID] = append(arm.roleAssignments[kitSubscriptionID],
+		fakeRoleAssignment("rbac-admin-u2", kitSubscriptionID, azureRBACAdministratorRoleDefinitionID, "User", "u2"))
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	access, _ := collectAccess(t, cfg, componentsdk.LevelAudit)
+	assertPtrInt(t, "admin_count", access.Admins.AdminCount, 3)
+}
+
+// A role held on one resource group makes a member, but only an admin role
+// over the whole subscription makes an admin. u2 is an Owner of one resource
+// group and a Reader of the subscription.
+func TestAccessPostureRolesOnAResourceGroup(t *testing.T) {
+	arm := fakeARMClient()
+	onGroup := fakeRoleAssignment("owner-rg-u2", kitSubscriptionID, azureOwnerRoleDefinitionID, "User", "u2")
+	onGroup.Properties.Scope = "/subscriptions/" + kitSubscriptionID + "/resourceGroups/app"
+	arm.roleAssignments[kitSubscriptionID] = append(arm.roleAssignments[kitSubscriptionID], onGroup)
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	access, _ := collectAccess(t, cfg, componentsdk.LevelAudit)
+	assertPtrInt(t, "member_count", access.Members.MemberCount, 3)
+	assertPtrInt(t, "admin_count", access.Admins.AdminCount, 2)
+
+	rbac := collectTestAzureArtifact(t, cfg).Accounts[0].RBAC
+	assertPtrInt(t, "owner_count", intPtr(rbac.OwnerCount), 2)
+
+	t.Run("a member only on a resource group", func(t *testing.T) {
+		arm := fakeARMClient()
+		reader := fakeRoleAssignment("reader-rg-u2", kitSubscriptionID, azureReaderRoleDefinitionID, "User", "u2")
+		reader.Properties.Scope = "/subscriptions/" + kitSubscriptionID + "/resourceGroups/app"
+		arm.roleAssignments[kitSubscriptionID] = slices.DeleteFunc(arm.roleAssignments[kitSubscriptionID], func(a microsoft.ARMRoleAssignment) bool {
+			return a.Properties.PrincipalID == "u2"
+		})
+		arm.roleAssignments[kitSubscriptionID] = append(arm.roleAssignments[kitSubscriptionID], reader)
+		cfg := testConfig()
+		cfg.ARMClient = arm
+		access, _ := collectAccess(t, cfg, componentsdk.LevelAudit)
+		assertPtrInt(t, "member_count", access.Members.MemberCount, 3)
+	})
 }
 
 func TestAccessPostureDisabledOwnerIsNotAnAdmin(t *testing.T) {
@@ -476,7 +521,7 @@ func TestAccessPostureGroupHeldRoles(t *testing.T) {
 			assertPtrBool(t, "credentials_present", access.Credentials.CredentialsPresent, true)
 			assertPtrBool(t, "admins_present", access.Admins.AdminsPresent, true)
 			if tc.adminsRead {
-				assertPtrInt(t, "admin_count", access.Admins.AdminCount, 1)
+				assertPtrInt(t, "admin_count", access.Admins.AdminCount, 2)
 			} else {
 				assertGap(t, rec, accessPosturePath, "/admins/admin_count", componentsdk.CodeNotRead)
 			}
@@ -488,7 +533,7 @@ func TestAccessPostureGroupHeldRoles(t *testing.T) {
 func TestAccessPostureGroupOnlyLeavesPresenceUnknown(t *testing.T) {
 	arm := fakeARMClient()
 	arm.roleAssignments[kitSubscriptionID] = []microsoft.ARMRoleAssignment{
-		fakeRoleAssignment("group", kitSubscriptionID, azureContributorRoleDefinitionID, "Group", "g1"),
+		fakeRoleAssignment("group", kitSubscriptionID, azureReaderRoleDefinitionID, "Group", "g1"),
 	}
 	cfg := testConfig()
 	cfg.ARMClient = arm
@@ -581,7 +626,7 @@ func TestAccessPostureTotalsAcrossSubscriptions(t *testing.T) {
 	access, _ := collectAccess(t, cfg, componentsdk.LevelAudit)
 
 	assertPtrInt(t, "member_count", access.Members.MemberCount, 3)
-	assertPtrInt(t, "admin_count", access.Admins.AdminCount, 1)
+	assertPtrInt(t, "admin_count", access.Admins.AdminCount, 3)
 	assertPtrInt(t, "credential_count", access.Credentials.CredentialCount, 2)
 	// sp2 is a Reader in the first subscription and a Contributor in the
 	// second.

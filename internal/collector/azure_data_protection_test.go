@@ -62,6 +62,42 @@ func TestStorageCountsAnonymousAccessApartFromNetworkAccess(t *testing.T) {
 	assertPtrInt(t, "public access blocked", storage.PublicAccessBlockedPct, 60)
 	assertPtrInt(t, "network restricted", storage.NetworkRestrictedPct, 40)
 	assertPtrInt(t, "normalized public access blocked", result.AzureCloudPosture.Accounts[0].Storage.PublicAccessBlockedPct.Value, 60)
+	assertPtrInt(t, "normalized network restricted", result.AzureCloudPosture.Accounts[0].Storage.NetworkRestrictedPct.Value, 40)
+}
+
+// Azure encrypts every storage account at rest with its own key unless the
+// account names a customer-managed one, so the normalized encryption counts
+// any key source and the azure artifact's encryption_cmk_pct counts the
+// customer-managed ones.
+func TestStorageEncryptionAtRestCountsAnyKeySource(t *testing.T) {
+	account := func(name, keySource string) microsoft.StorageAccount {
+		return microsoft.StorageAccount{
+			ID:         "/subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/data/providers/Microsoft.Storage/storageAccounts/" + name,
+			Name:       name,
+			Properties: microsoft.StorageAccountProperties{Encryption: microsoft.StorageEncryption{KeySource: keySource}},
+		}
+	}
+	arm := fakeARMClient()
+	arm.storageAccounts["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"] = []microsoft.StorageAccount{
+		account("customer", "Microsoft.Keyvault"),
+		account("azure", "Microsoft.Storage"),
+		account("unreported", ""),
+	}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	c, err := New(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := c.Collect(context.Background(), componentsdk.LevelAudit)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assertPtrInt(t, "customer-managed keys", result.Azure.Accounts[0].Storage.EncryptionCMKPct, 33)
+	normalized := result.AzureCloudPosture.Accounts[0].Storage
+	assertPtrInt(t, "normalized encrypted count", normalized.EncryptedStorageResourceCount, 2)
+	assertPtrInt(t, "normalized encryption", normalized.EncryptionPct.Value, 66)
 }
 
 func TestStorageTrustZeroDenominator(t *testing.T) {
@@ -166,7 +202,8 @@ func TestNormalizedCloudSliceD(t *testing.T) {
 	if account.Storage == nil {
 		t.Fatal("expected normalized storage")
 	}
-	assertPtrInt(t, "normalized storage encryption", account.Storage.EncryptionPct.Value, 50)
+	assertPtrInt(t, "normalized storage encryption", account.Storage.EncryptionPct.Value, 100)
+	assertPtrInt(t, "normalized storage network restricted", account.Storage.NetworkRestrictedPct.Value, 50)
 	assertPtrInt(t, "normalized storage public access", account.Storage.PublicAccessBlockedPct.Value, 50)
 	if account.Backup == nil {
 		t.Fatal("expected normalized backup")

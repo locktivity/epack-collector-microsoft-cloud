@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -46,17 +47,23 @@ func (c *Collector) collectNetwork(ctx context.Context, scope subscriptionScope,
 	return out
 }
 
+// nsgOpenToWorld reports whether a TCP connection to port from any address
+// gets in, with the rules applied as Azure applies them: in priority order,
+// lowest first, where the first rule that matches decides. Only a rule whose
+// source is any address matches every such connection, so a deny rule from a
+// narrower source doesn't close the port. Azure's default rules deny what
+// no other rule allows.
+// https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview#security-rules
 func nsgOpenToWorld(nsg microsoft.NetworkSecurityGroup, port int) bool {
-	for _, rule := range nsg.Properties.SecurityRules {
+	rules := slices.Clone(nsg.Properties.SecurityRules)
+	slices.SortStableFunc(rules, func(a, b microsoft.SecurityRule) int { return a.Properties.Priority - b.Properties.Priority })
+	for _, rule := range rules {
 		props := rule.Properties
-		if !strings.EqualFold(props.Access, "Allow") || !strings.EqualFold(props.Direction, "Inbound") {
-			continue
-		}
-		if !securityRuleProtocolIncludesTCP(props.Protocol) || !securityRuleSourceIsWorld(props) {
+		if !strings.EqualFold(props.Direction, "Inbound") || !securityRuleProtocolIncludesTCP(props.Protocol) || !securityRuleSourceIsWorld(props) {
 			continue
 		}
 		if securityRulePortsInclude(props.DestinationPortRange, props.DestinationPortRanges, port) {
-			return true
+			return strings.EqualFold(props.Access, "Allow")
 		}
 	}
 	return false
