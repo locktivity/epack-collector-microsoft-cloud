@@ -224,6 +224,7 @@ type SecurityRule struct {
 }
 
 type SecurityRuleProperties struct {
+	Priority                   int      `json:"priority"`
 	Access                     string   `json:"access"`
 	Direction                  string   `json:"direction"`
 	Protocol                   string   `json:"protocol"`

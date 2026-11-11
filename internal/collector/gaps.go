@@ -52,6 +52,10 @@ func notRead(detail string) *missing {
 	return &missing{code: componentsdk.CodeNotRead, detail: detail}
 }
 
+func vendorError(detail string) *missing {
+	return &missing{code: componentsdk.CodeVendorError, detail: detail}
+}
+
 func firstMissing(reasons ...*missing) *missing {
 	for _, reason := range reasons {
 		if reason != nil {

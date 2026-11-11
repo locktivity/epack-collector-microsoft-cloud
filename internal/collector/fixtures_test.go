@@ -166,7 +166,7 @@ func applicationsDeniedResponses() []collectortest.Response {
 }
 
 // kitRoleAssignmentsURL is the subscription's role assignment list.
-const kitRoleAssignmentsURL = kitARMBase + "/subscriptions/" + kitSubscriptionID + "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&$filter=atScope%28%29"
+const kitRoleAssignmentsURL = kitARMBase + "/subscriptions/" + kitSubscriptionID + "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01"
 
 // roleAssignmentsDeniedResponses answer an app without permission to read
 // the subscription's role assignments.
@@ -256,6 +256,8 @@ func kitGraphResponses(graph *fakeGraph) []collectortest.Response {
 		{URL: kitGraphBase + "/identity/conditionalAccess/policies", Body: graphPage(graph.policies, "")},
 		{URL: kitGraphBase + "/policies/identitySecurityDefaultsEnforcementPolicy", Body: kitJSON(graph.securityDefaults)},
 		{URL: kitGraphBase + "/roleManagement/directory/roleAssignments?$expand=principal&$top=999", Body: graphPage(graph.roleAssignments, "")},
+		{URL: kitGraphBase + "/roleManagement/directory/roleDefinitions?$select=id,templateId,isPrivileged,rolePermissions", Body: graphPage(graph.roleDefinitions, "")},
+		{URL: kitGraphBase + "/identity/conditionalAccess/namedLocations", Body: graphPage(graph.namedLocations, "")},
 		{URL: kitGraphBase + "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999", Body: graphPage(graph.roleSchedules, "")},
 		{URL: kitServicePrincipalsURL, Body: graphPage(graph.servicePrincipals, "")},
 		{URL: kitApplicationsURL, Body: graphPage(graph.applications, "")},

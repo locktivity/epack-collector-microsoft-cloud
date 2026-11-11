@@ -67,8 +67,9 @@ type AccessMembers struct {
 	InactivePct            Percentage `json:"inactive_pct,omitzero"`
 }
 
-// AccessAdmins counts the members with the Owner or User Access
-// Administrator role.
+// AccessAdmins counts the members with an admin role over the whole
+// subscription: Owner, Contributor, User Access Administrator or Role Based
+// Access Control Administrator.
 type AccessAdmins struct {
 	AdminsPresent            *bool      `json:"admins_present,omitempty"`
 	AdminCount               *int       `json:"admin_count,omitempty"`
@@ -109,9 +110,9 @@ const (
 	noRootAccount          = "Azure has no root account."
 	connectedAppsUnread    = "Microsoft Graph's /oauth2PermissionGrants list shows which apps have delegated access to Azure Resource Manager. This collector does not read it."
 	groupHoldsRole         = "An Azure role is assigned to a group, and the users and service principals in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
-	groupHoldsAdminRole    = "The Owner or User Access Administrator role is assigned to a group, and the users in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
+	groupHoldsAdminRole    = "An admin role, Owner, Contributor, User Access Administrator or Role Based Access Control Administrator, is assigned to a group for the whole subscription, and the users in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
 	otherHoldsRole         = "An Azure role is assigned to a principal that is not a user, a group or a service principal, such as an agent identity or a device. This collector does not count those principals as members or service principals."
-	otherHoldsAdminRole    = "The Owner or User Access Administrator role is assigned to a principal that is not a user, a group or a service principal, such as an agent identity. This collector does not count those principals as members."
+	otherHoldsAdminRole    = "An admin role, Owner, Contributor, User Access Administrator or Role Based Access Control Administrator, is assigned for the whole subscription to a principal that is not a user, a group or a service principal, such as an agent identity. This collector does not count those principals as members."
 	servicePrincipalUse    = "Microsoft Graph reports when a service principal last signed in only in its beta servicePrincipalSignInActivities report, which this collector does not read."
 	servicePrincipalLimits = "This collector does not read Azure's custom role definitions, which show whether a role grants full access. It also does not read the location conditions of Conditional Access policies for service principals."
 )
@@ -457,8 +458,11 @@ func subscriptionPopulation(account AzureAccount) accessPopulation {
 }
 
 // add sorts each assignment's principal by its type, which is User when the
-// assignment has none. A user with Owner or User Access Administrator is an
-// admin. A service principal with any role but a read-only one has write
+// assignment has none. A role held anywhere in the subscription, on one
+// resource group or resource included, makes a member. A user is an admin
+// when an admin role, Owner, Contributor, User Access Administrator or Role
+// Based Access Control Administrator, covers the whole subscription. A
+// service principal with any role but a read-only one has write
 // access. Any other type, such as an agent identity or a device, is not
 // sorted, so the values over everyone with a role are unknown.
 // https://learn.microsoft.com/en-us/rest/api/authorization/role-assignments/list-for-subscription
@@ -466,7 +470,7 @@ func (p *accessPopulation) add(assignments []microsoft.ARMRoleAssignment) {
 	for _, assignment := range assignments {
 		principal := assignment.Properties.PrincipalID
 		role := roleDefinitionGUID(assignment.Properties.RoleDefinitionID)
-		admin := role == azureOwnerRoleDefinitionID || role == azureUserAccessAdministratorRoleDefinitionID
+		admin := isAzureAdminRole(role) && coversSubscription(assignment)
 		principalType := assignment.Properties.PrincipalType
 		switch {
 		case strings.EqualFold(principalType, "Group"), strings.EqualFold(principalType, "ForeignGroup"):

@@ -25,6 +25,7 @@ var kitOperations = []string{
 	"graph.conditional_access.policies.list",
 	"graph.security_defaults.get",
 	"graph.role_assignments.list",
+	"graph.role_definitions.list",
 	"graph.role_eligibility_schedules.list",
 	"graph.service_principals.list",
 	"graph.applications.list",
@@ -147,7 +148,7 @@ func TestCollectorKit(t *testing.T) {
 					accessPosturePath: {
 						"/members/inactive_member_count": collectortest.Absent,
 						"/members/inactive_pct":          collectortest.Absent,
-						"/admins/admin_share_pct":        34,
+						"/admins/admin_share_pct":        67,
 					},
 				},
 			},

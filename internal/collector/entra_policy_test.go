@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -61,10 +63,11 @@ func TestCaPoliciesPremiumLicenseFailure(t *testing.T) {
 	cfg := testConfig()
 	cfg.GraphClient = graph
 
+	// Security defaults are on, so no Conditional Access policy is enabled.
+	// They require MFA of u1 and u2 on every sign-in as admins.
 	artifact := collectTestArtifact(t, cfg)
-	if artifact.Policy == nil || artifact.Policy.MFARequired != nil {
-		t.Fatalf("expected null CA metrics, got %#v", artifact.Policy)
-	}
+	assertPtrBool(t, "mfa_required", artifact.Policy.MFARequired, false)
+	assertPtrInt(t, "policy_count", artifact.Policy.PolicyCount, 0)
 	if artifact.Policy.MFARequiredCoveragePct == nil || *artifact.Policy.MFARequiredCoveragePct != 100 {
 		t.Fatalf("expected security-defaults coverage fallback, got %#v", artifact.Policy)
 	}
@@ -293,7 +296,6 @@ func TestMfaRequiredNeedsAPolicyForEverySignIn(t *testing.T) {
 		{"insider risk", allApps, `,"insiderRiskLevels":"elevated"`, false},
 		{"untrusted locations", allApps, `,"locations":{"includeLocations":["All"],"excludeLocations":["AllTrusted"]}`, false},
 		{"some platforms", allApps, `,"platforms":{"includePlatforms":["android","iOS"]}`, false},
-		{"device filter", allApps, `,"devices":{"deviceFilter":{"mode":"exclude","rule":"device.trustType -eq \"ServerAD\""}}`, false},
 		{"device code flow", allApps, `,"authenticationFlows":{"transferMethods":"deviceCodeFlow"}`, false},
 		{"registering security information", `{"includeApplications":[],"includeUserActions":["urn:user:registersecurityinfo"]}`, ``, false},
 	}
@@ -332,6 +334,217 @@ func TestMfaRequiredNeedsAPolicyForEverySignIn(t *testing.T) {
 			assertPtrInt(t, "mfa_required_coverage_pct", p.MFARequiredCoveragePct, want)
 		})
 	}
+}
+
+// A policy that leaves out an app or a kind of client lets users sign in
+// there without MFA. Legacy clients can't do MFA, so a policy for every other
+// client covers every sign-in once legacy authentication is blocked.
+func TestMfaRequiredNeedsEveryAppAndClient(t *testing.T) {
+	const exchangeOnline = "00000002-0000-0ff1-ce00-000000000000"
+	modernClients := []string{"browser", "mobileAppsAndDesktopClients"}
+	cases := []struct {
+		name        string
+		change      func(*microsoft.ConditionalAccessPolicy)
+		blockLegacy bool
+		want        bool
+	}{
+		{"every app and client", func(*microsoft.ConditionalAccessPolicy) {}, false, true},
+		{"one app", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Applications = &microsoft.ConditionalAccessApplications{IncludeApplications: []string{"Office365"}}
+		}, false, false},
+		{"admin portals only", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Applications = &microsoft.ConditionalAccessApplications{IncludeApplications: []string{"MicrosoftAdminPortals"}}
+		}, false, false},
+		{"every app but one", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Applications.ExcludeApplications = []string{exchangeOnline}
+		}, false, false},
+		{"every client type listed", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.ClientAppTypes = append(slices.Clone(modernClients), "exchangeActiveSync", "other")
+		}, false, true},
+		{"browsers only", func(p *microsoft.ConditionalAccessPolicy) { p.Conditions.ClientAppTypes = []string{"browser"} }, true, false},
+		{"modern clients, legacy allowed", func(p *microsoft.ConditionalAccessPolicy) { p.Conditions.ClientAppTypes = modernClients }, false, false},
+		{"modern clients, legacy blocked", func(p *microsoft.ConditionalAccessPolicy) { p.Conditions.ClientAppTypes = modernClients }, true, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			policy := mfaAllUsersPolicy("mfa")
+			tc.change(&policy)
+			graph := fakeGraphClient()
+			graph.policies = []microsoft.ConditionalAccessPolicy{policy}
+			if tc.blockLegacy {
+				graph.policies = append(graph.policies, legacyAuthBlockPolicy("legacy"))
+			}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+
+			p := collectTestArtifact(t, cfg).Policy
+			if p.MFARequired == nil || *p.MFARequired != tc.want {
+				t.Errorf("mfa_required = %s, want %v", showBool(p.MFARequired), tc.want)
+			}
+			if p.AllCloudAppsMFARequired == nil || *p.AllCloudAppsMFARequired != tc.want {
+				t.Errorf("all_cloud_apps_mfa_required = %s, want %v", showBool(p.AllCloudAppsMFARequired), tc.want)
+			}
+			want := 0
+			if tc.want {
+				want = 100
+			}
+			assertPtrInt(t, "mfa_required_coverage_pct", p.MFARequiredCoveragePct, want)
+		})
+	}
+}
+
+// What the collector can't evaluate makes the MFA policy values unknown,
+// unless another policy covers the same sign-ins. Each gap names the cause.
+func TestMfaValuesLeftOutWhenAPolicyCantBeEvaluated(t *testing.T) {
+	cases := []struct {
+		name, cause string
+		change      func(*microsoft.ConditionalAccessPolicy)
+		beside      []microsoft.ConditionalAccessPolicy
+	}{
+		{"device filter", "device filter", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Devices = &microsoft.ConditionalAccessDevices{DeviceFilter: &microsoft.ConditionalAccessFilter{Mode: "exclude", Rule: `device.trustType -eq "ServerAD"`}}
+		}, nil},
+		{"app filter", "app filter", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Applications.ApplicationFilter = &microsoft.ConditionalAccessFilter{Mode: "exclude", Rule: `CustomSecurityAttribute.Engineering_Project -eq "Legacy"`}
+		}, nil},
+		{"unrecognized condition", "agentIdRiskLevels", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Unrecognized = []string{"agentIdRiskLevels"}
+		}, nil},
+		{"unrecognized client app type", "holographicClients", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.ClientAppTypes = []string{"browser", "mobileAppsAndDesktopClients", "exchangeActiveSync", "holographicClients"}
+		}, nil},
+		{"unrecognized grant control", "quantumKey", func(p *microsoft.ConditionalAccessPolicy) {
+			p.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{"mfa", "quantumKey"}}
+		}, nil},
+		// The office is covered only if it is trusted, by the policy for
+		// trusted locations beside this one.
+		{"location whose trust wasn't read", "location", func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"All"}, ExcludeLocations: []string{"office"}}
+		}, []microsoft.ConditionalAccessPolicy{func() microsoft.ConditionalAccessPolicy {
+			trusted := mfaAllUsersPolicy("trusted")
+			trusted.Conditions.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"AllTrusted"}}
+			return trusted
+		}()}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			policy := mfaAllUsersPolicy("mfa")
+			tc.change(&policy)
+			graph := fakeGraphClient()
+			graph.policies = append([]microsoft.ConditionalAccessPolicy{policy}, tc.beside...)
+			graph.namedLocationsErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/identity/conditionalAccess/namedLocations"}
+			rec := &componentsdk.Recorder{}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+			cfg.Recorder = rec
+
+			p := collectTestArtifact(t, cfg).Policy
+			if p.MFARequired != nil || p.MFARequiredCoveragePct != nil {
+				t.Fatalf("mfa_required = %s, coverage = %v, want both left out", showBool(p.MFARequired), p.MFARequiredCoveragePct)
+			}
+			for _, pointer := range []string{"/policy/mfa_required", "/policy/mfa_required_coverage_pct"} {
+				if gap := assertGap(t, rec, entraPath, pointer, componentsdk.CodeNotRead); !strings.Contains(gap.Detail, tc.cause) {
+					t.Errorf("%s gap %q doesn't name %s", pointer, gap.Detail, tc.cause)
+				}
+			}
+
+			graph.policies = append(graph.policies, mfaAllUsersPolicy("everyone"))
+			p = collectTestArtifact(t, cfg).Policy
+			assertPtrBool(t, "mfa_required beside a policy for everyone", p.MFARequired, true)
+		})
+	}
+}
+
+// Policies limited by location, risk or platform combine when between them
+// they cover every value. A list of every known platform leaves out devices
+// on a platform Microsoft doesn't recognize, which only all covers.
+func TestMfaRequiredCombinesConditions(t *testing.T) {
+	limited := func(id string, change func(*microsoft.ConditionalAccessConditionSet)) microsoft.ConditionalAccessPolicy {
+		p := mfaAllUsersPolicy(id)
+		change(&p.Conditions)
+		return p
+	}
+	cases := []struct {
+		name     string
+		policies []microsoft.ConditionalAccessPolicy
+		trusted  map[string]bool
+		want     bool
+	}{
+		{"trusted and untrusted locations", []microsoft.ConditionalAccessPolicy{
+			limited("trusted", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"AllTrusted"}}
+			}),
+			limited("untrusted", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"All"}, ExcludeLocations: []string{"AllTrusted"}}
+			}),
+		}, nil, true},
+		{"untrusted locations only", []microsoft.ConditionalAccessPolicy{
+			limited("untrusted", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"All"}, ExcludeLocations: []string{"AllTrusted"}}
+			}),
+		}, nil, false},
+		{"everywhere but a trusted office, and the office", []microsoft.ConditionalAccessPolicy{
+			limited("elsewhere", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"All"}, ExcludeLocations: []string{"office"}}
+			}),
+			limited("office", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Locations = &microsoft.ConditionalAccessLocations{IncludeLocations: []string{"AllTrusted"}}
+			}),
+		}, map[string]bool{"office": true}, true},
+		{"risky and quiet sign-ins", []microsoft.ConditionalAccessPolicy{
+			limited("risky", func(c *microsoft.ConditionalAccessConditionSet) { c.SignInRiskLevels = []string{"high", "medium"} }),
+			limited("quiet", func(c *microsoft.ConditionalAccessConditionSet) { c.SignInRiskLevels = []string{"low", "none"} }),
+		}, nil, true},
+		{"every known platform listed", []microsoft.ConditionalAccessPolicy{
+			limited("platforms", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Platforms = &microsoft.ConditionalAccessPlatforms{IncludePlatforms: []string{"android", "iOS", "windows", "windowsPhone", "macOS", "linux"}}
+			}),
+		}, nil, false},
+		{"all platforms but iOS, and iOS", []microsoft.ConditionalAccessPolicy{
+			limited("most", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Platforms = &microsoft.ConditionalAccessPlatforms{IncludePlatforms: []string{"all"}, ExcludePlatforms: []string{"iOS"}}
+			}),
+			limited("ios", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.Platforms = &microsoft.ConditionalAccessPlatforms{IncludePlatforms: []string{"iOS"}}
+			}),
+		}, nil, true},
+		{"device code flow only", []microsoft.ConditionalAccessPolicy{
+			limited("flows", func(c *microsoft.ConditionalAccessConditionSet) {
+				c.AuthenticationFlows = &microsoft.ConditionalAccessAuthenticationFlows{TransferMethods: "deviceCodeFlow"}
+			}),
+		}, nil, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.policies = tc.policies
+			for id, trusted := range tc.trusted {
+				graph.namedLocations = append(graph.namedLocations, microsoft.NamedLocation{ODataType: "#microsoft.graph.ipNamedLocation", ID: id, IsTrusted: trusted})
+			}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+
+			p := collectTestArtifact(t, cfg).Policy
+			assertPtrBool(t, "mfa_required", p.MFARequired, tc.want)
+			want := 0
+			if tc.want {
+				want = 100
+			}
+			assertPtrInt(t, "mfa_required_coverage_pct", p.MFARequiredCoveragePct, want)
+		})
+	}
+}
+
+// u1 and u2 are the enabled members. The policy names both and excludes u2.
+func TestMfaCoverageLeavesOutTheUsersAPolicyExcludes(t *testing.T) {
+	policy := mfaAllUsersPolicy("named")
+	policy.Conditions.Users = &microsoft.ConditionalAccessUsers{IncludeUsers: []string{"u1", "u2"}, ExcludeUsers: []string{"u2"}}
+	graph := fakeGraphClient()
+	graph.policies = []microsoft.ConditionalAccessPolicy{policy}
+	cfg := testConfig()
+	cfg.GraphClient = graph
+
+	assertPtrInt(t, "mfa_required_coverage_pct", collectTestArtifact(t, cfg).Policy.MFARequiredCoveragePct, 50)
 }
 
 // Group members and role holders are not read, so a policy that includes or
@@ -405,9 +618,6 @@ func TestLegacyAuthBlockedNeedsAllUsersResourcesAndLegacyClients(t *testing.T) {
 		{"Exchange Online excluded", func(p *microsoft.ConditionalAccessPolicy) {
 			p.Conditions.Applications.ExcludeApplications = []string{"00000002-0000-0ff1-ce00-000000000000"}
 		}, false},
-		{"apps excluded by a filter", func(p *microsoft.ConditionalAccessPolicy) {
-			p.Conditions.Applications.ApplicationFilter = &microsoft.ConditionalAccessFilter{Mode: "exclude", Rule: `CustomSecurityAttribute.Engineering_Project -eq "Legacy"`}
-		}, false},
 		{"user risk", func(p *microsoft.ConditionalAccessPolicy) { p.Conditions.UserRiskLevels = []string{"high"} }, false},
 		{"sign-in risk", func(p *microsoft.ConditionalAccessPolicy) { p.Conditions.SignInRiskLevels = []string{"high"} }, false},
 		{"every location", func(p *microsoft.ConditionalAccessPolicy) {
@@ -473,6 +683,158 @@ func TestMfaCoverageFromSecurityDefaultsWithNoEnabledPolicy(t *testing.T) {
 			t.Fatalf("mfa_required_coverage_pct = %d, want it left out", *got)
 		}
 		assertGap(t, rec, entraPath, "/policy/mfa_required_coverage_pct", componentsdk.CodePermissionDenied)
+	})
+}
+
+// Policies combine: between them they must require MFA for, or block, every
+// sign-in to every app from every kind of client.
+func TestMfaRequiredCombinesPolicies(t *testing.T) {
+	const office365 = "Office365"
+	withApps := func(id string, include, exclude []string) microsoft.ConditionalAccessPolicy {
+		policy := mfaAllUsersPolicy(id)
+		policy.Conditions.Applications = &microsoft.ConditionalAccessApplications{IncludeApplications: include, ExcludeApplications: exclude}
+		return policy
+	}
+	withClients := func(policy microsoft.ConditionalAccessPolicy, clients ...string) microsoft.ConditionalAccessPolicy {
+		policy.Conditions.ClientAppTypes = clients
+		return policy
+	}
+	cases := []struct {
+		name     string
+		policies []microsoft.ConditionalAccessPolicy
+		want     bool
+	}{
+		{"one app, and every app but that one", []microsoft.ConditionalAccessPolicy{
+			withApps("office", []string{office365}, nil), withApps("rest", []string{"All"}, []string{office365}),
+		}, true},
+		{"every app but one, twice", []microsoft.ConditionalAccessPolicy{
+			withApps("a", []string{"All"}, []string{office365}), withApps("b", []string{"All"}, []string{office365, "other-app"}),
+		}, false},
+		{"browsers, and mobile and desktop apps, with legacy blocked", []microsoft.ConditionalAccessPolicy{
+			withClients(mfaAllUsersPolicy("browser"), "browser"),
+			withClients(mfaAllUsersPolicy("apps"), "mobileAppsAndDesktopClients"),
+			legacyAuthBlockPolicy("legacy"),
+		}, true},
+		{"browsers, and mobile and desktop apps, with legacy allowed", []microsoft.ConditionalAccessPolicy{
+			withClients(mfaAllUsersPolicy("browser"), "browser"),
+			withClients(mfaAllUsersPolicy("apps"), "mobileAppsAndDesktopClients"),
+		}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.policies = tc.policies
+			cfg := testConfig()
+			cfg.GraphClient = graph
+
+			p := collectTestArtifact(t, cfg).Policy
+			assertPtrBool(t, "mfa_required", p.MFARequired, tc.want)
+			want := 0
+			if tc.want {
+				want = 100
+			}
+			assertPtrInt(t, "mfa_required_coverage_pct", p.MFARequiredCoveragePct, want)
+		})
+	}
+}
+
+// Security defaults require MFA on every sign-in only of the admin roles they
+// name. u1 is a Global Administrator, and u2 holds no such role here.
+func TestSecurityDefaultsCoverTheirAdminRoles(t *testing.T) {
+	setup := func() (*fakeGraph, *componentsdk.Recorder, Config) {
+		graph := fakeGraphClient()
+		graph.policies = nil
+		graph.securityDefaults = &microsoft.IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: true}
+		graph.roleAssignments = []microsoft.UnifiedRoleAssignment{{ID: "ra1", PrincipalID: "u1", RoleDefinitionID: globalAdministratorTemplateID}}
+		rec := &componentsdk.Recorder{}
+		cfg := testConfig()
+		cfg.GraphClient = graph
+		cfg.Recorder = rec
+		return graph, rec, cfg
+	}
+
+	_, _, cfg := setup()
+	p := collectTestArtifact(t, cfg).Policy
+	assertPtrBool(t, "mfa_required", p.MFARequired, false)
+	assertPtrInt(t, "mfa_required_coverage_pct", p.MFARequiredCoveragePct, 50)
+
+	t.Run("a group holds one of their roles", func(t *testing.T) {
+		graph, rec, cfg := setup()
+		graph.roleAssignments = append(graph.roleAssignments, microsoft.UnifiedRoleAssignment{
+			ID: "ra-group", PrincipalID: "g1", RoleDefinitionID: "fe930be7-5e62-47db-91af-98c3a49a38b1",
+			Principal: &microsoft.DirectoryPrincipal{ODataType: "#microsoft.graph.group", ID: "g1"},
+		})
+		if got := collectTestArtifact(t, cfg).Policy.MFARequiredCoveragePct; got != nil {
+			t.Fatalf("mfa_required_coverage_pct = %d, want it left out", *got)
+		}
+		assertGap(t, rec, entraPath, "/policy/mfa_required_coverage_pct", componentsdk.CodeNotRead)
+	})
+
+	t.Run("the role assignments are unread", func(t *testing.T) {
+		graph, rec, cfg := setup()
+		graph.roleAssignmentsErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/roleManagement/directory/roleAssignments"}
+		if got := collectTestArtifact(t, cfg).Policy.MFARequiredCoveragePct; got != nil {
+			t.Fatalf("mfa_required_coverage_pct = %d, want it left out", *got)
+		}
+		assertGap(t, rec, entraPath, "/policy/mfa_required_coverage_pct", componentsdk.CodePermissionDenied)
+	})
+}
+
+// Security defaults block legacy authentication for everyone. Entra allows no
+// enabled Conditional Access policy beside them, so they settle
+// legacy_auth_blocked even when the policies can't be read.
+func TestSecurityDefaultsBlockLegacyAuth(t *testing.T) {
+	unlicensed := &microsoft.APIError{
+		StatusCode: http.StatusForbidden,
+		Route:      "/identity/conditionalAccess/policies",
+		Code:       "Authentication_RequestFromNonPremiumTenantOrB2CTenant",
+		Message:    "The tenant does not have a Premium license.",
+	}
+	denied := &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/identity/conditionalAccess/policies"}
+	cases := []struct {
+		name        string
+		policiesErr error
+		enabled     bool
+		want        bool
+	}{
+		{"security defaults on", nil, true, true},
+		{"security defaults off", nil, false, false},
+		{"on, without a Conditional Access license", unlicensed, true, true},
+		{"on, with the policies unread", denied, true, true},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.policies = []microsoft.ConditionalAccessPolicy{{ID: "off", State: "disabled"}}
+			graph.policiesErr = tc.policiesErr
+			graph.securityDefaults = &microsoft.IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: tc.enabled}
+			rec := &componentsdk.Recorder{}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+			cfg.Recorder = rec
+
+			result := collectTestResultAtLevel(t, cfg, componentsdk.LevelAudit)
+			assertPtrBool(t, "legacy_auth_blocked", result.Entra.Policy.LegacyAuthBlocked, tc.want)
+			assertPtrBool(t, "idp-posture legacy_auth_blocked", result.EntraIDPPosture.Policy.LegacyAuthBlocked, tc.want)
+			assertNoGap(t, rec, entraPath, "/policy/legacy_auth_blocked")
+			assertNoGap(t, rec, idpPosturePath, "/policy/legacy_auth_blocked")
+		})
+	}
+
+	t.Run("security defaults unread", func(t *testing.T) {
+		graph := fakeGraphClient()
+		graph.policies = nil
+		graph.securityDefErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/policies/identitySecurityDefaultsEnforcementPolicy"}
+		rec := &componentsdk.Recorder{}
+		cfg := testConfig()
+		cfg.GraphClient = graph
+		cfg.Recorder = rec
+
+		if got := collectTestArtifact(t, cfg).Policy.LegacyAuthBlocked; got != nil {
+			t.Fatalf("legacy_auth_blocked = %v, want it left out", *got)
+		}
+		assertGap(t, rec, entraPath, "/policy/legacy_auth_blocked", componentsdk.CodePermissionDenied)
+		assertGap(t, rec, idpPosturePath, "/policy/legacy_auth_blocked", componentsdk.CodePermissionDenied)
 	})
 }
 

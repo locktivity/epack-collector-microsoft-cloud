@@ -1,5 +1,11 @@
 package microsoft
 
+import (
+	"bytes"
+	"encoding/json"
+	"slices"
+)
+
 type Organization struct {
 	ID              string           `json:"id"`
 	VerifiedDomains []VerifiedDomain `json:"verifiedDomains"`
@@ -75,7 +81,8 @@ type ConditionalAccessPolicy struct {
 // policy applies. A risk level, location, platform, device or authentication
 // flow condition limits a policy to the sign-ins that meet it.
 // insiderRiskLevels and transferMethods each hold their flags in one
-// comma-separated string.
+// comma-separated string. Unrecognized names the conditions Graph sent that
+// this type has no field for, such as one Microsoft adds later.
 // https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessconditionset
 type ConditionalAccessConditionSet struct {
 	Applications               *ConditionalAccessApplications        `json:"applications"`
@@ -89,6 +96,60 @@ type ConditionalAccessConditionSet struct {
 	Platforms                  *ConditionalAccessPlatforms           `json:"platforms"`
 	Devices                    *ConditionalAccessDevices             `json:"devices"`
 	AuthenticationFlows        *ConditionalAccessAuthenticationFlows `json:"authenticationFlows"`
+	ClientApplications         *ConditionalAccessClientApplications  `json:"clientApplications"`
+	Unrecognized               []string                              `json:"-"`
+}
+
+// knownConditions are the conditions ConditionalAccessConditionSet reads, and
+// the deprecated ones Graph still sends as null.
+var knownConditions = []string{
+	"@odata.type", "applications", "users", "clientAppTypes", "signInRiskLevels", "userRiskLevels",
+	"servicePrincipalRiskLevels", "insiderRiskLevels", "locations", "platforms", "devices",
+	"authenticationFlows", "clientApplications",
+}
+
+func (c *ConditionalAccessConditionSet) UnmarshalJSON(data []byte) error {
+	type plain ConditionalAccessConditionSet
+	if err := json.Unmarshal(data, (*plain)(c)); err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	c.Unrecognized = nil
+	for name, value := range fields {
+		if !slices.Contains(knownConditions, name) && !emptyJSON(value) {
+			c.Unrecognized = append(c.Unrecognized, name)
+		}
+	}
+	slices.Sort(c.Unrecognized)
+	return nil
+}
+
+// emptyJSON reports whether a value is null, or an empty string, list or
+// object, which sets no condition.
+func emptyJSON(value json.RawMessage) bool {
+	switch string(bytes.TrimSpace(value)) {
+	case "null", `""`, "[]", "{}":
+		return true
+	}
+	return false
+}
+
+// ConditionalAccessClientApplications holds the service principals a policy
+// for workload identities covers.
+type ConditionalAccessClientApplications struct {
+	IncludeServicePrincipals []string `json:"includeServicePrincipals"`
+}
+
+// NamedLocation is a location Conditional Access policies can name. An IP
+// location says whether it is trusted. A country location never is.
+// https://learn.microsoft.com/en-us/graph/api/resources/namedlocation
+type NamedLocation struct {
+	ODataType string `json:"@odata.type"`
+	ID        string `json:"id"`
+	IsTrusted bool   `json:"isTrusted"`
 }
 
 type ConditionalAccessApplications struct {
@@ -173,9 +234,18 @@ type UnifiedRoleEligibilitySchedule struct {
 	RoleDefinition   *UnifiedRoleDefinition `json:"roleDefinition"`
 }
 
+// UnifiedRoleDefinition is a directory role. IsPrivileged is nil when
+// Microsoft has not classified the role.
+// https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition
 type UnifiedRoleDefinition struct {
-	ID         string `json:"id"`
-	TemplateID string `json:"templateId"`
+	ID              string                  `json:"id"`
+	TemplateID      string                  `json:"templateId"`
+	IsPrivileged    *bool                   `json:"isPrivileged"`
+	RolePermissions []UnifiedRolePermission `json:"rolePermissions"`
+}
+
+type UnifiedRolePermission struct {
+	AllowedResourceActions []string `json:"allowedResourceActions"`
 }
 
 type DirectoryPrincipal struct {

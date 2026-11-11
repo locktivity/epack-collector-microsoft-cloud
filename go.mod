@@ -2,9 +2,9 @@ module github.com/locktivity/epack-collector-microsoft-cloud
 
 go 1.26.0
 
-toolchain go1.26.10
+toolchain go1.26.11
 
-require github.com/locktivity/epack v0.10.5
+require github.com/locktivity/epack v0.10.6
 
 require (
 	github.com/aws/smithy-go v1.25.1 // indirect

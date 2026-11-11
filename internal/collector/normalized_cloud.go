@@ -29,8 +29,10 @@ type CloudPostureStorage struct {
 	StorageResourceCount                    *int       `json:"storage_resource_count,omitempty"`
 	EncryptedStorageResourceCount           *int       `json:"encrypted_storage_resource_count,omitempty"`
 	PublicAccessBlockedStorageResourceCount *int       `json:"public_access_blocked_storage_resource_count,omitempty"`
+	NetworkRestrictedStorageResourceCount   *int       `json:"network_restricted_storage_resource_count,omitempty"`
 	EncryptionPct                           Percentage `json:"encryption_pct,omitzero"`
 	PublicAccessBlockedPct                  Percentage `json:"public_access_blocked_pct,omitzero"`
+	NetworkRestrictedPct                    Percentage `json:"network_restricted_pct,omitzero"`
 }
 
 type CloudPostureLogging struct {
@@ -102,10 +104,12 @@ func cloudPostureStorage(storage *AzureStorage, atAudit func(*int) *int) *CloudP
 	return &CloudPostureStorage{
 		StorageResourcesPresent:                 present(count),
 		StorageResourceCount:                    atAudit(count),
-		EncryptedStorageResourceCount:           atAudit(intPtr(storage.cmkCount)),
+		EncryptedStorageResourceCount:           atAudit(intPtr(storage.encryptedAtRestCount)),
 		PublicAccessBlockedStorageResourceCount: atAudit(intPtr(storage.publicAccessBlockedCount)),
-		EncryptionPct:                           share(intPtr(storage.cmkCount), count, componentsdk.RoundDown),
+		NetworkRestrictedStorageResourceCount:   atAudit(intPtr(storage.networkRestrictedCount)),
+		EncryptionPct:                           share(intPtr(storage.encryptedAtRestCount), count, componentsdk.RoundDown),
 		PublicAccessBlockedPct:                  share(intPtr(storage.publicAccessBlockedCount), count, componentsdk.RoundDown),
+		NetworkRestrictedPct:                    share(intPtr(storage.networkRestrictedCount), count, componentsdk.RoundDown),
 	}
 }
 
@@ -151,10 +155,12 @@ func cloudPostureNetwork(network *AzureNetwork, atAudit func(*int) *int) *CloudP
 var cloudPostureSources = []struct{ normalized, detailed string }{
 	{"storage/storage_resources_present", "storage/storage_accounts_count"},
 	{"storage/storage_resource_count", "storage/storage_accounts_count"},
-	{"storage/encrypted_storage_resource_count", "storage/encryption_cmk_pct"},
+	{"storage/encrypted_storage_resource_count", "storage/storage_accounts_count"},
 	{"storage/public_access_blocked_storage_resource_count", "storage/public_access_blocked_pct"},
-	{"storage/encryption_pct", "storage/encryption_cmk_pct"},
+	{"storage/network_restricted_storage_resource_count", "storage/network_restricted_pct"},
+	{"storage/encryption_pct", "storage/storage_accounts_count"},
 	{"storage/public_access_blocked_pct", "storage/public_access_blocked_pct"},
+	{"storage/network_restricted_pct", "storage/network_restricted_pct"},
 	{"logging/audit_log_enabled", "logging/activity_log_administrative_exported"},
 	{"logging/audit_log_all_regions", "logging/activity_log_administrative_exported"},
 	{"logging/cloudtrail_enabled", "logging/activity_log_administrative_exported"},

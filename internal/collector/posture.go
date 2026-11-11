@@ -65,6 +65,9 @@ type Users struct {
 	disabledCount      *int
 	inactiveCount      *int
 	signInEnabledCount *int
+	// inactiveMemberCount is the enabled members, guests left out, who have
+	// not signed in for 90 days, for the normalized artifact.
+	inactiveMemberCount *int
 }
 
 type Policy struct {
@@ -100,6 +103,14 @@ type PrivilegedAccess struct {
 	// not read.
 	mfaRegisteredCount     *int
 	phishingResistantCount *int
+	// standingPrivilegedUsersCount is the enabled privileged users who hold a
+	// privileged role at all times, for the normalized artifact.
+	standingPrivilegedUsersCount *int
+	// Whether there are any privileged users, and any who hold a role at
+	// all times. A user who holds a role directly shows there are, even when
+	// the members of a group that holds one are not read.
+	privilegedUsersPresent         *bool
+	standingPrivilegedUsersPresent *bool
 
 	// globalAdminsMFA is whether every Global Administrator is registered
 	// for MFA, for the deprecated cloud-posture iam block. It is nil when
@@ -229,9 +240,12 @@ type AzureStorage struct {
 	PublicAccessBlockedPct      *int `json:"public_access_blocked_pct"`
 	NetworkRestrictedPct        *int `json:"network_restricted_pct"`
 
-	// The counts behind EncryptionCMKPct and PublicAccessBlockedPct.
-	cmkCount                 int
+	// The counts the normalized storage block takes: accounts encrypted at
+	// rest with any key, and the ones behind PublicAccessBlockedPct and
+	// NetworkRestrictedPct.
+	encryptedAtRestCount     int
 	publicAccessBlockedCount int
+	networkRestrictedCount   int
 }
 
 type AzureKeyVault struct {

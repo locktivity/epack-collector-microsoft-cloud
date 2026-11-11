@@ -54,6 +54,26 @@ func TestGraphClientPages(t *testing.T) {
 	}
 }
 
+func TestGraphClientStopsAtANextLinkToAPageAlreadyRead(t *testing.T) {
+	var calls int
+	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		calls++
+		if calls > 2 {
+			t.Fatalf("unexpected request to %s", r.URL.String())
+		}
+		return jsonResponse(http.StatusOK, map[string]any{
+			"value":           []map[string]any{{"id": "u1"}},
+			"@odata.nextLink": "https://graph.test/v1.0/users?page=2",
+		}), nil
+	})}
+
+	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient))
+	_, err := client.Users(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "links to a page already read") {
+		t.Fatalf("expected the repeated nextLink to fail the list, got %v", err)
+	}
+}
+
 func TestGraphClientRejectsCrossOriginNextLink(t *testing.T) {
 	var calls int
 	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {

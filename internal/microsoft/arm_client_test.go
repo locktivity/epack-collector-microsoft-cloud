@@ -44,8 +44,8 @@ func TestARM(t *testing.T) {
 					"value": []map[string]any{{"id": "ra2"}},
 				}), nil
 			}
-			if got := r.URL.Query().Get("$filter"); got != "atScope()" {
-				t.Fatalf("unexpected roleAssignments filter: %s", got)
+			if r.URL.Query().Has("$filter") {
+				t.Fatalf("roleAssignments filtered with %s, which leaves out resource groups", r.URL.Query().Get("$filter"))
 			}
 			roleCalls++
 			return jsonResponse(http.StatusOK, map[string]any{
@@ -89,6 +89,26 @@ func TestARM(t *testing.T) {
 	}
 	if roleCalls != 1 {
 		t.Fatalf("expected one first-page call, got %d", roleCalls)
+	}
+}
+
+func TestARMClientStopsAtANextLinkToAPageAlreadyRead(t *testing.T) {
+	var calls int
+	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		calls++
+		if calls > 2 {
+			t.Fatalf("unexpected request to %s", r.URL.String())
+		}
+		return jsonResponse(http.StatusOK, map[string]any{
+			"value":    []map[string]any{{"id": "ra1"}},
+			"nextLink": "https://management.test/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments?page=2",
+		}), nil
+	})}
+
+	client := NewARMClient(StaticTokenSource("arm-token"), WithARMBaseURL("https://management.test"), WithARMHTTPClient(httpClient))
+	_, err := client.RoleAssignments(context.Background(), "sub-1")
+	if err == nil || !strings.Contains(err.Error(), "links to a page already read") {
+		t.Fatalf("expected the repeated nextLink to fail the list, got %v", err)
 	}
 }
 

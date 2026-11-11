@@ -7,7 +7,7 @@
     "users_present": true,
     "mfa_coverage_pct": 50,
     "mfa_phishing_resistant_pct": 50,
-    "inactive_pct": 67
+    "inactive_pct": 50
   },
   "app_security": {
     "apps_present": true,
@@ -16,7 +16,8 @@
   "privileged_access": {
     "privileged_users_present": true,
     "privileged_mfa_coverage_pct": 66,
-    "privileged_phishing_resistant_pct": 33
+    "privileged_phishing_resistant_pct": 33,
+    "standing_privileged_users_present": true
   },
   "lifecycle": {
     "accounts_present": true,

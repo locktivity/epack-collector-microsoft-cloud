@@ -17,6 +17,8 @@ type GraphAPI interface {
 	ConditionalAccessPolicies(context.Context) ([]microsoft.ConditionalAccessPolicy, error)
 	SecurityDefaults(context.Context) (*microsoft.IdentitySecurityDefaultsEnforcementPolicy, error)
 	RoleAssignments(context.Context) ([]microsoft.UnifiedRoleAssignment, error)
+	RoleDefinitions(context.Context) ([]microsoft.UnifiedRoleDefinition, error)
+	NamedLocations(context.Context) ([]microsoft.NamedLocation, error)
 	RoleEligibilitySchedules(context.Context) ([]microsoft.UnifiedRoleEligibilitySchedule, error)
 	ServicePrincipals(context.Context) ([]microsoft.ServicePrincipal, error)
 	Applications(context.Context) ([]microsoft.Application, error)
@@ -116,8 +118,12 @@ func (c *Collector) Collect(ctx context.Context, level componentsdk.Level) (*Res
 	result.EntraIDPPosture = entra.ToIDPPosture()
 	if result.EntraIDPPosture != nil {
 		c.markUnlistedMembers(entra, idpPosturePath, "/user_security/mfa_coverage_pct", "/user_security/mfa_phishing_resistant_pct")
+		if level.AtLeast(componentsdk.LevelAudit) {
+			c.markUnlistedMembers(entra, idpPosturePath, "/user_security/mfa_user_count", "/user_security/phishing_resistant_user_count")
+		}
+		c.markPartlyListedMembers(entra, level)
 		c.markIDPPostureUnsupported(level)
-		c.mirrorIDPPostureGaps()
+		c.mirrorIDPPostureGaps(result.EntraIDPPosture)
 	}
 	result.AzureCloudPosture = azure.ToCloudPosture()
 	c.mirrorCloudPostureGaps(azure)

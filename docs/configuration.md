@@ -112,8 +112,8 @@ Required Microsoft Graph application permissions:
 | `Organization.Read.All` | Tenant identity and verified domains. |
 | `User.Read.All` | User counts and account status, including for the users who hold Azure roles. |
 | `AuditLog.Read.All` | MFA registration report, sign-in activity, sign-in monitoring, and directory activity. |
-| `Policy.Read.All` | Conditional Access policies and security defaults. |
-| `RoleManagement.Read.Directory` | Directory role assignments. |
+| `Policy.Read.All` | Conditional Access policies, their named locations, and security defaults. |
+| `RoleManagement.Read.Directory` | Directory role assignments, and the role definitions that say which roles are privileged. |
 | `RoleEligibilitySchedule.Read.Directory` | PIM eligibility schedules. |
 | `Application.Read.All` | Enterprise app and app credential hygiene posture, and the credentials of the service principals that hold Azure roles. |
 | `SecurityEvents.Read.All` | Identity secure score. |

@@ -3,6 +3,7 @@ package collector
 import (
 	"testing"
 
+	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
 	"github.com/locktivity/epack/componentsdk"
 )
 
@@ -16,9 +17,11 @@ func TestNormalizedIdpComplete(t *testing.T) {
 	if got := idp.UserSecurity.MFAPhishingResistantPct.Value; got == nil || *got != 50 {
 		t.Fatalf("unexpected phishing-resistant MFA: %#v", idp.UserSecurity)
 	}
-	if got := idp.UserSecurity.InactivePct.Value; got == nil || *got != 67 {
+	// u1 signed in recently and u2 hasn't. The guest u3 isn't a user.
+	if got := idp.UserSecurity.InactivePct.Value; got == nil || *got != 50 {
 		t.Fatalf("unexpected inactive pct: %#v", idp.UserSecurity)
 	}
+	assertPtrInt(t, "inactive_user_count", idp.UserSecurity.InactiveUserCount, 1)
 	if idp.AppSecurity == nil || idp.AppSecurity.SSOCoveragePct.Value == nil || *idp.AppSecurity.SSOCoveragePct.Value != 100 {
 		t.Fatalf("unexpected app security: %#v", idp.AppSecurity)
 	}
@@ -50,5 +53,53 @@ func TestNormalizedIdpLeavesCountsOutBelowAudit(t *testing.T) {
 	}
 	if idp.UserSecurity.UsersPresent == nil || !*idp.UserSecurity.UsersPresent {
 		t.Fatalf("expected users_present at trust, got %#v", idp.UserSecurity)
+	}
+}
+
+func TestNormalizedIdpWritesTheMFACountsWhenTheReportListsEveryMember(t *testing.T) {
+	artifact := collectTestArtifact(t, testConfig())
+	artifact.CollectedAtLevel = string(componentsdk.LevelAudit)
+	members := *artifact.Users.EnabledMemberUsersCount
+	artifact.Posture.DenominatorEnabledMemberUsers = intPtr(members)
+	artifact.Posture.mfaRegisteredCount = intPtr(members - 1)
+	artifact.Posture.phishingResistantCount = intPtr(1)
+	idp := artifact.ToIDPPosture()
+	assertPtrInt(t, "mfa_user_count", idp.UserSecurity.MFAUserCount, members-1)
+	assertPtrInt(t, "phishing_resistant_user_count", idp.UserSecurity.PhishingResistantUserCount, 1)
+
+	// With a member the report doesn't list, the percentages are taken over
+	// fewer users than user_count, so the counts are left out.
+	artifact.Posture.DenominatorEnabledMemberUsers = intPtr(members - 1)
+	idp = artifact.ToIDPPosture()
+	if idp.UserSecurity.MFAUserCount != nil || idp.UserSecurity.PhishingResistantUserCount != nil {
+		t.Fatalf("counts = %v and %v, want both left out", idp.UserSecurity.MFAUserCount, idp.UserSecurity.PhishingResistantUserCount)
+	}
+}
+
+func TestStandingPrivilegedUsersLeaveOutJustInTimeActivations(t *testing.T) {
+	const securityAdministrator = "194ae4cb-b126-40b2-bd5b-6091b380977d"
+	roles := func(ids ...string) map[string]struct{} {
+		set := map[string]struct{}{}
+		for _, id := range ids {
+			set[id] = struct{}{}
+		}
+		return set
+	}
+	eligible := func(user, role string) microsoft.UnifiedRoleEligibilitySchedule {
+		return microsoft.UnifiedRoleEligibilitySchedule{PrincipalID: user, RoleDefinitionID: role}
+	}
+	got := standingPrivilegedUsers(map[string]map[string]struct{}{
+		"permanent": roles(globalAdministratorTemplateID),
+		"activated": roles(securityAdministrator),
+		"both":      roles(globalAdministratorTemplateID, securityAdministrator),
+	}, []microsoft.UnifiedRoleEligibilitySchedule{
+		eligible("activated", securityAdministrator),
+		eligible("both", globalAdministratorTemplateID),
+	}, classifyRoles(testRoleDefinitions()))
+	// "activated" holds only the role PIM lists them as eligible for, so
+	// they activated it just in time. "both" holds Security Administrator
+	// at all times.
+	if got != 2 {
+		t.Fatalf("standing privileged users = %d, want 2", got)
 	}
 }
