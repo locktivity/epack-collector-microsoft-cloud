@@ -15,6 +15,8 @@ jobs:
     uses: locktivity/epack/.github/workflows/collector-ci.yaml@main
     with:
       name: microsoft-cloud
+      # The tests run close to 10 minutes under the race detector.
+      test-timeout: 30m
       profile-url: ${{ vars.EVIDENCE_PROFILE_URL }}
       conformance-secrets: AZURE_CLIENT_SECRET
       checks: |
