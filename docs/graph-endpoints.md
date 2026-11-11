@@ -12,7 +12,7 @@ in v1.
 | Conditional Access policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | B1 |
 | Conditional Access named locations, read only when a policy names one | `/identity/conditionalAccess/namedLocations` | `Policy.Read.All` | B1 |
 | Security defaults | `/policies/identitySecurityDefaultsEnforcementPolicy` | `Policy.Read.All` | B1 |
-| Directory role assignments and definitions | `/roleManagement/directory/roleAssignments`, `/roleManagement/directory/roleDefinitions` | `RoleManagement.Read.Directory` | B2 |
+| Directory role assignments and definitions | `/roleManagement/directory/roleAssignments`, `/roleManagement/directory/roleDefinitions` (filtered on `isPrivileged`) | `RoleManagement.Read.Directory` | B2 |
 | PIM role eligibility schedules | `/roleManagement/directory/roleEligibilitySchedules` | `RoleEligibilitySchedule.Read.Directory` | B2 |
 | Enterprise apps | `/servicePrincipals` | `Application.Read.All` | B2 |
 | App and service-principal credentials | `/applications`, `/servicePrincipals` | `Application.Read.All` | B2 |

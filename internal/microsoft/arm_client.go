@@ -191,6 +191,23 @@ func (c *ARMClient) RecoveryServicesVaults(ctx context.Context, subscriptionID s
 	return getARMPaged[RecoveryServicesVault](ctx, c, "arm.backup.vaults.list", route)
 }
 
+// RecoveryServicesVault reads one vault. The vault list leaves out its
+// securitySettings, which only a read of the vault itself returns.
+func (c *ARMClient) RecoveryServicesVault(ctx context.Context, vaultID string) (RecoveryServicesVault, error) {
+	route, err := recoveryServicesVaultRoute(vaultID, "", nil)
+	if err != nil {
+		return RecoveryServicesVault{}, err
+	}
+	var vault RecoveryServicesVault
+	if err := c.getJSON(ctx, armOperation("arm.backup.vaults.get"), route, &vault); err != nil {
+		return RecoveryServicesVault{}, err
+	}
+	if vault.Properties.SecuritySettings.SoftDeleteSettings.SoftDeleteState == "" && vault.Properties.SoftDeleteFeatureState == "" {
+		return RecoveryServicesVault{}, invalidResponse("arm", route, "has no soft delete state")
+	}
+	return vault, nil
+}
+
 func (c *ARMClient) BackupProtectedItems(ctx context.Context, vaultID string) ([]BackupProtectedItem, error) {
 	route, err := recoveryServicesVaultRoute(vaultID, "backupProtectedItems", nil)
 	if err != nil {
@@ -380,10 +397,13 @@ func recoveryServicesVaultRoute(vaultID, child string, query url.Values) (string
 			values.Add(key, entry)
 		}
 	}
-	return "/subscriptions/" + url.PathEscape(subscriptionID) +
+	route := "/subscriptions/" + url.PathEscape(subscriptionID) +
 		"/resourceGroups/" + url.PathEscape(resourceGroup) +
-		"/providers/Microsoft.RecoveryServices/vaults/" + url.PathEscape(vaultName) +
-		"/" + child + "?" + values.Encode(), nil
+		"/providers/Microsoft.RecoveryServices/vaults/" + url.PathEscape(vaultName)
+	if child != "" {
+		route += "/" + child
+	}
+	return route + "?" + values.Encode(), nil
 }
 
 func resourceIDParts(id string) []string {

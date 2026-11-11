@@ -83,47 +83,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -356,47 +356,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -720,47 +720,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -916,47 +916,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -1122,47 +1122,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -1346,47 +1346,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -1548,47 +1548,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -1939,47 +1939,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -2102,47 +2102,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -2351,47 +2351,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -2654,47 +2654,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -2933,47 +2933,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -3291,47 +3291,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -3487,47 +3487,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -3693,47 +3693,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -3917,47 +3917,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -4119,47 +4119,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -4617,47 +4617,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -4792,47 +4792,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -5050,47 +5050,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -5335,7 +5335,7 @@
           {
             "role": "helper",
             "line": "internal/collector/azure_backup.go:19",
-            "end": 92
+            "end": 114
           },
           {
             "role": "input",
@@ -5472,19 +5472,7 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:40"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:57"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
@@ -5492,20 +5480,32 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:84"
-          },
-          {
-            "role": "assign",
-            "line": "internal/collector/azure_backup.go:89"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:103"
+            "line": "internal/collector/azure_backup.go:79"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:84"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:106"
+          },
+          {
+            "role": "assign",
+            "line": "internal/collector/azure_backup.go:111"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:125"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_backup.go:305",
-            "end": 319
+            "line": "internal/collector/azure_backup.go:327",
+            "end": 341
           },
           {
             "role": "input",
@@ -5534,19 +5534,7 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:40"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:57"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
@@ -5554,20 +5542,32 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:84"
-          },
-          {
-            "role": "assign",
-            "line": "internal/collector/azure_backup.go:88"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:103"
+            "line": "internal/collector/azure_backup.go:79"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:84"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:106"
+          },
+          {
+            "role": "assign",
+            "line": "internal/collector/azure_backup.go:110"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:125"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_backup.go:287",
-            "end": 303
+            "line": "internal/collector/azure_backup.go:309",
+            "end": 325
           },
           {
             "role": "input",
@@ -5599,48 +5599,48 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:31"
+            "line": "internal/collector/azure_backup.go:53"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_backup.go:32"
+            "line": "internal/collector/azure_backup.go:54"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
-          },
-          {
-            "role": "condition",
             "line": "internal/collector/azure_backup.go:65"
           },
           {
-            "role": "condition",
+            "role": "input",
             "line": "internal/collector/azure_backup.go:70"
           },
           {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:87"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:92"
+          },
+          {
             "role": "assign",
-            "line": "internal/collector/azure_backup.go:71"
+            "line": "internal/collector/azure_backup.go:93"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_backup.go:144",
-            "end": 171
+            "line": "internal/collector/azure_backup.go:166",
+            "end": 193
           },
           {
             "role": "input",
@@ -5774,52 +5774,52 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "helper",
-            "line": "internal/collector/azure_backup.go:182",
-            "end": 207
+            "line": "internal/collector/azure_backup.go:204",
+            "end": 229
           },
           {
             "role": "input",
@@ -5833,33 +5833,50 @@
       },
       "/accounts/*/backup/vault_immutability_pct": {
         "operations": [
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.subscriptions.get"
         ],
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:108"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:113"
+            "line": "internal/collector/azure_backup.go:21"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:114"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_backup.go:118"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:119"
+            "line": "internal/collector/azure_backup.go:46"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_backup.go:123"
+            "line": "internal/collector/azure_backup.go:47"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:125"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:130"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:135"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:136"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:140"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:141"
+          },
+          {
+            "role": "assign",
+            "line": "internal/collector/azure_backup.go:145"
           },
           {
             "role": "helper",
@@ -5868,38 +5885,56 @@
           }
         ],
         "gaps": [
+          "internal/collector/gaps.go:103",
           "internal/collector/gaps.go:105"
         ]
       },
       "/accounts/*/backup/vault_soft_delete_pct": {
         "operations": [
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.subscriptions.get"
         ],
         "code": [
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:108"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:112"
+            "line": "internal/collector/azure_backup.go:21"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:114"
-          },
-          {
-            "role": "condition",
-            "line": "internal/collector/azure_backup.go:115"
-          },
-          {
-            "role": "input",
-            "line": "internal/collector/azure_backup.go:116"
+            "line": "internal/collector/azure_backup.go:46"
           },
           {
             "role": "assign",
-            "line": "internal/collector/azure_backup.go:122"
+            "line": "internal/collector/azure_backup.go:47"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:125"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:130"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:134"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:136"
+          },
+          {
+            "role": "condition",
+            "line": "internal/collector/azure_backup.go:137"
+          },
+          {
+            "role": "input",
+            "line": "internal/collector/azure_backup.go:138"
+          },
+          {
+            "role": "assign",
+            "line": "internal/collector/azure_backup.go:144"
           },
           {
             "role": "helper",
@@ -5908,6 +5943,7 @@
           }
         ],
         "gaps": [
+          "internal/collector/gaps.go:103",
           "internal/collector/gaps.go:105"
         ]
       },
@@ -8438,6 +8474,7 @@
           "arm.backup.jobs.list",
           "arm.backup.policies.list",
           "arm.backup.protected_items.list",
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.compute.virtual_machines.list",
           "arm.defender.assessments.list",
@@ -8485,6 +8522,7 @@
           "arm.backup.jobs.list",
           "arm.backup.policies.list",
           "arm.backup.protected_items.list",
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.compute.virtual_machines.list",
           "arm.defender.assessments.list",
@@ -8778,47 +8816,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -9838,47 +9876,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -10148,47 +10186,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -10435,47 +10473,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -10578,47 +10616,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -10783,47 +10821,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -11558,6 +11596,7 @@
           "arm.backup.jobs.list",
           "arm.backup.policies.list",
           "arm.backup.protected_items.list",
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.compute.virtual_machines.list",
           "arm.defender.assessments.list",
@@ -11605,6 +11644,7 @@
           "arm.backup.jobs.list",
           "arm.backup.policies.list",
           "arm.backup.protected_items.list",
+          "arm.backup.vaults.get",
           "arm.backup.vaults.list",
           "arm.compute.virtual_machines.list",
           "arm.defender.assessments.list",
@@ -12084,15 +12124,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:121"
+            "line": "internal/microsoft/graph_client.go:122"
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:124"
+            "line": "internal/microsoft/graph_client.go:125"
           },
           {
             "role": "input",
-            "line": "internal/microsoft/graph_client.go:127"
+            "line": "internal/microsoft/graph_client.go:128"
           }
         ],
         "gaps": [
@@ -12222,15 +12262,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:121"
+            "line": "internal/microsoft/graph_client.go:122"
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:124"
+            "line": "internal/microsoft/graph_client.go:125"
           },
           {
             "role": "input",
-            "line": "internal/microsoft/graph_client.go:127"
+            "line": "internal/microsoft/graph_client.go:128"
           }
         ],
         "gaps": [
@@ -12765,8 +12805,8 @@
           },
           {
             "role": "helper",
-            "line": "internal/collector/entra_privileged.go:342",
-            "end": 355
+            "line": "internal/collector/entra_privileged.go:345",
+            "end": 358
           },
           {
             "role": "input",
@@ -13029,8 +13069,8 @@
           },
           {
             "role": "helper",
-            "line": "internal/collector/entra_privileged.go:294",
-            "end": 302
+            "line": "internal/collector/entra_privileged.go:297",
+            "end": 305
           },
           {
             "role": "input",
@@ -13823,15 +13863,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:121"
+            "line": "internal/microsoft/graph_client.go:122"
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:124"
+            "line": "internal/microsoft/graph_client.go:125"
           },
           {
             "role": "input",
-            "line": "internal/microsoft/graph_client.go:127"
+            "line": "internal/microsoft/graph_client.go:128"
           }
         ],
         "gaps": [
@@ -14875,47 +14915,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -15000,47 +15040,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -15193,47 +15233,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -15461,47 +15501,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -15629,47 +15669,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -15882,15 +15922,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:121"
+            "line": "internal/microsoft/graph_client.go:122"
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:124"
+            "line": "internal/microsoft/graph_client.go:125"
           },
           {
             "role": "input",
-            "line": "internal/microsoft/graph_client.go:127"
+            "line": "internal/microsoft/graph_client.go:128"
           }
         ],
         "gaps": [
@@ -15991,39 +16031,39 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -16317,15 +16357,15 @@
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:121"
+            "line": "internal/microsoft/graph_client.go:122"
           },
           {
             "role": "condition",
-            "line": "internal/microsoft/graph_client.go:124"
+            "line": "internal/microsoft/graph_client.go:125"
           },
           {
             "role": "input",
-            "line": "internal/microsoft/graph_client.go:127"
+            "line": "internal/microsoft/graph_client.go:128"
           }
         ],
         "gaps": [
@@ -16356,39 +16396,39 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "condition",
@@ -16703,39 +16743,39 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "condition",
@@ -17908,47 +17948,47 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:43"
+            "line": "internal/collector/azure_backup.go:65"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:50"
+            "line": "internal/collector/azure_backup.go:72"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -18161,39 +18201,39 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -18339,39 +18379,39 @@
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:29"
+            "line": "internal/collector/azure_backup.go:51"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:38"
+            "line": "internal/collector/azure_backup.go:60"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:39"
+            "line": "internal/collector/azure_backup.go:61"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:42"
+            "line": "internal/collector/azure_backup.go:64"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:48"
+            "line": "internal/collector/azure_backup.go:70"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:55"
+            "line": "internal/collector/azure_backup.go:77"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:75"
+            "line": "internal/collector/azure_backup.go:97"
           },
           {
             "role": "condition",
-            "line": "internal/collector/azure_backup.go:80"
+            "line": "internal/collector/azure_backup.go:102"
           },
           {
             "role": "input",
-            "line": "internal/collector/azure_backup.go:81"
+            "line": "internal/collector/azure_backup.go:103"
           },
           {
             "role": "input",
@@ -18907,169 +18947,191 @@
     "internal/collector/azure_backup.go:24": "\t\treturn nil",
     "internal/collector/azure_backup.go:25": "\t}",
     "internal/collector/azure_backup.go:26": "",
-    "internal/collector/azure_backup.go:27": "\tprotectedPct := scope.pointer(\"backup/protected_resource_pct\")",
-    "internal/collector/azure_backup.go:28": "\tout := backupVaultPosture(vaults)",
-    "internal/collector/azure_backup.go:29": "\tif len(vaults) == 0 {",
-    "internal/collector/azure_backup.go:30": "\t\tout.retentionRead = true",
-    "internal/collector/azure_backup.go:31": "\t\tif population.why == nil {",
-    "internal/collector/azure_backup.go:32": "\t\t\tout.ProtectedResourcePct = protectedResourcePct(nil, population.virtualMachines, population.databases)",
-    "internal/collector/azure_backup.go:33": "\t\t}",
-    "internal/collector/azure_backup.go:34": "\t\tc.gaps.leaveOut(azurePath, population.why, protectedPct)",
-    "internal/collector/azure_backup.go:35": "\t\treturn out",
-    "internal/collector/azure_backup.go:36": "\t}",
-    "internal/collector/azure_backup.go:37": "",
-    "internal/collector/azure_backup.go:38": "\tvar protectedItems []microsoft.BackupProtectedItem",
-    "internal/collector/azure_backup.go:39": "\tvar policies []microsoft.BackupPolicy",
-    "internal/collector/azure_backup.go:40": "\tvar jobs []microsoft.BackupJob",
-    "internal/collector/azure_backup.go:41": "\tvar items, policyReads, jobReads unreadVaults",
-    "internal/collector/azure_backup.go:42": "\tfor _, vault := range vaults {",
-    "internal/collector/azure_backup.go:43": "\t\tvaultProtectedItems, err := c.arm.BackupProtectedItems(ctx, vault.ID)",
-    "internal/collector/azure_backup.go:44": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:45": "\t\t\tdiagnostics.warnSubscription(\"Backup protected items\", scope.name, err)",
-    "internal/collector/azure_backup.go:46": "\t\t\titems.add(err)",
-    "internal/collector/azure_backup.go:47": "\t\t}",
-    "internal/collector/azure_backup.go:48": "\t\tprotectedItems = append(protectedItems, vaultProtectedItems...)",
-    "internal/collector/azure_backup.go:49": "",
-    "internal/collector/azure_backup.go:50": "\t\tvaultPolicies, err := c.arm.BackupPolicies(ctx, vault.ID)",
-    "internal/collector/azure_backup.go:51": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:52": "\t\t\tdiagnostics.warnSubscription(\"Backup policies\", scope.name, err)",
-    "internal/collector/azure_backup.go:53": "\t\t\tpolicyReads.add(err)",
-    "internal/collector/azure_backup.go:54": "\t\t}",
-    "internal/collector/azure_backup.go:55": "\t\tpolicies = append(policies, vaultPolicies...)",
-    "internal/collector/azure_backup.go:56": "",
-    "internal/collector/azure_backup.go:57": "\t\tvaultJobs, err := c.arm.BackupJobs(ctx, vault.ID, \"operation eq 'Backup'\")",
-    "internal/collector/azure_backup.go:58": "\t\tif err != nil {",
-    "internal/collector/azure_backup.go:59": "\t\t\tdiagnostics.warnSubscription(\"Backup job history\", scope.name, err)",
-    "internal/collector/azure_backup.go:60": "\t\t\tjobReads.add(err)",
-    "internal/collector/azure_backup.go:61": "\t\t}",
-    "internal/collector/azure_backup.go:62": "\t\tjobs = append(jobs, vaultJobs...)",
-    "internal/collector/azure_backup.go:63": "\t}",
-    "internal/collector/azure_backup.go:64": "",
-    "internal/collector/azure_backup.go:65": "\tswitch {",
-    "internal/collector/azure_backup.go:66": "\tcase population.why != nil:",
-    "internal/collector/azure_backup.go:67": "\t\tc.gaps.leaveOut(azurePath, population.why, protectedPct)",
-    "internal/collector/azure_backup.go:68": "\tcase items.count \u003e 0:",
-    "internal/collector/azure_backup.go:69": "\t\tc.gaps.partial(azurePath, items.count, failed(items.err), protectedPct)",
-    "internal/collector/azure_backup.go:70": "\tdefault:",
-    "internal/collector/azure_backup.go:71": "\t\tout.ProtectedResourcePct = protectedResourcePct(protectedItems, population.virtualMachines, population.databases)",
-    "internal/collector/azure_backup.go:72": "\t}",
-    "internal/collector/azure_backup.go:73": "\t// The retention depends on which policies the protected items use, so",
-    "internal/collector/azure_backup.go:74": "\t// both lists must be read.",
-    "internal/collector/azure_backup.go:75": "\tswitch {",
-    "internal/collector/azure_backup.go:76": "\tcase policyReads.count \u003e 0:",
-    "internal/collector/azure_backup.go:77": "\t\tc.gaps.partial(azurePath, policyReads.count, failed(policyReads.err), scope.pointer(\"backup/retention_days_min\"))",
-    "internal/collector/azure_backup.go:78": "\tcase items.count \u003e 0:",
-    "internal/collector/azure_backup.go:79": "\t\tc.gaps.partial(azurePath, items.count, failed(items.err), scope.pointer(\"backup/retention_days_min\"))",
-    "internal/collector/azure_backup.go:80": "\tdefault:",
-    "internal/collector/azure_backup.go:81": "\t\tout.RetentionDaysMin = retentionDaysMin(policies, protectedItems)",
-    "internal/collector/azure_backup.go:82": "\t\tout.retentionRead = true",
-    "internal/collector/azure_backup.go:83": "\t}",
-    "internal/collector/azure_backup.go:84": "\tif jobReads.count \u003e 0 {",
-    "internal/collector/azure_backup.go:85": "\t\tc.gaps.partial(azurePath, jobReads.count, failed(jobReads.err),",
-    "internal/collector/azure_backup.go:86": "\t\t\tscope.pointer(\"backup/latest_successful_backup_age_hours_max\"), scope.pointer(\"backup/failed_jobs_7d_count\"))",
-    "internal/collector/azure_backup.go:87": "\t} else {",
-    "internal/collector/azure_backup.go:88": "\t\tout.LatestSuccessfulBackupAgeHoursMax = latestSuccessfulBackupAgeHoursMax(jobs, c.clock.Now())",
-    "internal/collector/azure_backup.go:89": "\t\tout.FailedJobs7dCount = failedBackupJobs7dCount(jobs, c.clock.Now())",
-    "internal/collector/azure_backup.go:90": "\t}",
-    "internal/collector/azure_backup.go:91": "\treturn out",
-    "internal/collector/azure_backup.go:92": "}",
-    "internal/collector/azure_backup.go:103": "\tu.count++",
-    "internal/collector/azure_backup.go:108": "\tif len(vaults) == 0 {",
-    "internal/collector/azure_backup.go:112": "\tsoftDelete := 0",
-    "internal/collector/azure_backup.go:113": "\timmutability := 0",
-    "internal/collector/azure_backup.go:114": "\tfor _, vault := range vaults {",
-    "internal/collector/azure_backup.go:115": "\t\tif vaultSoftDeleteEnabled(vault) {",
-    "internal/collector/azure_backup.go:116": "\t\t\tsoftDelete++",
-    "internal/collector/azure_backup.go:118": "\t\tif vaultImmutabilityEnabled(vault) {",
-    "internal/collector/azure_backup.go:119": "\t\t\timmutability++",
-    "internal/collector/azure_backup.go:122": "\tout.VaultSoftDeletePct = PercentInt(softDelete, len(vaults))",
-    "internal/collector/azure_backup.go:123": "\tout.VaultImmutabilityPct = PercentInt(immutability, len(vaults))",
-    "internal/collector/azure_backup.go:144": "func protectedResourcePct(items []microsoft.BackupProtectedItem, virtualMachines []microsoft.VirtualMachine, databases []microsoft.SQLDatabase) *int {",
-    "internal/collector/azure_backup.go:145": "\tdenominator := len(virtualMachines) + len(databases)",
-    "internal/collector/azure_backup.go:146": "\tif denominator == 0 {",
-    "internal/collector/azure_backup.go:147": "\t\treturn nil",
-    "internal/collector/azure_backup.go:148": "\t}",
-    "internal/collector/azure_backup.go:149": "\tprotectedIDs := map[string]struct{}{}",
-    "internal/collector/azure_backup.go:150": "\tfor _, item := range items {",
-    "internal/collector/azure_backup.go:151": "\t\tif !backupProtectionActive(item.Properties.ProtectionState) {",
-    "internal/collector/azure_backup.go:152": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:153": "\t\t}",
-    "internal/collector/azure_backup.go:154": "\t\tid := strings.ToLower(item.Properties.SourceResourceID)",
-    "internal/collector/azure_backup.go:155": "\t\tif id != \"\" {",
-    "internal/collector/azure_backup.go:156": "\t\t\tprotectedIDs[id] = struct{}{}",
-    "internal/collector/azure_backup.go:157": "\t\t}",
-    "internal/collector/azure_backup.go:158": "\t}",
-    "internal/collector/azure_backup.go:159": "\tprotected := 0",
-    "internal/collector/azure_backup.go:160": "\tfor _, vm := range virtualMachines {",
-    "internal/collector/azure_backup.go:161": "\t\tif _, ok := protectedIDs[strings.ToLower(vm.ID)]; ok {",
-    "internal/collector/azure_backup.go:162": "\t\t\tprotected++",
-    "internal/collector/azure_backup.go:163": "\t\t}",
-    "internal/collector/azure_backup.go:164": "\t}",
-    "internal/collector/azure_backup.go:165": "\tfor _, database := range databases {",
-    "internal/collector/azure_backup.go:166": "\t\tif _, ok := protectedIDs[strings.ToLower(database.ID)]; ok {",
-    "internal/collector/azure_backup.go:167": "\t\t\tprotected++",
-    "internal/collector/azure_backup.go:168": "\t\t}",
-    "internal/collector/azure_backup.go:169": "\t}",
-    "internal/collector/azure_backup.go:170": "\treturn PercentInt(protected, denominator)",
-    "internal/collector/azure_backup.go:171": "}",
-    "internal/collector/azure_backup.go:182": "func retentionDaysMin(policies []microsoft.BackupPolicy, items []microsoft.BackupProtectedItem) *int {",
-    "internal/collector/azure_backup.go:183": "\tinUse := map[string]struct{}{}",
-    "internal/collector/azure_backup.go:184": "\tfor _, item := range items {",
-    "internal/collector/azure_backup.go:185": "\t\tif id := strings.ToLower(item.Properties.PolicyID); id != \"\" {",
-    "internal/collector/azure_backup.go:186": "\t\t\tinUse[id] = struct{}{}",
-    "internal/collector/azure_backup.go:187": "\t\t}",
-    "internal/collector/azure_backup.go:188": "\t}",
-    "internal/collector/azure_backup.go:189": "\tminDays := 0",
-    "internal/collector/azure_backup.go:190": "\tfor _, policy := range policies {",
-    "internal/collector/azure_backup.go:191": "\t\tif _, ok := inUse[strings.ToLower(policy.ID)]; !ok {",
-    "internal/collector/azure_backup.go:192": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:193": "\t\t}",
-    "internal/collector/azure_backup.go:194": "\t\tfor _, days := range retentionDays(policy.Properties, false) {",
-    "internal/collector/azure_backup.go:195": "\t\t\tif days \u003c= 0 {",
-    "internal/collector/azure_backup.go:196": "\t\t\t\tcontinue",
-    "internal/collector/azure_backup.go:197": "\t\t\t}",
-    "internal/collector/azure_backup.go:198": "\t\t\tif minDays == 0 || days \u003c minDays {",
-    "internal/collector/azure_backup.go:199": "\t\t\t\tminDays = days",
-    "internal/collector/azure_backup.go:200": "\t\t\t}",
-    "internal/collector/azure_backup.go:201": "\t\t}",
-    "internal/collector/azure_backup.go:202": "\t}",
-    "internal/collector/azure_backup.go:203": "\tif minDays == 0 {",
-    "internal/collector/azure_backup.go:204": "\t\treturn nil",
-    "internal/collector/azure_backup.go:205": "\t}",
-    "internal/collector/azure_backup.go:206": "\treturn intPtr(minDays)",
-    "internal/collector/azure_backup.go:207": "}",
-    "internal/collector/azure_backup.go:287": "func latestSuccessfulBackupAgeHoursMax(jobs []microsoft.BackupJob, now time.Time) *int {",
-    "internal/collector/azure_backup.go:288": "\tvar maxAge *int",
-    "internal/collector/azure_backup.go:289": "\tfor _, job := range jobs {",
-    "internal/collector/azure_backup.go:290": "\t\tif !backupOperation(job.Properties.Operation) || !successfulBackupStatus(job.Properties.Status) {",
-    "internal/collector/azure_backup.go:291": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:292": "\t\t}",
-    "internal/collector/azure_backup.go:293": "\t\tcompletedAt := backupJobTime(job)",
-    "internal/collector/azure_backup.go:294": "\t\tif completedAt.IsZero() || completedAt.After(now) {",
-    "internal/collector/azure_backup.go:295": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:296": "\t\t}",
-    "internal/collector/azure_backup.go:297": "\t\tage := int(math.Round(now.Sub(completedAt).Hours()))",
-    "internal/collector/azure_backup.go:298": "\t\tif maxAge == nil || age \u003e *maxAge {",
-    "internal/collector/azure_backup.go:299": "\t\t\tmaxAge = intPtr(age)",
-    "internal/collector/azure_backup.go:300": "\t\t}",
-    "internal/collector/azure_backup.go:301": "\t}",
-    "internal/collector/azure_backup.go:302": "\treturn maxAge",
-    "internal/collector/azure_backup.go:303": "}",
-    "internal/collector/azure_backup.go:305": "func failedBackupJobs7dCount(jobs []microsoft.BackupJob, now time.Time) *int {",
-    "internal/collector/azure_backup.go:306": "\tsince := now.AddDate(0, 0, -7)",
-    "internal/collector/azure_backup.go:307": "\tfailed := 0",
-    "internal/collector/azure_backup.go:308": "\tfor _, job := range jobs {",
-    "internal/collector/azure_backup.go:309": "\t\tif !backupOperation(job.Properties.Operation) || !failedBackupStatus(job.Properties.Status) {",
-    "internal/collector/azure_backup.go:310": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:311": "\t\t}",
-    "internal/collector/azure_backup.go:312": "\t\toccurredAt := backupJobTime(job)",
-    "internal/collector/azure_backup.go:313": "\t\tif occurredAt.IsZero() || occurredAt.Before(since) || occurredAt.After(now) {",
-    "internal/collector/azure_backup.go:314": "\t\t\tcontinue",
-    "internal/collector/azure_backup.go:315": "\t\t}",
-    "internal/collector/azure_backup.go:316": "\t\tfailed++",
-    "internal/collector/azure_backup.go:317": "\t}",
-    "internal/collector/azure_backup.go:318": "\treturn intPtr(failed)",
-    "internal/collector/azure_backup.go:319": "}",
+    "internal/collector/azure_backup.go:27": "\t// The vault list leaves out each vault's security settings, so a vault",
+    "internal/collector/azure_backup.go:28": "\t// without them is read on its own. One that can't be read leaves the",
+    "internal/collector/azure_backup.go:29": "\t// soft delete and immutability shares out rather than counting as off.",
+    "internal/collector/azure_backup.go:30": "\tvar settingsReads unreadVaults",
+    "internal/collector/azure_backup.go:31": "\tfor i, vault := range vaults {",
+    "internal/collector/azure_backup.go:32": "\t\tif vault.Properties.SecuritySettings.SoftDeleteSettings.SoftDeleteState != \"\" || vault.Properties.SoftDeleteFeatureState != \"\" {",
+    "internal/collector/azure_backup.go:33": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:34": "\t\t}",
+    "internal/collector/azure_backup.go:35": "\t\tfull, err := c.arm.RecoveryServicesVault(ctx, vault.ID)",
+    "internal/collector/azure_backup.go:36": "\t\tif err != nil {",
+    "internal/collector/azure_backup.go:37": "\t\t\tdiagnostics.warnSubscription(\"Recovery Services vault settings\", scope.name, err)",
+    "internal/collector/azure_backup.go:38": "\t\t\tsettingsReads.add(err)",
+    "internal/collector/azure_backup.go:39": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:40": "\t\t}",
+    "internal/collector/azure_backup.go:41": "\t\tvaults[i].Properties = full.Properties",
+    "internal/collector/azure_backup.go:42": "\t}",
+    "internal/collector/azure_backup.go:43": "",
+    "internal/collector/azure_backup.go:44": "\tprotectedPct := scope.pointer(\"backup/protected_resource_pct\")",
+    "internal/collector/azure_backup.go:45": "\tout := backupVaultPosture(vaults)",
+    "internal/collector/azure_backup.go:46": "\tif settingsReads.count \u003e 0 {",
+    "internal/collector/azure_backup.go:47": "\t\tout.VaultSoftDeletePct, out.VaultImmutabilityPct = nil, nil",
+    "internal/collector/azure_backup.go:48": "\t\tc.gaps.partial(azurePath, settingsReads.count, failed(settingsReads.err),",
+    "internal/collector/azure_backup.go:49": "\t\t\tscope.pointer(\"backup/vault_soft_delete_pct\"), scope.pointer(\"backup/vault_immutability_pct\"))",
+    "internal/collector/azure_backup.go:50": "\t}",
+    "internal/collector/azure_backup.go:51": "\tif len(vaults) == 0 {",
+    "internal/collector/azure_backup.go:52": "\t\tout.retentionRead = true",
+    "internal/collector/azure_backup.go:53": "\t\tif population.why == nil {",
+    "internal/collector/azure_backup.go:54": "\t\t\tout.ProtectedResourcePct = protectedResourcePct(nil, population.virtualMachines, population.databases)",
+    "internal/collector/azure_backup.go:55": "\t\t}",
+    "internal/collector/azure_backup.go:56": "\t\tc.gaps.leaveOut(azurePath, population.why, protectedPct)",
+    "internal/collector/azure_backup.go:57": "\t\treturn out",
+    "internal/collector/azure_backup.go:58": "\t}",
+    "internal/collector/azure_backup.go:59": "",
+    "internal/collector/azure_backup.go:60": "\tvar protectedItems []microsoft.BackupProtectedItem",
+    "internal/collector/azure_backup.go:61": "\tvar policies []microsoft.BackupPolicy",
+    "internal/collector/azure_backup.go:62": "\tvar jobs []microsoft.BackupJob",
+    "internal/collector/azure_backup.go:63": "\tvar items, policyReads, jobReads unreadVaults",
+    "internal/collector/azure_backup.go:64": "\tfor _, vault := range vaults {",
+    "internal/collector/azure_backup.go:65": "\t\tvaultProtectedItems, err := c.arm.BackupProtectedItems(ctx, vault.ID)",
+    "internal/collector/azure_backup.go:66": "\t\tif err != nil {",
+    "internal/collector/azure_backup.go:67": "\t\t\tdiagnostics.warnSubscription(\"Backup protected items\", scope.name, err)",
+    "internal/collector/azure_backup.go:68": "\t\t\titems.add(err)",
+    "internal/collector/azure_backup.go:69": "\t\t}",
+    "internal/collector/azure_backup.go:70": "\t\tprotectedItems = append(protectedItems, vaultProtectedItems...)",
+    "internal/collector/azure_backup.go:71": "",
+    "internal/collector/azure_backup.go:72": "\t\tvaultPolicies, err := c.arm.BackupPolicies(ctx, vault.ID)",
+    "internal/collector/azure_backup.go:73": "\t\tif err != nil {",
+    "internal/collector/azure_backup.go:74": "\t\t\tdiagnostics.warnSubscription(\"Backup policies\", scope.name, err)",
+    "internal/collector/azure_backup.go:75": "\t\t\tpolicyReads.add(err)",
+    "internal/collector/azure_backup.go:76": "\t\t}",
+    "internal/collector/azure_backup.go:77": "\t\tpolicies = append(policies, vaultPolicies...)",
+    "internal/collector/azure_backup.go:78": "",
+    "internal/collector/azure_backup.go:79": "\t\tvaultJobs, err := c.arm.BackupJobs(ctx, vault.ID, \"operation eq 'Backup'\")",
+    "internal/collector/azure_backup.go:80": "\t\tif err != nil {",
+    "internal/collector/azure_backup.go:81": "\t\t\tdiagnostics.warnSubscription(\"Backup job history\", scope.name, err)",
+    "internal/collector/azure_backup.go:82": "\t\t\tjobReads.add(err)",
+    "internal/collector/azure_backup.go:83": "\t\t}",
+    "internal/collector/azure_backup.go:84": "\t\tjobs = append(jobs, vaultJobs...)",
+    "internal/collector/azure_backup.go:85": "\t}",
+    "internal/collector/azure_backup.go:86": "",
+    "internal/collector/azure_backup.go:87": "\tswitch {",
+    "internal/collector/azure_backup.go:88": "\tcase population.why != nil:",
+    "internal/collector/azure_backup.go:89": "\t\tc.gaps.leaveOut(azurePath, population.why, protectedPct)",
+    "internal/collector/azure_backup.go:90": "\tcase items.count \u003e 0:",
+    "internal/collector/azure_backup.go:91": "\t\tc.gaps.partial(azurePath, items.count, failed(items.err), protectedPct)",
+    "internal/collector/azure_backup.go:92": "\tdefault:",
+    "internal/collector/azure_backup.go:93": "\t\tout.ProtectedResourcePct = protectedResourcePct(protectedItems, population.virtualMachines, population.databases)",
+    "internal/collector/azure_backup.go:94": "\t}",
+    "internal/collector/azure_backup.go:95": "\t// The retention depends on which policies the protected items use, so",
+    "internal/collector/azure_backup.go:96": "\t// both lists must be read.",
+    "internal/collector/azure_backup.go:97": "\tswitch {",
+    "internal/collector/azure_backup.go:98": "\tcase policyReads.count \u003e 0:",
+    "internal/collector/azure_backup.go:99": "\t\tc.gaps.partial(azurePath, policyReads.count, failed(policyReads.err), scope.pointer(\"backup/retention_days_min\"))",
+    "internal/collector/azure_backup.go:100": "\tcase items.count \u003e 0:",
+    "internal/collector/azure_backup.go:101": "\t\tc.gaps.partial(azurePath, items.count, failed(items.err), scope.pointer(\"backup/retention_days_min\"))",
+    "internal/collector/azure_backup.go:102": "\tdefault:",
+    "internal/collector/azure_backup.go:103": "\t\tout.RetentionDaysMin = retentionDaysMin(policies, protectedItems)",
+    "internal/collector/azure_backup.go:104": "\t\tout.retentionRead = true",
+    "internal/collector/azure_backup.go:105": "\t}",
+    "internal/collector/azure_backup.go:106": "\tif jobReads.count \u003e 0 {",
+    "internal/collector/azure_backup.go:107": "\t\tc.gaps.partial(azurePath, jobReads.count, failed(jobReads.err),",
+    "internal/collector/azure_backup.go:108": "\t\t\tscope.pointer(\"backup/latest_successful_backup_age_hours_max\"), scope.pointer(\"backup/failed_jobs_7d_count\"))",
+    "internal/collector/azure_backup.go:109": "\t} else {",
+    "internal/collector/azure_backup.go:110": "\t\tout.LatestSuccessfulBackupAgeHoursMax = latestSuccessfulBackupAgeHoursMax(jobs, c.clock.Now())",
+    "internal/collector/azure_backup.go:111": "\t\tout.FailedJobs7dCount = failedBackupJobs7dCount(jobs, c.clock.Now())",
+    "internal/collector/azure_backup.go:112": "\t}",
+    "internal/collector/azure_backup.go:113": "\treturn out",
+    "internal/collector/azure_backup.go:114": "}",
+    "internal/collector/azure_backup.go:125": "\tu.count++",
+    "internal/collector/azure_backup.go:130": "\tif len(vaults) == 0 {",
+    "internal/collector/azure_backup.go:134": "\tsoftDelete := 0",
+    "internal/collector/azure_backup.go:135": "\timmutability := 0",
+    "internal/collector/azure_backup.go:136": "\tfor _, vault := range vaults {",
+    "internal/collector/azure_backup.go:137": "\t\tif vaultSoftDeleteEnabled(vault) {",
+    "internal/collector/azure_backup.go:138": "\t\t\tsoftDelete++",
+    "internal/collector/azure_backup.go:140": "\t\tif vaultImmutabilityEnabled(vault) {",
+    "internal/collector/azure_backup.go:141": "\t\t\timmutability++",
+    "internal/collector/azure_backup.go:144": "\tout.VaultSoftDeletePct = PercentInt(softDelete, len(vaults))",
+    "internal/collector/azure_backup.go:145": "\tout.VaultImmutabilityPct = PercentInt(immutability, len(vaults))",
+    "internal/collector/azure_backup.go:166": "func protectedResourcePct(items []microsoft.BackupProtectedItem, virtualMachines []microsoft.VirtualMachine, databases []microsoft.SQLDatabase) *int {",
+    "internal/collector/azure_backup.go:167": "\tdenominator := len(virtualMachines) + len(databases)",
+    "internal/collector/azure_backup.go:168": "\tif denominator == 0 {",
+    "internal/collector/azure_backup.go:169": "\t\treturn nil",
+    "internal/collector/azure_backup.go:170": "\t}",
+    "internal/collector/azure_backup.go:171": "\tprotectedIDs := map[string]struct{}{}",
+    "internal/collector/azure_backup.go:172": "\tfor _, item := range items {",
+    "internal/collector/azure_backup.go:173": "\t\tif !backupProtectionActive(item.Properties.ProtectionState) {",
+    "internal/collector/azure_backup.go:174": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:175": "\t\t}",
+    "internal/collector/azure_backup.go:176": "\t\tid := strings.ToLower(item.Properties.SourceResourceID)",
+    "internal/collector/azure_backup.go:177": "\t\tif id != \"\" {",
+    "internal/collector/azure_backup.go:178": "\t\t\tprotectedIDs[id] = struct{}{}",
+    "internal/collector/azure_backup.go:179": "\t\t}",
+    "internal/collector/azure_backup.go:180": "\t}",
+    "internal/collector/azure_backup.go:181": "\tprotected := 0",
+    "internal/collector/azure_backup.go:182": "\tfor _, vm := range virtualMachines {",
+    "internal/collector/azure_backup.go:183": "\t\tif _, ok := protectedIDs[strings.ToLower(vm.ID)]; ok {",
+    "internal/collector/azure_backup.go:184": "\t\t\tprotected++",
+    "internal/collector/azure_backup.go:185": "\t\t}",
+    "internal/collector/azure_backup.go:186": "\t}",
+    "internal/collector/azure_backup.go:187": "\tfor _, database := range databases {",
+    "internal/collector/azure_backup.go:188": "\t\tif _, ok := protectedIDs[strings.ToLower(database.ID)]; ok {",
+    "internal/collector/azure_backup.go:189": "\t\t\tprotected++",
+    "internal/collector/azure_backup.go:190": "\t\t}",
+    "internal/collector/azure_backup.go:191": "\t}",
+    "internal/collector/azure_backup.go:192": "\treturn PercentInt(protected, denominator)",
+    "internal/collector/azure_backup.go:193": "}",
+    "internal/collector/azure_backup.go:204": "func retentionDaysMin(policies []microsoft.BackupPolicy, items []microsoft.BackupProtectedItem) *int {",
+    "internal/collector/azure_backup.go:205": "\tinUse := map[string]struct{}{}",
+    "internal/collector/azure_backup.go:206": "\tfor _, item := range items {",
+    "internal/collector/azure_backup.go:207": "\t\tif id := strings.ToLower(item.Properties.PolicyID); id != \"\" {",
+    "internal/collector/azure_backup.go:208": "\t\t\tinUse[id] = struct{}{}",
+    "internal/collector/azure_backup.go:209": "\t\t}",
+    "internal/collector/azure_backup.go:210": "\t}",
+    "internal/collector/azure_backup.go:211": "\tminDays := 0",
+    "internal/collector/azure_backup.go:212": "\tfor _, policy := range policies {",
+    "internal/collector/azure_backup.go:213": "\t\tif _, ok := inUse[strings.ToLower(policy.ID)]; !ok {",
+    "internal/collector/azure_backup.go:214": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:215": "\t\t}",
+    "internal/collector/azure_backup.go:216": "\t\tfor _, days := range retentionDays(policy.Properties, false) {",
+    "internal/collector/azure_backup.go:217": "\t\t\tif days \u003c= 0 {",
+    "internal/collector/azure_backup.go:218": "\t\t\t\tcontinue",
+    "internal/collector/azure_backup.go:219": "\t\t\t}",
+    "internal/collector/azure_backup.go:220": "\t\t\tif minDays == 0 || days \u003c minDays {",
+    "internal/collector/azure_backup.go:221": "\t\t\t\tminDays = days",
+    "internal/collector/azure_backup.go:222": "\t\t\t}",
+    "internal/collector/azure_backup.go:223": "\t\t}",
+    "internal/collector/azure_backup.go:224": "\t}",
+    "internal/collector/azure_backup.go:225": "\tif minDays == 0 {",
+    "internal/collector/azure_backup.go:226": "\t\treturn nil",
+    "internal/collector/azure_backup.go:227": "\t}",
+    "internal/collector/azure_backup.go:228": "\treturn intPtr(minDays)",
+    "internal/collector/azure_backup.go:229": "}",
+    "internal/collector/azure_backup.go:309": "func latestSuccessfulBackupAgeHoursMax(jobs []microsoft.BackupJob, now time.Time) *int {",
+    "internal/collector/azure_backup.go:310": "\tvar maxAge *int",
+    "internal/collector/azure_backup.go:311": "\tfor _, job := range jobs {",
+    "internal/collector/azure_backup.go:312": "\t\tif !backupOperation(job.Properties.Operation) || !successfulBackupStatus(job.Properties.Status) {",
+    "internal/collector/azure_backup.go:313": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:314": "\t\t}",
+    "internal/collector/azure_backup.go:315": "\t\tcompletedAt := backupJobTime(job)",
+    "internal/collector/azure_backup.go:316": "\t\tif completedAt.IsZero() || completedAt.After(now) {",
+    "internal/collector/azure_backup.go:317": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:318": "\t\t}",
+    "internal/collector/azure_backup.go:319": "\t\tage := int(math.Round(now.Sub(completedAt).Hours()))",
+    "internal/collector/azure_backup.go:320": "\t\tif maxAge == nil || age \u003e *maxAge {",
+    "internal/collector/azure_backup.go:321": "\t\t\tmaxAge = intPtr(age)",
+    "internal/collector/azure_backup.go:322": "\t\t}",
+    "internal/collector/azure_backup.go:323": "\t}",
+    "internal/collector/azure_backup.go:324": "\treturn maxAge",
+    "internal/collector/azure_backup.go:325": "}",
+    "internal/collector/azure_backup.go:327": "func failedBackupJobs7dCount(jobs []microsoft.BackupJob, now time.Time) *int {",
+    "internal/collector/azure_backup.go:328": "\tsince := now.AddDate(0, 0, -7)",
+    "internal/collector/azure_backup.go:329": "\tfailed := 0",
+    "internal/collector/azure_backup.go:330": "\tfor _, job := range jobs {",
+    "internal/collector/azure_backup.go:331": "\t\tif !backupOperation(job.Properties.Operation) || !failedBackupStatus(job.Properties.Status) {",
+    "internal/collector/azure_backup.go:332": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:333": "\t\t}",
+    "internal/collector/azure_backup.go:334": "\t\toccurredAt := backupJobTime(job)",
+    "internal/collector/azure_backup.go:335": "\t\tif occurredAt.IsZero() || occurredAt.Before(since) || occurredAt.After(now) {",
+    "internal/collector/azure_backup.go:336": "\t\t\tcontinue",
+    "internal/collector/azure_backup.go:337": "\t\t}",
+    "internal/collector/azure_backup.go:338": "\t\tfailed++",
+    "internal/collector/azure_backup.go:339": "\t}",
+    "internal/collector/azure_backup.go:340": "\treturn intPtr(failed)",
+    "internal/collector/azure_backup.go:341": "}",
     "internal/collector/azure_compute.go:19": "\tvirtualMachines, err := c.arm.VirtualMachines(ctx, scope.id)",
     "internal/collector/azure_compute.go:20": "\tif err != nil {",
     "internal/collector/azure_compute.go:22": "\t\treads.virtualMachinesMiss = failed(err)",
@@ -19860,29 +19922,29 @@
     "internal/collector/entra_privileged.go:149": "\tc.gaps.leaveOut(entraPath, schedulesMiss, \"/privileged_access/pim_eligible_pct\", \"/privileged_access/standing_assignment_count\")",
     "internal/collector/entra_privileged.go:150": "\treturn out",
     "internal/collector/entra_privileged.go:151": "}",
-    "internal/collector/entra_privileged.go:294": "func privilegedGuestCount(privilegedUserIDs map[string]struct{}, userByID map[string]microsoft.User) int {",
-    "internal/collector/entra_privileged.go:295": "\tcount := 0",
-    "internal/collector/entra_privileged.go:296": "\tfor id := range privilegedUserIDs {",
-    "internal/collector/entra_privileged.go:297": "\t\tif userByID[id].UserType == \"Guest\" {",
-    "internal/collector/entra_privileged.go:298": "\t\t\tcount++",
-    "internal/collector/entra_privileged.go:299": "\t\t}",
-    "internal/collector/entra_privileged.go:300": "\t}",
-    "internal/collector/entra_privileged.go:301": "\treturn count",
-    "internal/collector/entra_privileged.go:302": "}",
-    "internal/collector/entra_privileged.go:342": "func inactivePrivilegedUsersCount(privilegedUserIDs map[string]struct{}, users []microsoft.User, now time.Time) *int {",
-    "internal/collector/entra_privileged.go:343": "\tif len(privilegedUserIDs) == 0 {",
-    "internal/collector/entra_privileged.go:344": "\t\treturn nil",
-    "internal/collector/entra_privileged.go:345": "\t}",
-    "internal/collector/entra_privileged.go:346": "\tbyID := usersByID(users)",
-    "internal/collector/entra_privileged.go:347": "\tinactive := 0",
-    "internal/collector/entra_privileged.go:348": "\tcutoff := inactiveCutoff(now)",
-    "internal/collector/entra_privileged.go:349": "\tfor id := range privilegedUserIDs {",
-    "internal/collector/entra_privileged.go:350": "\t\tif user, ok := byID[id]; !ok || !signedInSince(user, cutoff) {",
-    "internal/collector/entra_privileged.go:351": "\t\t\tinactive++",
-    "internal/collector/entra_privileged.go:352": "\t\t}",
-    "internal/collector/entra_privileged.go:353": "\t}",
-    "internal/collector/entra_privileged.go:354": "\treturn intPtr(inactive)",
-    "internal/collector/entra_privileged.go:355": "}",
+    "internal/collector/entra_privileged.go:297": "func privilegedGuestCount(privilegedUserIDs map[string]struct{}, userByID map[string]microsoft.User) int {",
+    "internal/collector/entra_privileged.go:298": "\tcount := 0",
+    "internal/collector/entra_privileged.go:299": "\tfor id := range privilegedUserIDs {",
+    "internal/collector/entra_privileged.go:300": "\t\tif userByID[id].UserType == \"Guest\" {",
+    "internal/collector/entra_privileged.go:301": "\t\t\tcount++",
+    "internal/collector/entra_privileged.go:302": "\t\t}",
+    "internal/collector/entra_privileged.go:303": "\t}",
+    "internal/collector/entra_privileged.go:304": "\treturn count",
+    "internal/collector/entra_privileged.go:305": "}",
+    "internal/collector/entra_privileged.go:345": "func inactivePrivilegedUsersCount(privilegedUserIDs map[string]struct{}, users []microsoft.User, now time.Time) *int {",
+    "internal/collector/entra_privileged.go:346": "\tif len(privilegedUserIDs) == 0 {",
+    "internal/collector/entra_privileged.go:347": "\t\treturn nil",
+    "internal/collector/entra_privileged.go:348": "\t}",
+    "internal/collector/entra_privileged.go:349": "\tbyID := usersByID(users)",
+    "internal/collector/entra_privileged.go:350": "\tinactive := 0",
+    "internal/collector/entra_privileged.go:351": "\tcutoff := inactiveCutoff(now)",
+    "internal/collector/entra_privileged.go:352": "\tfor id := range privilegedUserIDs {",
+    "internal/collector/entra_privileged.go:353": "\t\tif user, ok := byID[id]; !ok || !signedInSince(user, cutoff) {",
+    "internal/collector/entra_privileged.go:354": "\t\t\tinactive++",
+    "internal/collector/entra_privileged.go:355": "\t\t}",
+    "internal/collector/entra_privileged.go:356": "\t}",
+    "internal/collector/entra_privileged.go:357": "\treturn intPtr(inactive)",
+    "internal/collector/entra_privileged.go:358": "}",
     "internal/collector/entra_sign_in_monitoring.go:16": "func (c *Collector) collectSignInMonitoring(ctx context.Context, level componentsdk.Level, diagnostics *Diagnostics) *SignInMonitoring {",
     "internal/collector/entra_sign_in_monitoring.go:17": "\tif !level.AtLeast(componentsdk.LevelInternal) {",
     "internal/collector/entra_sign_in_monitoring.go:18": "\t\treturn nil",
@@ -20437,9 +20499,9 @@
     "internal/collector/secure_score.go:12": "\tswitch {",
     "internal/collector/secure_score.go:17": "\tcase err == nil:",
     "internal/collector/secure_score.go:18": "\t\tout.IdentityPct = PercentFloat(scores[0].CurrentScore, scores[0].MaxScore)",
-    "internal/microsoft/graph_client.go:121": "\tif err := c.getJSON(ctx, graphOperation(\"graph.security_defaults.get\"), route, nil, \u0026policy); err != nil {",
-    "internal/microsoft/graph_client.go:124": "\tif policy.IsEnabled == nil {",
-    "internal/microsoft/graph_client.go:127": "\treturn \u0026IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: *policy.IsEnabled}, nil",
+    "internal/microsoft/graph_client.go:122": "\tif err := c.getJSON(ctx, graphOperation(\"graph.security_defaults.get\"), route, nil, \u0026policy); err != nil {",
+    "internal/microsoft/graph_client.go:125": "\tif policy.IsEnabled == nil {",
+    "internal/microsoft/graph_client.go:128": "\treturn \u0026IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: *policy.IsEnabled}, nil",
     "internal/microsoft/types.go:21": "func (o Organization) PrimaryDomain() string {",
     "internal/microsoft/types.go:22": "\tfor _, domain := range o.VerifiedDomains {",
     "internal/microsoft/types.go:23": "\t\tif domain.IsDefault \u0026\u0026 domain.Name != \"\" {",

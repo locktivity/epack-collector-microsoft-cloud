@@ -58,6 +58,21 @@ func TestPrivilegedValuesLeftOutForAnUnclassifiedRole(t *testing.T) {
 	assertGap(t, rec, entraPath, "/privileged_access/standing_assignment_count", componentsdk.CodeNotRead)
 }
 
+// Global Administrator is privileged whatever Microsoft's classification
+// says, so the Global Administrator count never reads 0 for want of one.
+func TestGlobalAdministratorsCountWithoutAClassification(t *testing.T) {
+	graph := fakeGraphClient()
+	graph.roleDefinitions = slices.DeleteFunc(slices.Clone(graph.roleDefinitions), func(d microsoft.UnifiedRoleDefinition) bool {
+		return d.TemplateID == globalAdministratorTemplateID
+	})
+	cfg := testConfig()
+	cfg.GraphClient = graph
+
+	privileged := collectTestArtifact(t, cfg).PrivilegedAccess
+	assertPtrInt(t, "super admins", privileged.SuperAdminCount, 1)
+	assertPtrInt(t, "privileged users", privileged.PrivilegedUsersCount, 3)
+}
+
 func TestPrivilegedCounts(t *testing.T) {
 	artifact := collectTestArtifact(t, testConfig())
 	privileged := artifact.PrivilegedAccess

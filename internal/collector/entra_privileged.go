@@ -191,8 +191,11 @@ func classifyRoles(definitions []microsoft.UnifiedRoleDefinition) privilegedRole
 
 // classify returns whether the role with id is privileged, and false for
 // classified when Microsoft hasn't classified it or the definitions don't
-// list it.
+// list it. Global Administrator is privileged whatever the definitions say.
 func (r privilegedRoles) classify(id string) (privileged, classified bool) {
+	if id == globalAdministratorTemplateID {
+		return true, true
+	}
 	privileged, classified = r[id]
 	return privileged, classified
 }

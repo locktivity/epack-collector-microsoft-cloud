@@ -24,8 +24,30 @@ func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, 
 		return nil
 	}
 
+	// The vault list leaves out each vault's security settings, so a vault
+	// without them is read on its own. One that can't be read leaves the
+	// soft delete and immutability shares out rather than counting as off.
+	var settingsReads unreadVaults
+	for i, vault := range vaults {
+		if vault.Properties.SecuritySettings.SoftDeleteSettings.SoftDeleteState != "" || vault.Properties.SoftDeleteFeatureState != "" {
+			continue
+		}
+		full, err := c.arm.RecoveryServicesVault(ctx, vault.ID)
+		if err != nil {
+			diagnostics.warnSubscription("Recovery Services vault settings", scope.name, err)
+			settingsReads.add(err)
+			continue
+		}
+		vaults[i].Properties = full.Properties
+	}
+
 	protectedPct := scope.pointer("backup/protected_resource_pct")
 	out := backupVaultPosture(vaults)
+	if settingsReads.count > 0 {
+		out.VaultSoftDeletePct, out.VaultImmutabilityPct = nil, nil
+		c.gaps.partial(azurePath, settingsReads.count, failed(settingsReads.err),
+			scope.pointer("backup/vault_soft_delete_pct"), scope.pointer("backup/vault_immutability_pct"))
+	}
 	if len(vaults) == 0 {
 		out.retentionRead = true
 		if population.why == nil {

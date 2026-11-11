@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- The privileged user values and the Global Administrator count read on real tenants again. Microsoft Graph v1.0 returns `isPrivileged` as null on every role definition, though it filters on it, so v0.2.4 found every role unclassified: the values over privileged users were left out with a `not_read` gap, and `super_admin_count` read 0. The collector now reads the role definitions once filtered on `isPrivileged eq true` and once on `isPrivileged eq false`, and counts Global Administrator as privileged whatever the classification says.
+- `vault_soft_delete_pct` and `vault_immutability_pct` in `azure` read each Recovery Services vault on its own, with the Reader role the collector already holds, since Azure's vault list leaves out a vault's security settings. Through v0.2.4 a vault listed without them counted as having soft delete and immutability off. A vault that can't be read, or whose read gives no soft delete state, leaves both values out with a gap.
+
 ## v0.2.4
 
 - The collector is built on epack v0.10.6 and Go 1.26.11.

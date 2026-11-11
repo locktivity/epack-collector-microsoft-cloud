@@ -168,6 +168,27 @@ func TestBackupTrust(t *testing.T) {
 	assertPtrInt(t, "vault immutability", backup.VaultImmutabilityPct, 50)
 }
 
+// Azure's vault list leaves out each vault's security settings, so each
+// vault is read on its own. A vault that can't be read leaves the soft delete
+// and immutability shares out rather than counting as off.
+func TestVaultSharesLeftOutWhenAVaultCantBeRead(t *testing.T) {
+	arm := fakeARMClient()
+	vaultID := arm.recoveryVaults["aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"][0].ID
+	arm.recoveryVaultReadErrs = map[string]error{vaultID: &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: vaultID, Code: "AuthorizationFailed"}}
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.ARMClient = arm
+	cfg.Recorder = rec
+
+	backup := collectTestAzureArtifact(t, cfg).Accounts[0].Backup
+	if backup.VaultSoftDeletePct != nil || backup.VaultImmutabilityPct != nil {
+		t.Fatalf("vault shares = %v, %v, want both left out", backup.VaultSoftDeletePct, backup.VaultImmutabilityPct)
+	}
+	assertGap(t, rec, azurePath, "/accounts/0/backup/vault_soft_delete_pct", componentsdk.CodePermissionDenied)
+	assertGap(t, rec, azurePath, "/accounts/0/backup/vault_immutability_pct", componentsdk.CodePermissionDenied)
+	assertPtrInt(t, "retention days min", backup.RetentionDaysMin, 30)
+}
+
 func TestBackupJobHistoryUnavailable(t *testing.T) {
 	arm := fakeARMClient()
 	arm.backupJobErrs["/subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a"] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/backupJobs"}
