@@ -569,9 +569,10 @@ func (s *entraSim) roleAssignments() []collectortest.Response {
 		access(simDirectoryDenied, nil, []string{"RoleManagement.Read.Directory", "Directory.Read.All"}), items, simUsersPage)
 }
 
-// roleDefinitions lists the directory roles the roster names, as Graph lists
-// built-in roles: isPrivileged is Microsoft's label, and each role allows
-// one directory action, a write unless the role only reads. A role
+// roleDefinitions lists the directory roles the roster names, as Graph v1.0
+// lists built-in roles: a read filtered on isPrivileged returns the roles
+// Microsoft labels that way, with isPrivileged itself null, and each role
+// allows one directory action, a write unless the role only reads. A role
 // directory_role_labels doesn't list is labeled privileged and changes
 // something when the terms map it to an admin class, and neither otherwise.
 // https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition
@@ -583,7 +584,7 @@ func (s *entraSim) roleDefinitions() []collectortest.Response {
 	if _, err := s.r.Extra.Get("directory_role_labels", &labels); err != nil {
 		panic(err)
 	}
-	var items []any
+	items := map[bool][]any{}
 	for _, role := range slices.Sorted(maps.Keys(s.roleIDs)) {
 		label, ok := labels[role]
 		if !ok {
@@ -595,14 +596,18 @@ func (s *entraSim) roleDefinitions() []collectortest.Response {
 			action = "microsoft.directory/users/standard/read"
 		}
 		id := s.roleIDs[role]
-		items = append(items, map[string]any{
-			"id": id, "templateId": id, "isPrivileged": label.Privileged,
+		items[label.Privileged] = append(items[label.Privileged], map[string]any{
+			"id": id, "templateId": id, "isPrivileged": nil,
 			"rolePermissions": []any{map[string]any{"allowedResourceActions": []string{action}, "condition": nil, "excludedResourceActions": []string{}}},
 		})
 	}
-	return s.list(kitGraphBase+"/roleManagement/directory/roleDefinitions?$select=id,templateId,isPrivileged,rolePermissions",
-		"roleManagement/directory/roleDefinitions(id,templateId,isPrivileged,rolePermissions)",
-		access(simDirectoryDenied, nil, []string{"RoleManagement.Read.Directory", "Directory.Read.All"}), items, simUsersPage)
+	var out []collectortest.Response
+	for _, privileged := range []bool{true, false} {
+		out = append(out, s.list(kitRoleDefinitionsURL(privileged),
+			"roleManagement/directory/roleDefinitions(id,templateId,isPrivileged,rolePermissions)",
+			access(simDirectoryDenied, nil, []string{"RoleManagement.Read.Directory", "Directory.Read.All"}), items[privileged], simUsersPage)...)
+	}
+	return out
 }
 
 var simP2License = simAccess{p1: true, p2: true, licenseStatus: http.StatusBadRequest,

@@ -347,3 +347,34 @@ func textResponse(status int, body string, headers map[string]string) *http.Resp
 	}
 	return resp
 }
+
+// Graph v1.0 returns isPrivileged as null but filters on it, so the client
+// reads the roles once per classification and gives each role its read's.
+func TestGraphClientClassifiesRolesByFilter(t *testing.T) {
+	var filters []string
+	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		filter := r.URL.Query().Get("$filter")
+		filters = append(filters, filter)
+		id := map[string]string{"isPrivileged eq true": "admin", "isPrivileged eq false": "reader"}[filter]
+		return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": id, "templateId": id, "isPrivileged": nil}}}), nil
+	})}
+
+	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient))
+	definitions, err := client.RoleDefinitions(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"isPrivileged eq true", "isPrivileged eq false"}; strings.Join(filters, "|") != strings.Join(want, "|") {
+		t.Fatalf("filters = %q, want %q", filters, want)
+	}
+	got := map[string]bool{}
+	for _, definition := range definitions {
+		if definition.IsPrivileged == nil {
+			t.Fatalf("%s has no classification", definition.ID)
+		}
+		got[definition.ID] = *definition.IsPrivileged
+	}
+	if len(got) != 2 || !got["admin"] || got["reader"] {
+		t.Fatalf("classifications = %v, want admin privileged and reader not", got)
+	}
+}

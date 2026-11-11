@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/locktivity/epack/componentsdk"
 )
 
 func TestARM(t *testing.T) {
@@ -437,5 +439,38 @@ func TestARMMonitoringNetworkRoutes(t *testing.T) {
 	}
 	if len(settings) != 1 {
 		t.Fatalf("expected one resource diagnostic setting, got %d", len(settings))
+	}
+}
+
+// The vault list leaves out securitySettings, so a vault is read on its own,
+// and a read with no soft delete state is an invalid response, not a vault
+// with soft delete off.
+func TestARMClientReadsOneVault(t *testing.T) {
+	vaultID := "/subscriptions/sub-1/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a"
+	bodies := []map[string]any{
+		{"id": vaultID, "properties": map[string]any{"securitySettings": map[string]any{"softDeleteSettings": map[string]any{"softDeleteState": "AlwaysON"}}}},
+		{"id": vaultID, "properties": map[string]any{}},
+	}
+	var paths []string
+	httpClient := &http.Client{Transport: roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		paths = append(paths, r.URL.Path+"?"+r.URL.RawQuery)
+		body := bodies[0]
+		bodies = bodies[1:]
+		return jsonResponse(http.StatusOK, body), nil
+	})}
+	client := NewARMClient(StaticTokenSource("arm-token"), WithARMBaseURL("https://management.test"), WithARMHTTPClient(httpClient))
+
+	vault, err := client.RecoveryServicesVault(context.Background(), vaultID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := vault.Properties.SecuritySettings.SoftDeleteSettings.SoftDeleteState; got != "AlwaysON" {
+		t.Fatalf("softDeleteState = %q, want AlwaysON", got)
+	}
+	if want := vaultID + "?api-version=2026-01-01"; paths[0] != want {
+		t.Fatalf("read %s, want %s", paths[0], want)
+	}
+	if _, err := client.RecoveryServicesVault(context.Background(), vaultID); componentsdk.Classify(err) != componentsdk.CodeInvalidResponse {
+		t.Fatalf("a vault with no soft delete state gave %v, want an invalid response", err)
 	}
 }

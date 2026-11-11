@@ -47,6 +47,7 @@ var kitOperations = []string{
 	"arm.network.public_ip_addresses.list",
 	"arm.network.security_groups.list",
 	"arm.backup.vaults.list",
+	"arm.backup.vaults.get",
 	"arm.backup.protected_items.list",
 	"arm.backup.policies.list",
 	"arm.backup.jobs.list",

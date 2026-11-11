@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -256,7 +257,8 @@ func kitGraphResponses(graph *fakeGraph) []collectortest.Response {
 		{URL: kitGraphBase + "/identity/conditionalAccess/policies", Body: graphPage(graph.policies, "")},
 		{URL: kitGraphBase + "/policies/identitySecurityDefaultsEnforcementPolicy", Body: kitJSON(graph.securityDefaults)},
 		{URL: kitGraphBase + "/roleManagement/directory/roleAssignments?$expand=principal&$top=999", Body: graphPage(graph.roleAssignments, "")},
-		{URL: kitGraphBase + "/roleManagement/directory/roleDefinitions?$select=id,templateId,isPrivileged,rolePermissions", Body: graphPage(graph.roleDefinitions, "")},
+		{URL: kitRoleDefinitionsURL(true), Body: graphPage(roleDefinitionsClassed(graph.roleDefinitions, true), "")},
+		{URL: kitRoleDefinitionsURL(false), Body: graphPage(roleDefinitionsClassed(graph.roleDefinitions, false), "")},
 		{URL: kitGraphBase + "/identity/conditionalAccess/namedLocations", Body: graphPage(graph.namedLocations, "")},
 		{URL: kitGraphBase + "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999", Body: graphPage(graph.roleSchedules, "")},
 		{URL: kitServicePrincipalsURL, Body: graphPage(graph.servicePrincipals, "")},
@@ -290,7 +292,7 @@ func kitARMResponses(arm *fakeARM) []collectortest.Response {
 		{URL: provider("Microsoft.Compute/virtualMachines", "2024-07-01"), Body: armPage(arm.virtualMachines[kitSubscriptionID], "")},
 		{URL: provider("Microsoft.Network/publicIPAddresses", "2023-11-01"), Body: armPage(arm.publicIPs[kitSubscriptionID], "")},
 		{URL: provider("Microsoft.Network/networkSecurityGroups", "2023-11-01"), Body: armPage(arm.networkSecurityGroups[kitSubscriptionID], "")},
-		{URL: provider("Microsoft.RecoveryServices/vaults", "2026-01-01"), Body: armPage(arm.recoveryVaults[kitSubscriptionID], "")},
+		{URL: provider("Microsoft.RecoveryServices/vaults", "2026-01-01"), Body: armPage(listedVaults(arm.recoveryVaults[kitSubscriptionID]), "")},
 		{URL: provider("Microsoft.Insights/diagnosticSettings", "2021-05-01-preview"), Body: armPage(arm.diagnosticSettings[subscription], "")},
 		{URL: kitARMBase + subscription + "/resources?api-version=2021-04-01", Body: armPage(arm.resources[kitSubscriptionID], "")},
 	}...)
@@ -308,6 +310,7 @@ func kitARMResponses(arm *fakeARM) []collectortest.Response {
 	jobsQuery := url.Values{"api-version": []string{"2026-01-01"}, "$filter": []string{"operation eq 'Backup'"}}
 	for _, vault := range arm.recoveryVaults[kitSubscriptionID] {
 		responses = append(responses,
+			collectortest.Response{URL: kitARMBase + vault.ID + "?api-version=2026-01-01", Body: kitJSON(vault)},
 			collectortest.Response{URL: kitARMBase + vault.ID + "/backupProtectedItems?api-version=2026-01-01", Body: armPage(arm.backupProtectedItems[vault.ID], "")},
 			collectortest.Response{URL: kitARMBase + vault.ID + "/backupPolicies?api-version=2026-01-01", Body: armPage(arm.backupPolicies[vault.ID], "")},
 			collectortest.Response{URL: kitARMBase + vault.ID + "/backupJobs?" + jobsQuery.Encode(), Body: armPage(arm.backupJobs[vault.ID], "")},
@@ -383,6 +386,25 @@ func graphPage[T any](items []T, next string) string {
 		page["@odata.nextLink"] = next
 	}
 	return kitJSON(page)
+}
+
+// kitRoleDefinitionsURL is the role definitions read filtered on
+// isPrivileged, the only way Graph v1.0 gives the classification.
+func kitRoleDefinitionsURL(privileged bool) string {
+	return kitGraphBase + "/roleManagement/directory/roleDefinitions?$filter=isPrivileged%20eq%20" + strconv.FormatBool(privileged) + "&$select=id,templateId,isPrivileged,rolePermissions"
+}
+
+// roleDefinitionsClassed is what that read returns: the roles Microsoft
+// classifies that way, each with isPrivileged null, as Graph v1.0 leaves it.
+func roleDefinitionsClassed(definitions []microsoft.UnifiedRoleDefinition, privileged bool) []microsoft.UnifiedRoleDefinition {
+	var out []microsoft.UnifiedRoleDefinition
+	for _, definition := range definitions {
+		if definition.IsPrivileged != nil && *definition.IsPrivileged == privileged {
+			definition.IsPrivileged = nil
+			out = append(out, definition)
+		}
+	}
+	return out
 }
 
 func armPage[T any](items []T, next string) string {

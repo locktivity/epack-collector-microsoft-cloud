@@ -46,6 +46,7 @@ type ARMAPI interface {
 	DiagnosticSettings(context.Context, string) ([]microsoft.DiagnosticSetting, error)
 	SubscriptionDiagnosticSettings(context.Context, string) ([]microsoft.DiagnosticSetting, error)
 	RecoveryServicesVaults(context.Context, string) ([]microsoft.RecoveryServicesVault, error)
+	RecoveryServicesVault(context.Context, string) (microsoft.RecoveryServicesVault, error)
 	BackupProtectedItems(context.Context, string) ([]microsoft.BackupProtectedItem, error)
 	BackupPolicies(context.Context, string) ([]microsoft.BackupPolicy, error)
 	BackupJobs(context.Context, string, string) ([]microsoft.BackupJob, error)

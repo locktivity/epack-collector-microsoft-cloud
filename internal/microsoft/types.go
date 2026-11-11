@@ -234,8 +234,9 @@ type UnifiedRoleEligibilitySchedule struct {
 	RoleDefinition   *UnifiedRoleDefinition `json:"roleDefinition"`
 }
 
-// UnifiedRoleDefinition is a directory role. IsPrivileged is nil when
-// Microsoft has not classified the role.
+// UnifiedRoleDefinition is a directory role. IsPrivileged is Microsoft's
+// classification, which GraphClient.RoleDefinitions sets from the filter it
+// read the role with, since Graph v1.0 returns it as null.
 // https://learn.microsoft.com/en-us/graph/api/resources/unifiedroledefinition
 type UnifiedRoleDefinition struct {
 	ID              string                  `json:"id"`

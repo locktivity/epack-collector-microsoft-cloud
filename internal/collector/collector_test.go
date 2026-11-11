@@ -79,6 +79,7 @@ type fakeARM struct {
 	diagnosticSettingErrs    map[string]error
 	recoveryVaults           map[string][]microsoft.RecoveryServicesVault
 	recoveryVaultErrs        map[string]error
+	recoveryVaultReadErrs    map[string]error
 	backupProtectedItems     map[string][]microsoft.BackupProtectedItem
 	backupProtectedItemErrs  map[string]error
 	backupPolicies           map[string][]microsoft.BackupPolicy
@@ -768,11 +769,38 @@ func (f *fakeARM) SubscriptionDiagnosticSettings(_ context.Context, subscription
 	return f.diagnosticSettings[resourceID], nil
 }
 
+// RecoveryServicesVaults lists the vaults without their properties, as
+// Azure's vault list does; RecoveryServicesVault returns them.
 func (f *fakeARM) RecoveryServicesVaults(_ context.Context, subscriptionID string) ([]microsoft.RecoveryServicesVault, error) {
 	if err := f.recoveryVaultErrs[subscriptionID]; err != nil {
 		return nil, err
 	}
-	return f.recoveryVaults[subscriptionID], nil
+	return listedVaults(f.recoveryVaults[subscriptionID]), nil
+}
+
+func (f *fakeARM) RecoveryServicesVault(_ context.Context, vaultID string) (microsoft.RecoveryServicesVault, error) {
+	if err := f.recoveryVaultReadErrs[vaultID]; err != nil {
+		return microsoft.RecoveryServicesVault{}, err
+	}
+	for _, vaults := range f.recoveryVaults {
+		for _, vault := range vaults {
+			if vault.ID == vaultID {
+				return vault, nil
+			}
+		}
+	}
+	return microsoft.RecoveryServicesVault{}, &microsoft.APIError{Service: "arm", StatusCode: http.StatusNotFound, Route: vaultID}
+}
+
+func listedVaults(vaults []microsoft.RecoveryServicesVault) []microsoft.RecoveryServicesVault {
+	if vaults == nil {
+		return nil
+	}
+	out := make([]microsoft.RecoveryServicesVault, len(vaults))
+	for i, vault := range vaults {
+		out[i] = microsoft.RecoveryServicesVault{ID: vault.ID, Name: vault.Name}
+	}
+	return out
 }
 
 func (f *fakeARM) BackupProtectedItems(_ context.Context, vaultID string) ([]microsoft.BackupProtectedItem, error) {

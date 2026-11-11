@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -135,8 +136,24 @@ func (c *GraphClient) NamedLocations(ctx context.Context) ([]NamedLocation, erro
 	return getPaged[NamedLocation](ctx, c, "graph.conditional_access.named_locations.list", "/identity/conditionalAccess/namedLocations")
 }
 
+// RoleDefinitions lists the directory roles Microsoft has classified. Graph
+// v1.0 returns isPrivileged as null but filters on it, so the roles are read
+// once with each value of the filter, and each role carries the value its
+// read asked for. A role in neither read is one Microsoft hasn't classified.
 func (c *GraphClient) RoleDefinitions(ctx context.Context) ([]UnifiedRoleDefinition, error) {
-	return getPaged[UnifiedRoleDefinition](ctx, c, "graph.role_definitions.list", "/roleManagement/directory/roleDefinitions?$select=id,templateId,isPrivileged,rolePermissions")
+	var out []UnifiedRoleDefinition
+	for _, privileged := range []bool{true, false} {
+		route := "/roleManagement/directory/roleDefinitions?$filter=isPrivileged%20eq%20" + strconv.FormatBool(privileged) + "&$select=id,templateId,isPrivileged,rolePermissions"
+		definitions, err := getPaged[UnifiedRoleDefinition](ctx, c, "graph.role_definitions.list", route)
+		if err != nil {
+			return nil, err
+		}
+		for i := range definitions {
+			definitions[i].IsPrivileged = &privileged
+		}
+		out = append(out, definitions...)
+	}
+	return out, nil
 }
 
 func (c *GraphClient) RoleEligibilitySchedules(ctx context.Context) ([]UnifiedRoleEligibilitySchedule, error) {
