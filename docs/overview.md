@@ -86,6 +86,16 @@ Azure has no built-in root account, so `root_accounts_present` and `root_access_
 
 The sections hold totals across the configured subscriptions, and a principal with roles in several subscriptions counts once. From the `audit` level, `scopes` lists each subscription with its own sections.
 
+## Not Collected
+
+Microsoft offers the following through its APIs, and the collector does not read them.
+
+- **Devices.** Intune managed devices and their compliance state, and Defender for Endpoint machines with their sensor and antivirus health. The Intune API requires an Intune license. The collector writes no `endpoint-posture` file.
+- **Vulnerability findings.** Open vulnerabilities and their severity from Defender Vulnerability Management and Defender for Cloud. The collector writes no `vuln-scanning` file. The Azure artifact's `defender.unpatched_pct` comes from the healthy or unhealthy status of Defender for Cloud's update and vulnerability assessments.
+- **Access reviews.** Microsoft Entra ID Governance access reviews and their decisions.
+- **Defender plans.** Which Defender for Cloud plans, such as Defender for Servers, are on for each subscription. The `cloud-posture` file has no `threat_detection` value.
+- **Other databases.** Azure Database for PostgreSQL, Azure Database for MySQL and Azure Cosmos DB. The collector reads Azure SQL only.
+
 ## Microsoft APIs
 
 The collector uses Microsoft Graph v1.0 only. Beta endpoints are not allowed in v1. The route contract is documented in `docs/graph-endpoints.md`.
