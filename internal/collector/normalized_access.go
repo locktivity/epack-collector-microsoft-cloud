@@ -35,12 +35,12 @@ type AccessScope struct {
 	AccessSections
 }
 
-// AccessSections are the sections the totals and each scope share. Azure has
-// no root account, so root is left out with an unsupported gap.
+// AccessSections are the sections the totals and each scope share.
 type AccessSections struct {
 	SignIn      *AccessSignIn      `json:"sign_in,omitempty"`
 	Members     *AccessMembers     `json:"members,omitempty"`
 	Admins      *AccessAdmins      `json:"admins,omitempty"`
+	Root        *AccessRoot        `json:"root,omitempty"`
 	Credentials *AccessCredentials `json:"credentials,omitempty"`
 }
 
@@ -80,6 +80,16 @@ type AccessAdmins struct {
 	LocalAdminMFACoveragePct Percentage `json:"local_admin_mfa_coverage_pct,omitzero"`
 }
 
+// AccessRoot is the built-in root accounts. Azure has none, so the present
+// flags are false and the MFA coverage is null.
+type AccessRoot struct {
+	RootAccountsPresent   *bool      `json:"root_accounts_present,omitempty"`
+	RootAccountCount      *int       `json:"root_account_count,omitempty"`
+	RootMFAAccountCount   *int       `json:"root_mfa_account_count,omitempty"`
+	RootMFACoveragePct    Percentage `json:"root_mfa_coverage_pct,omitzero"`
+	RootAccessKeysPresent *bool      `json:"root_access_keys_present,omitempty"`
+}
+
 // AccessCredentials counts the service principals with a role assignment.
 // The never-expiring and rotation values come from their Entra ID
 // credentials. The unused values are 0 or null when there are no service
@@ -102,12 +112,11 @@ type AccessCredentials struct {
 }
 
 // The details of the gaps in the access posture. Microsoft never reports the
-// first three, which get an unsupported gap. Microsoft reports the rest in
+// first two, which get an unsupported gap. Microsoft reports the rest in
 // places the collector does not read, which get a not_read gap.
 const (
 	noSignInWithoutEntra   = "People sign in to Azure only through Microsoft Entra ID, whose MFA rules are in idp-posture."
 	noAzureAccounts        = "Azure has no accounts of its own to provision, since people sign in with their Microsoft Entra ID accounts."
-	noRootAccount          = "Azure has no root account."
 	connectedAppsUnread    = "Microsoft Graph's /oauth2PermissionGrants list shows which apps have delegated access to Azure Resource Manager. This collector does not read it."
 	groupHoldsRole         = "An Azure role is assigned to a group, and the users and service principals in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
 	groupHoldsAdminRole    = "An admin role, Owner, Contributor, User Access Administrator or Role Based Access Control Administrator, is assigned to a group for the whole subscription, and the users in it hold the role too. Microsoft Graph lists them at /groups/{id}/transitiveMembers, which this collector does not read."
@@ -141,19 +150,19 @@ func (c *Collector) accessPosture(level componentsdk.Level, azure *AzureArtifact
 		scope := AccessScope{ID: account.AccountID, Kind: "subscription"}
 		gaps := accessGaps{log: c.gaps, prefix: fmt.Sprintf("/scopes/%d", i), audit: true}
 		if account.unreadable != nil {
-			// Sign-in to any subscription goes through Entra ID, so the
-			// sign_in values hold in every scope.
+			// Sign-in to any subscription goes through Entra ID, and no
+			// subscription has a root account. So the sign_in and root
+			// values hold in every scope.
 			scope.SignIn = accessSignIn(gaps)
+			scope.Root = accessRoot(gaps)
 			gaps.leaveOut(account.unreadable, "/members", "/admins", "/credentials")
 		} else {
 			scope.AccessSections = accessSections(population, entra.directory, now, gaps)
 		}
-		gaps.leaveOut(unsupported(noRootAccount), "/root")
 		out.Scopes = append(out.Scopes, scope)
 	}
 	gaps := accessGaps{log: c.gaps, audit: audit}
 	out.AccessSections = accessSections(total, entra.directory, now, gaps)
-	gaps.leaveOut(unsupported(noRootAccount), "/root")
 	gaps.leaveOut(notRead(connectedAppsUnread), "/connected_apps")
 	return out
 }
@@ -163,7 +172,20 @@ func accessSections(population accessPopulation, dir directory, now time.Time, g
 		SignIn:      accessSignIn(gaps),
 		Members:     accessMembers(population, dir, now, gaps),
 		Admins:      accessAdmins(population, dir, gaps),
+		Root:        accessRoot(gaps),
 		Credentials: accessCredentials(population, dir.apps, now, gaps),
+	}
+}
+
+// accessRoot writes that there are no root accounts. The counts are 0 from
+// the audit level.
+func accessRoot(gaps accessGaps) *AccessRoot {
+	return &AccessRoot{
+		RootAccountsPresent:   boolPtr(false),
+		RootAccountCount:      gaps.count(intPtr(0)),
+		RootMFAAccountCount:   gaps.count(intPtr(0)),
+		RootMFACoveragePct:    Percentage{Read: true},
+		RootAccessKeysPresent: boolPtr(false),
 	}
 }
 
