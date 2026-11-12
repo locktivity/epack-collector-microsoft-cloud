@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The collector is built on epack v0.11.1.
+
 ## v0.2.7
 
 - `entra`'s MFA registration values are left out with a `vendor_error` gap when Microsoft's registration report lists none of the tenant's enabled members, as for a new tenant. These are `posture.denominator_enabled_member_users`, `mfa_coverage`, `mfa_phishing_resistant`, `mfa_weak_method_only` and `sspr_registered`, and `cloud-posture`'s `iam.mfa_coverage_pct`. Through v0.2.6 the denominator was 0 and the percentages were null with no gap.
