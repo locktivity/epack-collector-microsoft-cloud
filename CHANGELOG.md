@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `artifacts/microsoft-cloud.access-posture.json` has `root` now, in the totals and in each subscription's scope. Azure has no built-in root account, so `root_accounts_present` and `root_access_keys_present` are false and `root_mfa_coverage_pct` is null. From the audit level, `root_account_count` and `root_mfa_account_count` are 0. Before, `root` was left out with an `unsupported` gap. A profile test that applies only when `root.root_accounts_present` is true no longer applies to Azure.
+
 ## v0.2.5
 
 - The privileged user values and the Global Administrator count read on real tenants again. Microsoft Graph v1.0 returns `isPrivileged` as null on every role definition, though it filters on it, so v0.2.4 found every role unclassified: the values over privileged users were left out with a `not_read` gap, and `super_admin_count` read 0. The collector now reads the role definitions once filtered on `isPrivileged eq true` and once on `isPrivileged eq false`, and counts Global Administrator as privileged whatever the classification says.

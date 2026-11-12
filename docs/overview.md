@@ -82,7 +82,7 @@ A service principal with any role other than Reader, Security Reader, Monitoring
 
 When a role is assigned to a group, the counts and percentages over everyone with a role are left out with a `not_read` gap, since group members are not read. The admin values are left out too when the group holds one of those four roles over the whole subscription.
 
-Azure has no root account, so `root` is left out with an `unsupported` gap. `connected_apps` is left out with a `not_read` gap. Microsoft Graph lists the apps with delegated access to Azure Resource Manager in its delegated permission grants, which are not read.
+Azure has no built-in root account, so `root_accounts_present` and `root_access_keys_present` are false and `root_mfa_coverage_pct` is null. From the `audit` level the root counts are 0. `connected_apps` is left out with a `not_read` gap. Microsoft Graph lists the apps with delegated access to Azure Resource Manager in its delegated permission grants, which are not read.
 
 The sections hold totals across the configured subscriptions, and a principal with roles in several subscriptions counts once. From the `audit` level, `scopes` lists each subscription with its own sections.
 

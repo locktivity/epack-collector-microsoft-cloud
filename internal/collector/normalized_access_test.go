@@ -90,11 +90,49 @@ func TestAccessPostureSignInRequiresSSO(t *testing.T) {
 	assertPtrBool(t, "sso_required", access.SignIn.SSORequired, true)
 	assertGap(t, rec, accessPosturePath, "/sign_in/mfa_required", componentsdk.CodeUnsupported)
 	assertGap(t, rec, accessPosturePath, "/sign_in/scim_enabled", componentsdk.CodeUnsupported)
-	assertGap(t, rec, accessPosturePath, "/root", componentsdk.CodeUnsupported)
 	assertGap(t, rec, accessPosturePath, "/connected_apps", componentsdk.CodeNotRead)
 	if access.Provider != "azure" || access.SystemType != "cloud" {
 		t.Fatalf("provider = %q, system_type = %q", access.Provider, access.SystemType)
 	}
+}
+
+// Azure has no root account, so the root flags are false at every level and
+// the MFA coverage is null. The counts are 0 from the audit level.
+func TestAccessPostureHasNoRootAccounts(t *testing.T) {
+	assertNoRoot := func(t *testing.T, label string, root *AccessRoot, audit bool) {
+		t.Helper()
+		if root == nil {
+			t.Fatalf("%s root = nil, want a root section", label)
+		}
+		assertPtrBool(t, label+" root_accounts_present", root.RootAccountsPresent, false)
+		assertPtrBool(t, label+" root_access_keys_present", root.RootAccessKeysPresent, false)
+		assertNullPct(t, label+" root_mfa_coverage_pct", root.RootMFACoveragePct)
+		if !audit {
+			if root.RootAccountCount != nil || root.RootMFAAccountCount != nil {
+				t.Fatalf("%s root counts = %v %v, want none below audit", label, root.RootAccountCount, root.RootMFAAccountCount)
+			}
+			return
+		}
+		assertPtrInt(t, label+" root_account_count", root.RootAccountCount, 0)
+		assertPtrInt(t, label+" root_mfa_account_count", root.RootMFAAccountCount, 0)
+	}
+	assertNoRootGaps := func(t *testing.T, rec *componentsdk.Recorder) {
+		t.Helper()
+		for _, gap := range rec.Gaps() {
+			if gap.Path == accessPosturePath && strings.Contains(gap.Pointer, "/root") {
+				t.Fatalf("unexpected gap on a root value: %#v", gap)
+			}
+		}
+	}
+
+	access, rec := collectAccess(t, testConfig(), componentsdk.LevelTrust)
+	assertNoRoot(t, "trust", access.Root, false)
+	assertNoRootGaps(t, rec)
+
+	access, rec = collectAccess(t, testConfig(), componentsdk.LevelAudit)
+	assertNoRoot(t, "audit", access.Root, true)
+	assertNoRoot(t, "first scope", access.Scopes[0].Root, true)
+	assertNoRootGaps(t, rec)
 }
 
 // u1, u2 and the guest u3 hold roles. The disabled u4 and u9, who is not in
@@ -643,7 +681,7 @@ func TestAccessPostureTotalsAcrossSubscriptions(t *testing.T) {
 }
 
 // When a subscription cannot be read, the totals' counts are left out and
-// its scope holds only its ID and sign_in.
+// its scope holds only its ID, sign_in and root.
 func TestAccessPostureUnreadableSubscription(t *testing.T) {
 	arm := fakeARMClient()
 	arm.subscriptionErrs[secondSubscriptionID] = &microsoft.APIError{Service: "arm", StatusCode: http.StatusForbidden, Route: "/subscriptions/" + secondSubscriptionID}
@@ -660,10 +698,12 @@ func TestAccessPostureUnreadableSubscription(t *testing.T) {
 	assertGap(t, rec, accessPosturePath, "/credentials/write_access_pct", componentsdk.CodePermissionDenied)
 	unreadable := access.Scopes[1]
 	if unreadable.ID != secondSubscriptionID || unreadable.Members != nil || unreadable.Admins != nil || unreadable.Credentials != nil {
-		t.Fatalf("unreadable scope = %+v, want only its ID and sign_in", unreadable)
+		t.Fatalf("unreadable scope = %+v, want only its ID, sign_in and root", unreadable)
 	}
 	assertGap(t, rec, accessPosturePath, "/scopes/1/members", componentsdk.CodePermissionDenied)
 	assertNoGap(t, rec, accessPosturePath, "/scopes/1/sign_in")
+	assertNoGap(t, rec, accessPosturePath, "/scopes/1/root")
+	assertPtrBool(t, "unreadable scope root_accounts_present", unreadable.Root.RootAccountsPresent, false)
 	assertPtrInt(t, "first scope member_count", access.Scopes[0].Members.MemberCount, 3)
 	assertSignInRollsUp(t, access)
 }
