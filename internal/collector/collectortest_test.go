@@ -112,7 +112,77 @@ func TestCollectorKit(t *testing.T) {
 			},
 			{Name: "defender assessments fail", Responses: defenderAssessmentsFailResponses()},
 			{Name: "empty tenant", Responses: emptyTenantResponses()},
-			{Name: "registration report behind the user list", Responses: registrationReportBehindResponses()},
+			{
+				Name:      "registration report behind the user list",
+				Responses: registrationReportBehindResponses(),
+				Expect: map[string]map[string]any{
+					entraPath: {
+						"/users/enabled_member_users_count":         2,
+						"/posture/denominator_enabled_member_users": nil,
+						"/posture/mfa_coverage":                     nil,
+					},
+					cloudPosturePath: {
+						"/accounts/0/iam/root_mfa_enabled":      collectortest.Absent,
+						"/accounts/0/iam/root_access_protected": collectortest.Absent,
+					},
+				},
+			},
+			{
+				Name:      "registration report empty",
+				Responses: emptyRegistrationReportResponses(),
+				Expect: map[string]map[string]any{
+					entraPath: {
+						"/posture/denominator_enabled_member_users": nil,
+						"/posture/mfa_coverage":                     nil,
+					},
+					idpPosturePath: {
+						"/user_security/user_count":       2,
+						"/user_security/mfa_coverage_pct": collectortest.Absent,
+					},
+					cloudPosturePath: {
+						"/accounts/0/iam/mfa_coverage_pct":      collectortest.Absent,
+						"/accounts/0/iam/root_mfa_enabled":      collectortest.Absent,
+						"/accounts/0/iam/root_access_protected": collectortest.Absent,
+					},
+					kitResultPath: {"/outcome/status": "partial"},
+				},
+			},
+			{
+				Name:      "user with no user type",
+				Responses: untypedUserResponses(),
+				Expect: map[string]map[string]any{
+					entraPath: {
+						"/users/total_count":                        4,
+						"/users/enabled_member_users_count":         nil,
+						"/users/guest_pct":                          nil,
+						"/posture/denominator_enabled_member_users": nil,
+						"/posture/mfa_coverage":                     nil,
+						"/policy/mfa_required_coverage_pct":         nil,
+						"/privileged_access/privileged_users_count": 3,
+						"/privileged_access/privileged_guest_count": nil,
+					},
+					idpPosturePath: {
+						"/user_security/users_present":      true,
+						"/user_security/user_count":         collectortest.Absent,
+						"/user_security/mfa_coverage_pct":   collectortest.Absent,
+						"/user_security/inactive_pct":       collectortest.Absent,
+						"/policy/mfa_required_coverage_pct": collectortest.Absent,
+					},
+					accessPosturePath: {
+						"/members/member_count":             3,
+						"/members/external_members_present": true,
+						"/members/external_member_count":    collectortest.Absent,
+					},
+				},
+			},
+			{
+				Name:      "sign-in activity user with no user type",
+				Responses: untypedSignInUserResponses(),
+				Expect: map[string]map[string]any{entraPath: {
+					"/users/inactive_pct":       67,
+					"/users/inactive_guest_pct": nil,
+				}},
+			},
 			{
 				Name:      "Entra ID Free tenant",
 				Responses: freeTenantResponses(),
@@ -322,7 +392,7 @@ func TestDefenderAssessmentsFailureLeavesAVendorErrorGap(t *testing.T) {
 	}
 }
 
-func TestRegistrationReportBehindTheUserListLeavesMFACoverageOverNoOne(t *testing.T) {
+func TestRegistrationReportBehindTheUserListLeavesTheMFAValuesOut(t *testing.T) {
 	res := runInProcess(t, kitConfig(), kitSecrets(), registrationReportBehindResponses())
 	if res.ExitCode != 0 || res.Result == nil {
 		t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
@@ -336,12 +406,91 @@ func TestRegistrationReportBehindTheUserListLeavesMFACoverageOverNoOne(t *testin
 		}
 	}
 	assertPtrInt(t, "users.enabled_member_users_count", entra.Users.EnabledMemberUsersCount, 2)
-	assertPtrInt(t, "posture.denominator_enabled_member_users", entra.Posture.DenominatorEnabledMemberUsers, 0)
-	if entra.Posture.MFACoverage != nil || entra.Posture.SSPRRegistered != nil {
-		t.Fatalf("MFA coverage = %v, SSPR = %v; want null over members the report does not list", entra.Posture.MFACoverage, entra.Posture.SSPRRegistered)
+	if entra.Posture.DenominatorEnabledMemberUsers != nil || entra.Posture.MFACoverage != nil || entra.Posture.SSPRRegistered != nil {
+		t.Fatalf("denominator = %v, MFA coverage = %v, SSPR = %v; want each left out while the report lists no member",
+			entra.Posture.DenominatorEnabledMemberUsers, entra.Posture.MFACoverage, entra.Posture.SSPRRegistered)
 	}
 	if len(res.Result.Checks) != 0 {
 		t.Fatalf("output checks found %+v", res.Result.Checks)
+	}
+}
+
+// TestMissingGraphFieldsLeaveValuesOutWithAGap checks that a null or missing
+// Graph field leaves the values it feeds out with a gap.
+func TestMissingGraphFieldsLeaveValuesOutWithAGap(t *testing.T) {
+	type want struct {
+		path, pointer string
+		code          componentsdk.Code
+	}
+	cases := []struct {
+		name      string
+		responses []collectortest.Response
+		gaps      []want
+	}{
+		{
+			name:      "registration report empty",
+			responses: emptyRegistrationReportResponses(),
+			gaps: []want{
+				{entraPath, "/posture/denominator_enabled_member_users", componentsdk.CodeVendorError},
+				{entraPath, "/posture/mfa_coverage", componentsdk.CodeVendorError},
+				{idpPosturePath, "/user_security/mfa_coverage_pct", componentsdk.CodeVendorError},
+				{idpPosturePath, "/user_security/mfa_user_count", componentsdk.CodeVendorError},
+				{cloudPosturePath, "/accounts/0/iam/mfa_coverage_pct", componentsdk.CodeVendorError},
+				{cloudPosturePath, "/accounts/0/iam/root_mfa_enabled", componentsdk.CodeVendorError},
+				{cloudPosturePath, "/accounts/0/iam/root_access_protected", componentsdk.CodeVendorError},
+			},
+		},
+		{
+			name:      "registration report behind the user list",
+			responses: registrationReportBehindResponses(),
+			gaps: []want{
+				{entraPath, "/posture/mfa_coverage", componentsdk.CodeVendorError},
+				{cloudPosturePath, "/accounts/0/iam/root_mfa_enabled", componentsdk.CodeVendorError},
+			},
+		},
+		{
+			name:      "user with no user type",
+			responses: untypedUserResponses(),
+			gaps: []want{
+				{entraPath, "/users/enabled_member_users_count", componentsdk.CodeNotRead},
+				{entraPath, "/users/guest_pct", componentsdk.CodeNotRead},
+				{entraPath, "/posture/mfa_coverage", componentsdk.CodeNotRead},
+				{entraPath, "/policy/mfa_required_coverage_pct", componentsdk.CodeNotRead},
+				{entraPath, "/privileged_access/privileged_guest_count", componentsdk.CodeNotRead},
+				{idpPosturePath, "/user_security/user_count", componentsdk.CodeNotRead},
+				{idpPosturePath, "/user_security/inactive_pct", componentsdk.CodeNotRead},
+				{accessPosturePath, "/members/external_member_count", componentsdk.CodeNotRead},
+			},
+		},
+		{
+			name:      "sign-in activity user with no user type",
+			responses: untypedSignInUserResponses(),
+			gaps: []want{
+				{entraPath, "/users/inactive_guest_pct", componentsdk.CodeNotRead},
+			},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			res := runInProcess(t, kitConfig(), kitSecrets(), tc.responses)
+			if res.ExitCode != 0 || res.Result == nil {
+				t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
+			}
+			for _, w := range tc.gaps {
+				var got *componentsdk.Gap
+				for i, gap := range res.Result.Gaps {
+					if gap.Path == w.path && gap.Pointer == w.pointer {
+						got = &res.Result.Gaps[i]
+					}
+				}
+				switch {
+				case got == nil:
+					t.Errorf("%s %s: no gap", w.path, w.pointer)
+				case got.Code != w.code:
+					t.Errorf("%s %s: gap code %s, want %s (%s)", w.path, w.pointer, got.Code, w.code, got.Detail)
+				}
+			}
+		})
 	}
 }
 

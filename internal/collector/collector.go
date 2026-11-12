@@ -118,10 +118,6 @@ func (c *Collector) Collect(ctx context.Context, level componentsdk.Level) (*Res
 	}
 	result.EntraIDPPosture = entra.ToIDPPosture()
 	if result.EntraIDPPosture != nil {
-		c.markUnlistedMembers(entra, idpPosturePath, "/user_security/mfa_coverage_pct", "/user_security/mfa_phishing_resistant_pct")
-		if level.AtLeast(componentsdk.LevelAudit) {
-			c.markUnlistedMembers(entra, idpPosturePath, "/user_security/mfa_user_count", "/user_security/phishing_resistant_user_count")
-		}
 		c.markPartlyListedMembers(entra, level)
 		c.markIDPPostureUnsupported(level)
 		c.mirrorIDPPostureGaps(result.EntraIDPPosture)

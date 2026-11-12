@@ -103,10 +103,15 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 	c.gaps.leaveOut(entraPath, globalAdminsUnread, "/privileged_access/super_admin_count")
 	if membersUnread == nil {
 		out.PrivilegedUsersCount = intPtr(len(privilegedUserIDs))
-		out.PrivilegedGuestCount = intPtr(privilegedGuestCount(privilegedUserIDs, userByID))
+	}
+	guests, noType := privilegedGuestCount(privilegedUserIDs, userByID)
+	guestsUnread := firstMissing(membersUnread, untyped(noType))
+	if guestsUnread == nil {
+		out.PrivilegedGuestCount = intPtr(guests)
 	}
 	out.privilegedUsersPresent = presentAtLeast(len(privilegedUserIDs), membersUnread)
-	c.gaps.leaveOut(entraPath, membersUnread, "/privileged_access/privileged_users_count", "/privileged_access/privileged_guest_count")
+	c.gaps.leaveOut(entraPath, membersUnread, "/privileged_access/privileged_users_count")
+	c.gaps.leaveOut(entraPath, guestsUnread, "/privileged_access/privileged_guest_count")
 
 	if why := firstMissing(in.registrationsMiss, membersUnread, unlistedPrivileged(privilegedUserIDs, in.registrations)); why == nil {
 		mfa, phishingResistant := privilegedRegistrations(privilegedUserIDs, in.registrations)
@@ -119,7 +124,7 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 			"/privileged_access/privileged_mfa_coverage_pct", "/privileged_access/privileged_phishing_resistant_pct")
 	}
 
-	if why := firstMissing(in.registrationsMiss, globalAdminsUnread); why == nil {
+	if why := firstMissing(in.registrationsMiss, globalAdminsUnread, unlistedPrivileged(superAdminIDs, in.registrations)); why == nil {
 		out.globalAdminsMFA = globalAdminsMFARegistered(superAdminIDs, in.registrations)
 	} else {
 		out.globalAdminsMFAUnread = why
@@ -294,14 +299,18 @@ func roleTemplateIDFromSchedule(schedule microsoft.UnifiedRoleEligibilitySchedul
 	return schedule.RoleDefinitionID
 }
 
-func privilegedGuestCount(privilegedUserIDs map[string]struct{}, userByID map[string]microsoft.User) int {
-	count := 0
+// privilegedGuestCount counts the privileged users who are guests, and those
+// with no user type, who may be.
+func privilegedGuestCount(privilegedUserIDs map[string]struct{}, userByID map[string]microsoft.User) (guests, noType int) {
 	for id := range privilegedUserIDs {
-		if userByID[id].UserType == "Guest" {
-			count++
+		switch userByID[id].UserType {
+		case "Guest":
+			guests++
+		case "":
+			noType++
 		}
 	}
-	return count
+	return guests, noType
 }
 
 // unlistedPrivilegedUsers is the detail of the gap on the privileged MFA
