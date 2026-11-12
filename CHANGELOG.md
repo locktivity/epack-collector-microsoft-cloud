@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- The collector is built on epack v0.11.1.
+- The collector is built on epack v0.11.2.
 - In `idp-posture`, members whose user principal name is in a federated domain sign in through the identity provider the domain is federated with, which decides whether they use MFA. When an enabled member is in one, `user_security.mfa_user_count`, `phishing_resistant_user_count`, `mfa_coverage_pct` and `mfa_phishing_resistant_pct`, and `policy.mfa_required`, `mfa_required_user_count` and `mfa_required_coverage_pct` are left out with an `unsupported` gap that names the domain. When a privileged user is in one, `privileged_access.privileged_mfa_user_count`, `privileged_phishing_resistant_user_count`, `privileged_mfa_coverage_pct` and `privileged_phishing_resistant_pct` are left out the same way. Through v0.2.7 a federated member with no method registered in Entra ID counted as having no MFA. The user list now reads each user's `userPrincipalName`, and the organization's verified domains give which are federated. `entra`'s own `posture` and `policy` values don't change.
 
 ## v0.2.7
