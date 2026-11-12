@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.6
+
 - `artifacts/microsoft-cloud.access-posture.json` has `root` now, in the totals and in each subscription's scope. Azure has no built-in root account, so `root_accounts_present` and `root_access_keys_present` are false and `root_mfa_coverage_pct` is null. From the audit level, `root_account_count` and `root_mfa_account_count` are 0. Before, `root` was left out with an `unsupported` gap. A profile test that applies only when `root.root_accounts_present` is true no longer applies to Azure.
 
 ## v0.2.5
