@@ -117,12 +117,12 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 
 	members := e.Users.EnabledMemberUsersCount
 	userSecurity := IDPPostureUserSecurity{
-		UsersPresent: present(members),
+		UsersPresent: e.Users.membersPresent,
 		UserCount:    atAudit(members),
 	}
 	if members != nil {
-		userSecurity.MFACoveragePct = registrationShare(e.Posture.mfaRegisteredCount, e.Posture.DenominatorEnabledMemberUsers, *members)
-		userSecurity.MFAPhishingResistantPct = registrationShare(e.Posture.phishingResistantCount, e.Posture.DenominatorEnabledMemberUsers, *members)
+		userSecurity.MFACoveragePct = share(e.Posture.mfaRegisteredCount, e.Posture.DenominatorEnabledMemberUsers, componentsdk.RoundDown)
+		userSecurity.MFAPhishingResistantPct = share(e.Posture.phishingResistantCount, e.Posture.DenominatorEnabledMemberUsers, componentsdk.RoundDown)
 		userSecurity.InactiveUserCount = atAudit(e.Users.inactiveMemberCount)
 		userSecurity.InactivePct = share(e.Users.inactiveMemberCount, members, componentsdk.RoundUp)
 		// The percentages are taken over the members the report lists. When
@@ -211,21 +211,6 @@ func share(count, total *int, rounding componentsdk.Rounding) Percentage {
 	return Percentage{Value: componentsdk.Percent(*count, *total, rounding), Read: true}
 }
 
-// registrationShare returns an MFA registration percentage over the members
-// in the registration report, rounded down. It is null when the tenant has
-// no enabled members. When none of the tenant's members are in the report,
-// their registration is unknown and the percentage is left out. See
-// markUnlistedMembers.
-func registrationShare(count, listed *int, members int) Percentage {
-	if members == 0 {
-		return Percentage{Read: true}
-	}
-	if listed != nil && *listed == 0 {
-		return Percentage{}
-	}
-	return share(count, listed, componentsdk.RoundDown)
-}
-
 // nullWhenEmpty is a percentage the collector does not measure. It is null
 // over an empty population, which needs no reading, and left out otherwise.
 func nullWhenEmpty(total *int) Percentage {
@@ -296,14 +281,14 @@ func (c *Collector) mirrorIDPPostureGaps(posture *IDPPosture) {
 // pointer although the count it comes from may be left out, so no gap on the
 // count carries over to it.
 func presenceKnown(posture *IDPPosture, pointer string) bool {
-	pa := posture.PrivilegedAccess
-	switch {
-	case pa == nil:
-		return false
-	case pointer == "/privileged_access/privileged_users_present":
-		return pa.PrivilegedUsersPresent != nil
-	case pointer == "/privileged_access/standing_privileged_users_present":
-		return pa.StandingPrivilegedUsersPresent != nil
+	us, pa := posture.UserSecurity, posture.PrivilegedAccess
+	switch pointer {
+	case "/user_security/users_present":
+		return us != nil && us.UsersPresent != nil
+	case "/privileged_access/privileged_users_present":
+		return pa != nil && pa.PrivilegedUsersPresent != nil
+	case "/privileged_access/standing_privileged_users_present":
+		return pa != nil && pa.StandingPrivilegedUsersPresent != nil
 	}
 	return false
 }
@@ -350,28 +335,10 @@ const partlyListedMembers = "Microsoft's MFA registration report doesn't list ev
 // runs write the counts.
 func (c *Collector) markPartlyListedMembers(entra *EntraArtifact, level componentsdk.Level) {
 	members, listed := entra.Users.EnabledMemberUsersCount, entra.Posture.DenominatorEnabledMemberUsers
-	if !level.AtLeast(componentsdk.LevelAudit) || members == nil || listed == nil || *listed == 0 || *listed == *members {
+	if !level.AtLeast(componentsdk.LevelAudit) || members == nil || listed == nil || *listed == *members {
 		return
 	}
 	for _, pointer := range []string{"/user_security/mfa_user_count", "/user_security/phishing_resistant_user_count"} {
 		c.gaps.rec.NotCollectedCode(componentsdk.Location{Path: idpPosturePath, Pointer: pointer}, componentsdk.CodeVendorError, partlyListedMembers)
-	}
-}
-
-// unlistedMembers is the detail of the gap on an MFA percentage when the
-// tenant has enabled members and none of them are in the registration report.
-const unlistedMembers = "None of the tenant's enabled members are in Microsoft's MFA registration report yet. Their MFA registration is unknown."
-
-// markUnlistedMembers records why the normalized MFA percentages are left
-// out when none of the tenant's enabled members are in the registration
-// report. In the Entra artifact those percentages are taken over the members
-// in the report, which are none, so they are null there.
-func (c *Collector) markUnlistedMembers(entra *EntraArtifact, path string, pointers ...string) {
-	members, listed := entra.Users.EnabledMemberUsersCount, entra.Posture.DenominatorEnabledMemberUsers
-	if members == nil || *members == 0 || listed == nil || *listed != 0 {
-		return
-	}
-	for _, pointer := range pointers {
-		c.gaps.rec.NotCollectedCode(componentsdk.Location{Path: path, Pointer: pointer}, componentsdk.CodeVendorError, unlistedMembers)
 	}
 }

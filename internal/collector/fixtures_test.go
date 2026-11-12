@@ -86,6 +86,31 @@ func registrationReportBehindResponses() []collectortest.Response {
 	return kitResponsesFor(graph, fakeARMClient())
 }
 
+// emptyRegistrationReportResponses answer a tenant whose MFA registration
+// report lists no one yet, as for a new tenant.
+func emptyRegistrationReportResponses() []collectortest.Response {
+	graph := fakeGraphClient()
+	graph.registrations = nil
+	return kitResponsesFor(graph, fakeARMClient())
+}
+
+// untypedUserResponses answer a tenant where the user list gives u2, an
+// enabled user with a privileged role and Reader on the subscription, no
+// user type, as Graph gives some older accounts.
+func untypedUserResponses() []collectortest.Response {
+	graph := fakeGraphClient()
+	graph.users[1].UserType = ""
+	return kitResponsesFor(graph, fakeARMClient())
+}
+
+// untypedSignInUserResponses answer a tenant where the sign-in activity list
+// gives u3, an enabled guest, no user type.
+func untypedSignInUserResponses() []collectortest.Response {
+	graph := fakeGraphClient()
+	graph.signInUsers[2].UserType = ""
+	return kitResponsesFor(graph, fakeARMClient())
+}
+
 // groupRoleResponses answer a subscription where a group holds the Owner
 // role besides the clean scenario's direct assignments.
 func groupRoleResponses() []collectortest.Response {

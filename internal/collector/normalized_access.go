@@ -203,15 +203,19 @@ func accessMembers(population accessPopulation, dir directory, now time.Time, ga
 		LocalMFACoveragePct: Percentage{Read: true},
 	}
 	members := roleHolders(population.users, dir)
-	guests := 0
+	guests, noType := 0, 0
 	for _, user := range members {
-		if user.UserType == "Guest" {
+		switch user.UserType {
+		case "Guest":
 			guests++
+		case "":
+			noType++
 		}
 	}
 	why := firstMissing(population.why, dir.usersMiss, population.holdersMiss())
+	externalWhy := firstMissing(why, untyped(noType))
 	out.MembersPresent = gaps.present(len(members), why, "/members/members_present")
-	out.ExternalMembersPresent = gaps.present(guests, why, "/members/external_members_present")
+	out.ExternalMembersPresent = gaps.present(guests, externalWhy, "/members/external_members_present")
 	if why != nil {
 		gaps.leaveOut(why,
 			"/members/member_count", "/members/external_member_count",
@@ -222,7 +226,10 @@ func accessMembers(population accessPopulation, dir directory, now time.Time, ga
 
 	count := intPtr(len(members))
 	out.MemberCount = gaps.count(count)
-	out.ExternalMemberCount = gaps.count(intPtr(guests))
+	if externalWhy == nil {
+		out.ExternalMemberCount = gaps.count(intPtr(guests))
+	}
+	gaps.leaveOut(externalWhy, "/members/external_member_count")
 	// Everyone signs in through Entra ID, so every member uses SSO.
 	out.SSOMemberCount = gaps.count(count)
 	out.SSOCoveragePct = share(count, count, componentsdk.RoundDown)

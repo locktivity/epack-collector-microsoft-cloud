@@ -68,6 +68,9 @@ type Users struct {
 	// inactiveMemberCount is the enabled members, guests left out, who have
 	// not signed in for 90 days, for the normalized artifact.
 	inactiveMemberCount *int
+	// membersPresent is whether there are any enabled members. A user with
+	// a member user type shows there are, even when another user has none.
+	membersPresent *bool
 }
 
 type Policy struct {

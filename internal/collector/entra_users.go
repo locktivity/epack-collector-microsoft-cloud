@@ -25,23 +25,37 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		artifact.TenantID = org.ID
 	}
 
+	membersMiss := firstMissing(usersMiss, untyped(summary.UntypedEnabledCount))
+	guestsMiss := firstMissing(usersMiss, untyped(summary.UntypedCount))
 	if usersMiss == nil {
 		artifact.Users.TotalCount = intPtr(summary.TotalCount)
-		artifact.Users.EnabledMemberUsersCount = intPtr(len(summary.EnabledMemberIDs))
-		artifact.Users.GuestPct = PercentInt(summary.GuestCount, summary.TotalCount)
 		artifact.Users.DisabledPct = PercentInt(summary.DisabledCount, summary.TotalCount)
 		artifact.Users.disabledCount = intPtr(summary.DisabledCount)
 	}
-	c.gaps.leaveOut(entraPath, usersMiss,
-		"/users/total_count", "/users/enabled_member_users_count", "/users/guest_pct", "/users/disabled_pct")
+	if membersMiss == nil {
+		artifact.Users.EnabledMemberUsersCount = intPtr(len(summary.EnabledMemberIDs))
+	}
+	if guestsMiss == nil {
+		artifact.Users.GuestPct = PercentInt(summary.GuestCount, summary.TotalCount)
+	}
+	artifact.Users.membersPresent = presentAtLeast(len(summary.EnabledMemberIDs), membersMiss)
+	c.gaps.leaveOut(entraPath, usersMiss, "/users/total_count")
+	c.gaps.leaveOut(entraPath, membersMiss, "/users/enabled_member_users_count")
+	c.gaps.leaveOut(entraPath, guestsMiss, "/users/guest_pct")
+	c.gaps.leaveOut(entraPath, usersMiss, "/users/disabled_pct")
 
-	if why := firstMissing(usersMiss, registrationsMiss); why != nil {
+	var registrationMetrics registrationMetrics
+	why := firstMissing(membersMiss, registrationsMiss)
+	if why == nil {
+		registrationMetrics = computeRegistrationMetrics(summary.EnabledMemberIDs, registrations)
+		why = noMembersListed(len(summary.EnabledMemberIDs), registrationMetrics.Listed)
+	}
+	if why != nil {
 		c.gaps.leaveOut(entraPath, why,
 			"/posture/denominator_enabled_member_users",
 			"/posture/mfa_coverage", "/posture/mfa_phishing_resistant",
 			"/posture/mfa_weak_method_only", "/posture/sspr_registered")
 	} else {
-		registrationMetrics := computeRegistrationMetrics(summary.EnabledMemberIDs, registrations)
 		artifact.Posture.DenominatorEnabledMemberUsers = intPtr(registrationMetrics.Listed)
 		artifact.Posture.MFACoverage = registrationMetrics.MFACoverage
 		artifact.Posture.MFAPhishingResistant = registrationMetrics.MFAPhishingResistant
@@ -51,6 +65,7 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		artifact.Posture.phishingResistantCount = intPtr(registrationMetrics.PhishingResistant)
 	}
 
+	signInGuestsMiss := firstMissing(signInMiss, untyped(summarizeUsers(signInUsers).UntypedEnabledCount))
 	if signInMiss == nil {
 		enabled := countInactive(signInUsers, func(user microsoft.User) bool {
 			return user.AccountEnabled != nil && *user.AccountEnabled
@@ -58,19 +73,22 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		artifact.Users.InactivePct = enabled.pct()
 		artifact.Users.inactiveCount = intPtr(enabled.inactive)
 		artifact.Users.signInEnabledCount = intPtr(enabled.total)
-		artifact.Users.InactiveGuestPct = countInactive(signInUsers, func(user microsoft.User) bool {
-			return user.AccountEnabled != nil && *user.AccountEnabled && user.UserType == "Guest"
-		}, c.clock.Now()).pct()
-		if usersMiss == nil {
+		if membersMiss == nil {
 			artifact.Users.inactiveMemberCount = intPtr(inactiveEnabledMembers(summary.EnabledMemberIDs, signInUsers, c.clock.Now()))
 		}
 	}
-	c.gaps.leaveOut(entraPath, signInMiss, "/users/inactive_pct", "/users/inactive_guest_pct")
+	if signInGuestsMiss == nil {
+		artifact.Users.InactiveGuestPct = countInactive(signInUsers, func(user microsoft.User) bool {
+			return user.AccountEnabled != nil && *user.AccountEnabled && user.UserType == "Guest"
+		}, c.clock.Now()).pct()
+	}
+	c.gaps.leaveOut(entraPath, signInMiss, "/users/inactive_pct")
+	c.gaps.leaveOut(entraPath, signInGuestsMiss, "/users/inactive_guest_pct")
 
 	assignments, assignmentsMiss := c.roleAssignments(ctx, diagnostics)
 	roles := roleAssignmentList{assignments: assignments, miss: assignmentsMiss}
 	definitions, definitionsMiss := c.roleDefinitions(ctx, diagnostics)
-	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, usersMiss, roles)
+	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, membersMiss, roles)
 	artifact.PrivilegedAccess = c.collectPrivilegedAccess(ctx, diagnostics, privilegedSources{
 		roles:             roles,
 		definitions:       definitions,
@@ -133,6 +151,10 @@ type userSummary struct {
 	EnabledMemberIDs map[string]struct{}
 	GuestCount       int
 	DisabledCount    int
+	// UntypedCount counts the users with no user type, and
+	// UntypedEnabledCount the enabled ones.
+	UntypedCount        int
+	UntypedEnabledCount int
 }
 
 func summarizeUsers(users []microsoft.User) userSummary {
@@ -147,8 +169,41 @@ func summarizeUsers(users []microsoft.User) userSummary {
 		if user.ID != "" && user.EnabledMember() {
 			summary.EnabledMemberIDs[user.ID] = struct{}{}
 		}
+		if user.UserType == "" {
+			summary.UntypedCount++
+			if user.AccountEnabled != nil && *user.AccountEnabled {
+				summary.UntypedEnabledCount++
+			}
+		}
 	}
 	return summary
+}
+
+// untypedUsers is the detail of the gap on a value that tells members from
+// guests when a user has no user type.
+const untypedUsers = "Microsoft Graph gives some users no user type, as it can for older accounts, so whether each is a member or a guest isn't known."
+
+// untyped returns why a value that tells members from guests is unknown
+// when count users have no user type, and nil when count is 0.
+func untyped(count int) *missing {
+	if count > 0 {
+		return notRead(untypedUsers)
+	}
+	return nil
+}
+
+// unlistedMembers is the detail of the gap on the MFA registration values
+// when the tenant has enabled members and none of them are in the
+// registration report.
+const unlistedMembers = "None of the tenant's enabled members are in Microsoft's MFA registration report yet. Their MFA registration is unknown."
+
+// noMembersListed returns why the MFA registration values are unknown when
+// the registration report lists none of the tenant's enabled members, or nil.
+func noMembersListed(members, listed int) *missing {
+	if members > 0 && listed == 0 {
+		return vendorError(unlistedMembers)
+	}
+	return nil
 }
 
 type registrationMetrics struct {

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v0.2.7
+
+- `entra`'s MFA registration values are left out with a `vendor_error` gap when Microsoft's registration report lists none of the tenant's enabled members, as for a new tenant. These are `posture.denominator_enabled_member_users`, `mfa_coverage`, `mfa_phishing_resistant`, `mfa_weak_method_only` and `sspr_registered`, and `cloud-posture`'s `iam.mfa_coverage_pct`. Through v0.2.6 the denominator was 0 and the percentages were null with no gap.
+- `cloud-posture`'s `iam.root_mfa_enabled` and `root_access_protected` are left out with a `vendor_error` gap when the registration report doesn't list every Global Administrator. Through v0.2.6 a Global Administrator missing from the report counted as not registered for MFA, so both values were false.
+- The values that count members are left out with a `not_read` gap when Microsoft Graph gives an enabled user no user type, as it can for older accounts. These are `users.enabled_member_users_count`, the MFA registration values, the MFA policy coverage, and the normalized `user_count`, `inactive_user_count` and `inactive_pct`. `guest_pct` is left out when any user has no type, `privileged_guest_count` when a privileged user has none, and `access-posture`'s `external_member_count` when a member with an Azure role has none. `inactive_guest_pct` is left out when the sign-in activity list gives an enabled user no type. `users_present` and `external_members_present` stay true when other users show there are some. Through v0.2.6 a user with no type counted as neither a member nor a guest.
+
 ## v0.2.6
 
 - `artifacts/microsoft-cloud.access-posture.json` has `root` now, in the totals and in each subscription's scope. Azure has no built-in root account, so `root_accounts_present` and `root_access_keys_present` are false and `root_mfa_coverage_pct` is null. From the audit level, `root_account_count` and `root_mfa_account_count` are 0. Before, `root` was left out with an `unsupported` gap. A profile test that applies only when `root.root_accounts_present` is true no longer applies to Azure.
