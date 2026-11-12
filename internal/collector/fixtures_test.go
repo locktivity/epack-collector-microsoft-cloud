@@ -269,7 +269,7 @@ func kitGraphResponses(graph *fakeGraph) []collectortest.Response {
 	audits.Set("$select", "id,activityDateTime,activityDisplayName,category,loggedByService,operationType,result,targetResources")
 	audits.Set("$top", "999")
 
-	usersPage1 := kitGraphBase + "/users?$select=id,accountEnabled,userType&$top=999"
+	usersPage1 := kitGraphBase + "/users?$select=id,accountEnabled,userType,userPrincipalName&$top=999"
 	usersPage2 := usersPage1 + "&$skiptoken=page-2"
 
 	responses := []collectortest.Response{

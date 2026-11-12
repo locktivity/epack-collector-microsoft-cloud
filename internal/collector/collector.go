@@ -118,6 +118,7 @@ func (c *Collector) Collect(ctx context.Context, level componentsdk.Level) (*Res
 	}
 	result.EntraIDPPosture = entra.ToIDPPosture()
 	if result.EntraIDPPosture != nil {
+		c.markSignInElsewhere(entra, level)
 		c.markPartlyListedMembers(entra, level)
 		c.markIDPPostureUnsupported(level)
 		c.mirrorIDPPostureGaps(result.EntraIDPPosture)

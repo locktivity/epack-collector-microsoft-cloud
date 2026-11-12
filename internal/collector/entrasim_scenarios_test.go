@@ -154,7 +154,42 @@ func simScenarios(t testing.TB) []simScenario {
 		},
 		simScenario{name: "MFA policy for one app", roster: oneAppMFARoster(t, first)},
 	)
+	// Members whose domain is federated with another identity provider.
+	out = append(out,
+		simScenario{name: "a member in a federated domain", roster: federatedRoster(t, first, simPartnerDomain, "user_mfa")},
+		simScenario{name: "an admin in a federated domain", roster: federatedRoster(t, first, simPartnerDomain, "admin_mfa")},
+		simScenario{name: "a federated domain no account is in", roster: federatedRoster(t, first, simPartnerDomain)},
+	)
 	return out
+}
+
+// simPartner is the identity provider the federated variants send members
+// to, through the domain simPartnerDomain.
+const (
+	simPartner       = "partner"
+	simPartnerDomain = "partner.example.com"
+)
+
+// federatedRoster federates domain with the partner identity provider and
+// moves the accounts keys into it.
+func federatedRoster(t testing.TB, base *roster.Roster, domain string, keys ...string) *roster.Roster {
+	r := base.Clone()
+	federate(domain, keys...)(r)
+	return validated(t, r)
+}
+
+// federate federates domain with the partner identity provider and moves
+// the members among keys into it.
+func federate(domain string, keys ...string) func(*roster.Roster) {
+	return func(r *roster.Roster) {
+		r.Extra = maps.Clone(r.Extra)
+		setExtra(&r.Extra, "identity_providers", map[string]simIdP{simPartner: {Domain: domain}})
+		for i := range r.Accounts {
+			if slices.Contains(keys, r.Accounts[i].Key) && r.Accounts[i].Kind == "member" {
+				r.Accounts[i].SignsInThrough = simPartner
+			}
+		}
+	}
 }
 
 // securityDefaultsRoster replaces the sandbox's Conditional Access policies

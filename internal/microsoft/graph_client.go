@@ -99,7 +99,7 @@ func (c *GraphClient) Organization(ctx context.Context) (*Organization, error) {
 }
 
 func (c *GraphClient) Users(ctx context.Context) ([]User, error) {
-	return getPaged[User](ctx, c, "graph.users.list", "/users?$select=id,accountEnabled,userType&$top=999")
+	return getPaged[User](ctx, c, "graph.users.list", "/users?$select=id,accountEnabled,userType,userPrincipalName&$top=999")
 }
 
 func (c *GraphClient) UsersWithSignInActivity(ctx context.Context) ([]User, error) {

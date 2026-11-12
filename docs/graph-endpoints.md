@@ -6,7 +6,7 @@ in v1.
 | Surface | v1.0 endpoint | Application permission | Slice |
 |---------|---------------|------------------------|-------|
 | Tenant identity and verified domain | `/organization` | `Organization.Read.All` or `Directory.Read.All` | A |
-| User base inventory | `/users` with `$select=id,accountEnabled,userType` | `User.Read.All` | A |
+| User base inventory | `/users` with `$select=id,accountEnabled,userType,userPrincipalName` | `User.Read.All` | A |
 | Authentication method registration report | `/reports/authenticationMethods/userRegistrationDetails` | `AuditLog.Read.All` | A |
 | User `signInActivity` | `/users` with `$select=signInActivity` | `User.Read.All` plus `AuditLog.Read.All` | B2 |
 | Conditional Access policies | `/identity/conditionalAccess/policies` | `Policy.Read.All` | B1 |

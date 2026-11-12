@@ -100,6 +100,7 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		registrations:     registrations,
 		registrationsMiss: registrationsMiss,
 	})
+	artifact.elsewhere = signsInElsewhere(org, users, summary.EnabledMemberIDs, artifact.PrivilegedAccess)
 	var appCreds appCredentials
 	artifact.Apps, appCreds = c.collectApps(ctx, diagnostics)
 	if artifact.Apps != nil {

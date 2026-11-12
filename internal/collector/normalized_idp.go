@@ -133,6 +133,10 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 			userSecurity.PhishingResistantUserCount = atAudit(e.Posture.phishingResistantCount)
 		}
 	}
+	if len(e.elsewhere.members) > 0 {
+		userSecurity.MFAUserCount, userSecurity.PhishingResistantUserCount = nil, nil
+		userSecurity.MFACoveragePct, userSecurity.MFAPhishingResistantPct = Percentage{}, Percentage{}
+	}
 	if userSecurity != (IDPPostureUserSecurity{}) {
 		posture.UserSecurity = &userSecurity
 	}
@@ -162,6 +166,11 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 			StandingPrivilegedUsersPresent:       pa.standingPrivilegedUsersPresent,
 			StandingPrivilegedUsersCount:         atAudit(pa.standingPrivilegedUsersCount),
 		}
+		if len(e.elsewhere.admins) > 0 {
+			p := posture.PrivilegedAccess
+			p.PrivilegedMFAUserCount, p.PrivilegedPhishingResistantUserCount = nil, nil
+			p.PrivilegedMFACoveragePct, p.PrivilegedPhishingResistantPct = Percentage{}, Percentage{}
+		}
 	}
 
 	accounts := e.Users.TotalCount
@@ -186,6 +195,9 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 		if members != nil {
 			policy.MFARequiredUserCount = atAudit(p.mfaRequiredUserCount)
 			policy.MFARequiredCoveragePct = share(p.mfaRequiredUserCount, members, componentsdk.RoundDown)
+		}
+		if len(e.elsewhere.members) > 0 {
+			policy.MFARequired, policy.MFARequiredUserCount, policy.MFARequiredCoveragePct = nil, nil, Percentage{}
 		}
 		if policy != (IDPPosturePolicy{}) {
 			posture.Policy = &policy
