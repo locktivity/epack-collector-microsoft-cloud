@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"slices"
+	"strings"
 )
 
 type Organization struct {
@@ -16,6 +17,18 @@ type VerifiedDomain struct {
 	IsDefault bool   `json:"isDefault"`
 	IsInitial bool   `json:"isInitial"`
 	Type      string `json:"type"`
+}
+
+// FederatedDomains lists, in lower case, the verified domains Microsoft
+// hands sign-ins for to another identity provider.
+func (o Organization) FederatedDomains() []string {
+	var out []string
+	for _, domain := range o.VerifiedDomains {
+		if strings.EqualFold(domain.Type, "Federated") && domain.Name != "" {
+			out = append(out, strings.ToLower(domain.Name))
+		}
+	}
+	return out
 }
 
 func (o Organization) PrimaryDomain() string {
@@ -38,10 +51,11 @@ func (o Organization) PrimaryDomain() string {
 }
 
 type User struct {
-	ID             string          `json:"id"`
-	AccountEnabled *bool           `json:"accountEnabled"`
-	UserType       string          `json:"userType"`
-	SignInActivity *SignInActivity `json:"signInActivity"`
+	ID                string          `json:"id"`
+	AccountEnabled    *bool           `json:"accountEnabled"`
+	UserType          string          `json:"userType"`
+	UserPrincipalName string          `json:"userPrincipalName"`
+	SignInActivity    *SignInActivity `json:"signInActivity"`
 }
 
 func (u User) EnabledMember() bool {

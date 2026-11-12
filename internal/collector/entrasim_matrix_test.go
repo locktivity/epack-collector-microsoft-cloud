@@ -1,12 +1,14 @@
 package collector
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/locktivity/epack/componentsdk"
 	"github.com/locktivity/epack/componentsdk/collectortest/roster"
 )
 
@@ -341,6 +343,11 @@ func simMatrixAxes() []roster.Axis {
 			}},
 		}},
 		{Name: "admin.methods", Values: methods},
+		{Name: "admin.signs_in", Values: []roster.Value{
+			{Name: "entra"},
+			{Name: "a federated domain", Change: federate(simPartnerDomain, simMatrixAdmin)},
+			{Name: "entra, beside a federated domain", Change: federate(simPartnerDomain)},
+		}},
 		{Name: "mfa.state", Values: []roster.Value{
 			{Name: "enabled"},
 			{Name: "report-only", Change: mfa(func(p *roster.Policy) { p.State = "enabledForReportingButNotEnforced" })},
@@ -494,6 +501,90 @@ func differing(rows []simRow) ([]string, map[string]simRow) {
 		}
 	}
 	return out, byPointer
+}
+
+// simMFAPointers are the values roster.Derive leaves out when an account
+// signs in through another identity provider: the first seven when a member
+// does, the rest when an admin does.
+var simMFAPointers = []string{
+	"/user_security/mfa_user_count", "/user_security/phishing_resistant_user_count",
+	"/user_security/mfa_coverage_pct", "/user_security/mfa_phishing_resistant_pct",
+	"/policy/mfa_required", "/policy/mfa_required_user_count", "/policy/mfa_required_coverage_pct",
+	"/privileged_access/privileged_mfa_user_count", "/privileged_access/privileged_phishing_resistant_user_count",
+	"/privileged_access/privileged_mfa_coverage_pct", "/privileged_access/privileged_phishing_resistant_pct",
+}
+
+// TestSimulatedSignInElsewhere checks what the comparison with the derived
+// values can't: that the collector leaves out each MFA value Derive leaves
+// out, for an account that signs in through another identity provider. In
+// the federated scenarios and the one-at-a-time admin.signs_in rows, its gap
+// names the federated domain. In a pairwise row another gap can say why
+// first, such as the one for a role a group holds.
+func TestSimulatedSignInElsewhere(t *testing.T) {
+	type check struct {
+		sc    simScenario
+		named bool
+	}
+	var checks []check
+	for _, sc := range simScenarios(t) {
+		if strings.Contains(sc.name, "federated") {
+			checks = append(checks, check{sc, true})
+		}
+	}
+	base, axes := simMatrixBase(t), simMatrixAxes()
+	for _, set := range []struct {
+		rows  []roster.Row
+		named bool
+	}{{roster.OneAtATime(axes), true}, {roster.Pairwise(axes), false}} {
+		for _, row := range set.rows {
+			if !slices.ContainsFunc(row.Choices(axes), func(c string) bool { return strings.HasPrefix(c, "admin.signs_in=") }) {
+				continue
+			}
+			v, err := roster.Build(base, axes, row)
+			if err != nil {
+				t.Fatal(err)
+			}
+			checks = append(checks, check{simScenario{name: v.Name, roster: v.Roster}, set.named})
+		}
+	}
+	for _, c := range checks {
+		t.Run(c.sc.name, func(t *testing.T) {
+			derived, err := roster.Derive(c.sc.roster)
+			if err != nil {
+				t.Fatal(err)
+			}
+			sim, err := newEntraSim(c.sc.roster, goldenTime)
+			if err != nil {
+				t.Fatal(err)
+			}
+			res := runInProcess(t, kitConfig(), kitSecrets(), sim.responses())
+			if res.ExitCode != 0 || res.Result == nil {
+				t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
+			}
+			var doc map[string]any
+			for _, a := range res.Artifacts {
+				if a.Path == idpPosturePath {
+					if err := json.Unmarshal(a.Data, &doc); err != nil {
+						t.Fatal(err)
+					}
+				}
+			}
+			for _, pointer := range simMFAPointers {
+				if _, want := derived[roster.IDPPosture][pointer]; want {
+					continue
+				}
+				i := slices.IndexFunc(res.Result.Gaps, func(g componentsdk.Gap) bool { return g.Path == idpPosturePath && g.Pointer == pointer })
+				switch _, got := lookupPointer(doc, pointer); {
+				case got:
+					t.Errorf("%s: left out by Derive, collector wrote it", pointer)
+				case i < 0:
+					t.Errorf("%s: left out with no gap", pointer)
+				case c.named && !strings.Contains(res.Result.Gaps[i].Detail, simPartnerDomain):
+					t.Errorf("%s: left out with a gap that doesn't name %s: %s", pointer, simPartnerDomain, res.Result.Gaps[i].Detail)
+				}
+			}
+		})
+	}
 }
 
 func TestSimulatedMatrix(t *testing.T) {

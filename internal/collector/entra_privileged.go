@@ -96,7 +96,7 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 		globalAdminsUnread = membersUnread
 	}
 
-	out := &PrivilegedAccess{}
+	out := &PrivilegedAccess{userIDs: privilegedUserIDs}
 	if globalAdminsUnread == nil {
 		out.SuperAdminCount = intPtr(len(superAdminIDs))
 	}

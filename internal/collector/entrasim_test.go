@@ -30,6 +30,12 @@ import (
 // don't settle (directory_role_labels), and the Graph permissions of the app
 // the collector signs in as (apps.collector.graph_permissions). An account with
 // in_registration_report false is missing from the registration report.
+//
+// An account's signs_in_through is a key of the identity_providers extra,
+// each a domain federated with that provider (domain). The organization
+// lists the domain as Federated, the account's user principal name is in
+// it, and the registration report lists none of the account's methods,
+// which the other provider holds. A member alone signs in through one.
 type entraSim struct {
 	r           *roster.Roster
 	now         time.Time
@@ -38,6 +44,7 @@ type entraSim struct {
 	permissions []string
 	domain      string
 	roleIDs     map[string]string
+	federated   map[string]simIdP
 	// pageSize, when set, replaces Graph's page sizes, as a server may.
 	pageSize int
 }
@@ -65,6 +72,20 @@ func newEntraSim(r *roster.Roster, now time.Time) (*entraSim, error) {
 	}
 	if _, err := r.Extra.Get("directory_role_ids", &s.roleIDs); err != nil {
 		return nil, err
+	}
+	if _, err := r.Extra.Get("identity_providers", &s.federated); err != nil {
+		return nil, err
+	}
+	for _, a := range r.Accounts {
+		if a.SignsInThrough == "" {
+			continue
+		}
+		if _, ok := s.federated[a.SignsInThrough]; !ok {
+			return nil, fmt.Errorf("account %s signs in through %s, which is no identity provider", a.Key, a.SignsInThrough)
+		}
+		if a.Kind != "member" {
+			return nil, fmt.Errorf("account %s is a %s, and only a member's domain can be federated", a.Key, a.Kind)
+		}
 	}
 	i := slices.IndexFunc(r.Apps, func(a roster.App) bool { return a.Key == "collector" })
 	if i < 0 {
@@ -233,10 +254,21 @@ func (s *entraSim) list(first, context string, a simAccess, items []any, size in
 	}
 }
 
+// simIdP is an identity_providers extra.
+type simIdP struct {
+	Domain string `json:"domain"`
+}
+
 func (s *entraSim) organization() []collectortest.Response {
-	org := map[string]any{"id": kitTenantID, "verifiedDomains": []any{map[string]any{
+	domains := []any{map[string]any{
 		"capabilities": "Email, OfficeCommunicationsOnline", "isDefault": true, "isInitial": true, "name": s.domain, "type": "Managed",
-	}}}
+	}}
+	for _, key := range slices.Sorted(maps.Keys(s.federated)) {
+		domains = append(domains, map[string]any{
+			"capabilities": "Email, OfficeCommunicationsOnline", "isDefault": false, "isInitial": false, "name": s.federated[key].Domain, "type": "Federated",
+		})
+	}
+	org := map[string]any{"id": kitTenantID, "verifiedDomains": domains}
 	return s.list(kitGraphBase+"/organization?$select=id,verifiedDomains", "organization(id,verifiedDomains)",
 		access(simDirectoryDenied, nil, []string{"Organization.Read.All", "Directory.Read.All"}), []any{org}, simUsersPage)
 }
@@ -253,9 +285,9 @@ func (s *entraSim) userType(a roster.Account) string {
 func (s *entraSim) users() []collectortest.Response {
 	items := make([]any, 0, len(s.r.Accounts))
 	for _, a := range s.r.Accounts {
-		items = append(items, map[string]any{"id": simID("user", a.Key), "accountEnabled": a.Enabled, "userType": s.userType(a)})
+		items = append(items, map[string]any{"id": simID("user", a.Key), "accountEnabled": a.Enabled, "userType": s.userType(a), "userPrincipalName": s.upn(a)})
 	}
-	return s.list(kitGraphBase+"/users?$select=id,accountEnabled,userType&$top=999", "users(id,accountEnabled,userType)",
+	return s.list(kitGraphBase+"/users?$select=id,accountEnabled,userType,userPrincipalName&$top=999", "users(id,accountEnabled,userType,userPrincipalName)",
 		access(simDirectoryDenied, nil, simUserRead), items, simUsersPage)
 }
 
@@ -297,8 +329,11 @@ func (s *entraSim) registrationDetails() []collectortest.Response {
 		}
 		class := s.r.MFAClass(a)
 		methods := a.Methods
-		if methods == nil {
+		if methods == nil || a.SignsInThrough != "" {
 			methods = []string{}
+		}
+		if a.SignsInThrough != "" {
+			class = roster.MFANone
 		}
 		preferred := "none"
 		if class != roster.MFANone {
@@ -310,12 +345,12 @@ func (s *entraSim) registrationDetails() []collectortest.Response {
 			"userDisplayName":       a.Key,
 			"userType":              strings.ToLower(s.userType(a)),
 			"isAdmin":               s.isAdmin(a),
-			"isSsprRegistered":      len(a.Methods) > 0,
+			"isSsprRegistered":      len(methods) > 0,
 			"isSsprEnabled":         false,
 			"isSsprCapable":         false,
 			"isMfaRegistered":       class != roster.MFANone,
 			"isMfaCapable":          class != roster.MFANone,
-			"isPasswordlessCapable": slices.ContainsFunc(a.Methods, func(m string) bool { return slices.Contains(simPasswordlessMethods, m) }),
+			"isPasswordlessCapable": slices.ContainsFunc(methods, func(m string) bool { return slices.Contains(simPasswordlessMethods, m) }),
 			"methodsRegistered":     methods,
 			"isSystemPreferredAuthenticationMethodEnabled":  true,
 			"systemPreferredAuthenticationMethods":          []string{},
@@ -342,6 +377,9 @@ func (s *entraSim) upn(a roster.Account) string {
 	name := strings.ReplaceAll(a.Key, "_", ".")
 	if a.Kind == "creator" {
 		return name + "_outlook.com#EXT#@" + s.domain
+	}
+	if a.SignsInThrough != "" {
+		return name + "@" + s.federated[a.SignsInThrough].Domain
 	}
 	return name + "@" + s.domain
 }
@@ -425,12 +463,12 @@ func (s *entraSim) policy(p roster.Policy) map[string]any {
 	}
 	// A rendering is an equivalent way Graph can show a policy, such as an
 	// explicit list of every client app where the portal leaves the
-	// condition unset.
+	// condition unset. A condition the policy sets replaces it.
 	var renderings []string
 	if _, err := p.Extra.Get("render", &renderings); err != nil {
 		panic(err)
 	}
-	for _, c := range append(slices.Clone(p.Conditions), renderings...) {
+	for _, c := range append(renderings, p.Conditions...) {
 		switch c {
 		case "sign_in_risk":
 			conditions["signInRiskLevels"] = []string{"high", "medium"}

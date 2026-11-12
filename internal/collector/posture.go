@@ -23,6 +23,9 @@ type EntraArtifact struct {
 
 	// directory holds the users the access posture looks up by ID.
 	directory directory
+	// elsewhere names the federated domains members and admins sign in
+	// through.
+	elsewhere signInElsewhere
 }
 
 // directory holds the tenant's users by ID, from the user list and from the
@@ -102,6 +105,8 @@ type PrivilegedAccess struct {
 	InactivePrivilegedUsersCount   *int `json:"inactive_privileged_users_count"`
 	PrivilegedGuestCount           *int `json:"privileged_guest_count"`
 
+	// userIDs are the enabled users who hold a privileged role directly.
+	userIDs map[string]struct{}
 	// The counts behind the privileged MFA percentages, nil when they were
 	// not read.
 	mfaRegisteredCount     *int
