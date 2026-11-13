@@ -26,6 +26,11 @@
   "policy": {
     "mfa_required": true,
     "mfa_required_coverage_pct": 100,
-    "legacy_auth_blocked": false
+    "legacy_auth_blocked": false,
+    "phishing_resistant_required_for_privileged": false
+  },
+  "device_access": {
+    "managed_device_required": false,
+    "managed_device_required_for_admins": false
   }
 }

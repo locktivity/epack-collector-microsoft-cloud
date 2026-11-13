@@ -239,12 +239,14 @@ type ConditionalAccessGrantControls struct {
 
 // AuthenticationStrengthPolicy is the authentication strength a policy
 // requires. RequirementsSatisfied is mfa when the strength grants the MFA
-// claim, for a built-in or a custom strength.
+// claim, for a built-in or a custom strength. AllowedCombinations lists the
+// authentication method modes a user can satisfy it with.
 type AuthenticationStrengthPolicy struct {
-	ID                    string `json:"id"`
-	DisplayName           string `json:"displayName"`
-	PolicyType            string `json:"policyType"`
-	RequirementsSatisfied string `json:"requirementsSatisfied"`
+	ID                    string   `json:"id"`
+	DisplayName           string   `json:"displayName"`
+	PolicyType            string   `json:"policyType"`
+	RequirementsSatisfied string   `json:"requirementsSatisfied"`
+	AllowedCombinations   []string `json:"allowedCombinations"`
 }
 
 type IdentitySecurityDefaultsEnforcementPolicy struct {

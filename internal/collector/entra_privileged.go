@@ -30,6 +30,7 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 
 	userByID := usersByID(in.users)
 	privilegedUserIDs := map[string]struct{}{}
+	heldRoles := map[string]struct{}{}
 	rolesByUser := map[string]map[string]struct{}{}
 	superAdminIDs := map[string]struct{}{}
 	privilegedAssignmentCount := 0
@@ -69,6 +70,7 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 			rolesByUser[assignment.PrincipalID] = map[string]struct{}{}
 		}
 		rolesByUser[assignment.PrincipalID][roleTemplateID] = struct{}{}
+		heldRoles[roleTemplateID] = struct{}{}
 		if roleTemplateID == globalAdministratorTemplateID {
 			superAdminIDs[assignment.PrincipalID] = struct{}{}
 		}
@@ -97,7 +99,7 @@ func (c *Collector) collectPrivilegedAccess(ctx context.Context, diagnostics *Di
 		globalAdminsUnread = membersUnread
 	}
 
-	out := &PrivilegedAccess{userIDs: privilegedUserIDs}
+	out := &PrivilegedAccess{userIDs: privilegedUserIDs, heldRoles: heldRoles}
 	if globalAdminsUnread == nil {
 		out.SuperAdminCount = intPtr(len(superAdminIDs))
 	}
