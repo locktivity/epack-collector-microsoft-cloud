@@ -21,6 +21,7 @@ type IDPPosture struct {
 	PrivilegedAccess *IDPPosturePrivilegedAccess `json:"privileged_access,omitempty"`
 	Lifecycle        *IDPPostureLifecycle        `json:"lifecycle,omitempty"`
 	Policy           *IDPPosturePolicy           `json:"policy,omitempty"`
+	DeviceAccess     *IDPPostureDeviceAccess     `json:"device_access,omitempty"`
 }
 
 // Percentage is a normalized percentage. It is left out when Read is false.
@@ -88,10 +89,20 @@ type IDPPostureLifecycle struct {
 }
 
 type IDPPosturePolicy struct {
-	MFARequired            *bool      `json:"mfa_required,omitempty"`
-	MFARequiredUserCount   *int       `json:"mfa_required_user_count,omitempty"`
-	MFARequiredCoveragePct Percentage `json:"mfa_required_coverage_pct,omitzero"`
-	LegacyAuthBlocked      *bool      `json:"legacy_auth_blocked,omitempty"`
+	MFARequired                            *bool      `json:"mfa_required,omitempty"`
+	MFARequiredUserCount                   *int       `json:"mfa_required_user_count,omitempty"`
+	MFARequiredCoveragePct                 Percentage `json:"mfa_required_coverage_pct,omitzero"`
+	LegacyAuthBlocked                      *bool      `json:"legacy_auth_blocked,omitempty"`
+	PhishingResistantRequiredForPrivileged *bool      `json:"phishing_resistant_required_for_privileged,omitempty"`
+}
+
+// IDPPostureDeviceAccess says whether an enforced Conditional Access policy
+// that applies to every sign-in to every app requires a compliant or hybrid
+// joined device of all users, and of the admins. The admin value is written
+// only when the tenant has admins.
+type IDPPostureDeviceAccess struct {
+	ManagedDeviceRequired          *bool `json:"managed_device_required,omitempty"`
+	ManagedDeviceRequiredForAdmins *bool `json:"managed_device_required_for_admins,omitempty"`
 }
 
 // ToIDPPosture returns the normalized identity posture, or nil when the
@@ -187,8 +198,9 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 
 	if p := e.Policy; p != nil {
 		policy := IDPPosturePolicy{
-			MFARequired:       p.MFARequired,
-			LegacyAuthBlocked: p.LegacyAuthBlocked,
+			MFARequired:                            p.MFARequired,
+			LegacyAuthBlocked:                      p.LegacyAuthBlocked,
+			PhishingResistantRequiredForPrivileged: p.phishingResistantRequiredForPrivileged,
 		}
 		// The coverage is taken over the enabled members, so it is left out
 		// when they were not read.
@@ -202,10 +214,17 @@ func (e *EntraArtifact) ToIDPPosture() *IDPPosture {
 		if policy != (IDPPosturePolicy{}) {
 			posture.Policy = &policy
 		}
+		devices := IDPPostureDeviceAccess{
+			ManagedDeviceRequired:          p.managedDeviceRequired,
+			ManagedDeviceRequiredForAdmins: p.managedDeviceRequiredForAdmins,
+		}
+		if devices != (IDPPostureDeviceAccess{}) {
+			posture.DeviceAccess = &devices
+		}
 	}
 
 	if posture.UserSecurity == nil && posture.AppSecurity == nil && posture.PrivilegedAccess == nil &&
-		posture.Lifecycle == nil && posture.Policy == nil {
+		posture.Lifecycle == nil && posture.Policy == nil && posture.DeviceAccess == nil {
 		return nil
 	}
 	return posture
@@ -274,6 +293,9 @@ var idpPostureSources = []struct {
 	{"/policy/mfa_required_user_count", []string{"/users/enabled_member_users_count", "/policy/mfa_required_coverage_pct"}},
 	{"/policy/mfa_required_coverage_pct", []string{"/users/enabled_member_users_count", "/policy/mfa_required_coverage_pct"}},
 	{"/policy/legacy_auth_blocked", []string{"/policy/legacy_auth_blocked"}},
+	{"/policy/phishing_resistant_required_for_privileged", []string{"/policy/policy_count", "/privileged_access/privileged_users_count"}},
+	{"/device_access/managed_device_required", []string{"/policy/policy_count"}},
+	{"/device_access/managed_device_required_for_admins", []string{"/policy/policy_count", "/privileged_access/privileged_users_count"}},
 }
 
 func (c *Collector) mirrorIDPPostureGaps(posture *IDPPosture) {

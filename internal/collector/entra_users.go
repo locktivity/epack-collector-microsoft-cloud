@@ -88,7 +88,6 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 	assignments, assignmentsMiss := c.roleAssignments(ctx, diagnostics)
 	roles := roleAssignmentList{assignments: assignments, miss: assignmentsMiss}
 	definitions, definitionsMiss := c.roleDefinitions(ctx, diagnostics)
-	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, membersMiss, roles)
 	artifact.PrivilegedAccess = c.collectPrivilegedAccess(ctx, diagnostics, privilegedSources{
 		roles:             roles,
 		definitions:       definitions,
@@ -100,6 +99,7 @@ func (c *Collector) collectEntra(ctx context.Context, level componentsdk.Level, 
 		registrations:     registrations,
 		registrationsMiss: registrationsMiss,
 	})
+	artifact.Policy, artifact.SecurityDefaults = c.collectPolicy(ctx, diagnostics, summary.EnabledMemberIDs, membersMiss, roles, artifact.PrivilegedAccess)
 	artifact.elsewhere = signsInElsewhere(org, users, summary.EnabledMemberIDs, artifact.PrivilegedAccess)
 	var appCreds appCredentials
 	artifact.Apps, appCreds = c.collectApps(ctx, diagnostics)

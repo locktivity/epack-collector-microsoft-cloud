@@ -120,6 +120,23 @@ func groupRoleResponses() []collectortest.Response {
 	return kitResponsesFor(fakeGraphClient(), arm)
 }
 
+// strongAdminPoliciesResponses answer a tenant whose policies require
+// phishing-resistant MFA of all users, and a compliant device of each admin
+// role its admins hold.
+func strongAdminPoliciesResponses() []collectortest.Response {
+	graph := fakeGraphClient()
+	phishingResistant := mfaAllUsersPolicy("phishing-resistant-all-users")
+	phishingResistant.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", AuthenticationStrength: &microsoft.AuthenticationStrengthPolicy{
+		ID: "00000000-0000-0000-0000-000000000004", DisplayName: "Phishing-resistant MFA", PolicyType: "builtIn", RequirementsSatisfied: "mfa",
+		AllowedCombinations: []string{"windowsHelloForBusiness", "fido2", "x509CertificateMultiFactor"},
+	}}
+	device := mfaAllUsersPolicy("compliant-device-admins")
+	device.Conditions.Users = &microsoft.ConditionalAccessUsers{IncludeRoles: []string{globalAdministratorTemplateID, securityAdministratorTemplateID, applicationAdministratorTemplateID}}
+	device.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{"compliantDevice"}}
+	graph.policies = []microsoft.ConditionalAccessPolicy{phishingResistant, device}
+	return kitResponsesFor(graph, fakeARMClient())
+}
+
 // neverSecretResponses answer a tenant where app1, which sp1 belongs to, has
 // a client secret created with the Azure portal's former Never option.
 func neverSecretResponses() []collectortest.Response {

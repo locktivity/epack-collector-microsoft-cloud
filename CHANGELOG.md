@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `idp-posture` has `policy.phishing_resistant_required_for_privileged` and a `device_access` block with `managed_device_required` and `managed_device_required_for_admins`, taken from the Conditional Access policies. Each needs one enabled policy that applies to every sign-in to every app. `managed_device_required` is true when one that includes all users requires a compliant or hybrid joined device. `managed_device_required_for_admins` is true when one requires such a device and includes all users or every privileged role the admins hold. `phishing_resistant_required_for_privileged` is true when one includes the admins the same way and requires an authentication strength whose every allowed combination is phishing-resistant, as in Microsoft's built-in Phishing-resistant MFA strength. The two admin values are written only when the tenant has privileged users, and left out with a `not_read` gap when a group holds a privileged role. When the policies can't be read, all three are left out with the gap `entra`'s policy values get. The policy list now reads each authentication strength's `allowedCombinations`. Through v0.2.8 the collector never wrote these three values and recorded no gap for them.
+
 ## v0.2.8
 
 - The collector is built on epack v0.11.2.

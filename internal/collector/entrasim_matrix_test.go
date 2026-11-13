@@ -462,7 +462,8 @@ var simMatrixTogether = func() []simMatrixRule {
 	// A role held through a group differs only once the account has a role
 	// the collector counts, as in the group-held role scenario.
 	groupHeld := gapsFor("not_read: the collector does not read the members of a group that holds a role",
-		append(append(slices.Clone(simPrivilegedCounts), simPrivilegedStrong...), "/privileged_access/super_admin_count", "/privileged_access/standing_privileged_users_count")...)
+		append(append(slices.Clone(simPrivilegedCounts), simPrivilegedStrong...), "/privileged_access/super_admin_count", "/privileged_access/standing_privileged_users_count",
+			"/policy/phishing_resistant_required_for_privileged", "/device_access/managed_device_required_for_admins")...)
 	return []simMatrixRule{
 		{[]string{"admin.state=role through a group"}, groupHeld},
 		// A cloud role held through a group differs only once the account
@@ -490,13 +491,13 @@ func sameDifference(diff simDifference, pointers ...string) map[string]simDiffer
 }
 
 // differing returns the pointers whose collector value differs from the
-// derived one, less the standing differences.
+// derived one.
 func differing(rows []simRow) ([]string, map[string]simRow) {
 	var out []string
 	byPointer := map[string]simRow{}
 	for _, row := range rows {
 		byPointer[row.pointer] = row
-		if _, standing := simStanding[row.pointer]; !standing && !row.matches() {
+		if !row.matches() {
 			out = append(out, row.pointer)
 		}
 	}

@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"encoding/json"
+	"net/http"
 	"testing"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
@@ -101,5 +103,201 @@ func TestStandingPrivilegedUsersLeaveOutJustInTimeActivations(t *testing.T) {
 	// at all times.
 	if got != 2 {
 		t.Fatalf("standing privileged users = %d, want 2", got)
+	}
+}
+
+// Role template IDs of the fixture tenant's admins: u1 holds Global
+// Administrator, u2 Security Administrator, and the guest u3 Application
+// Administrator.
+const (
+	securityAdministratorTemplateID    = "194ae4cb-b126-40b2-bd5b-6091b380977d"
+	applicationAdministratorTemplateID = "9b895d92-2cd3-44c7-9d02-a6ac2d5ea5c3"
+)
+
+func strengthOf(combinations ...string) *microsoft.AuthenticationStrengthPolicy {
+	return &microsoft.AuthenticationStrengthPolicy{ID: "custom", PolicyType: "custom", RequirementsSatisfied: "mfa", AllowedCombinations: combinations}
+}
+
+func TestNormalizedIdpDeviceAndPhishingResistantPolicies(t *testing.T) {
+	phishingResistant := strengthOf("windowsHelloForBusiness", "fido2", "x509CertificateMultiFactor")
+	only := func(change func(*microsoft.ConditionalAccessPolicy)) []microsoft.ConditionalAccessPolicy {
+		policy := mfaAllUsersPolicy("p1")
+		change(&policy)
+		return []microsoft.ConditionalAccessPolicy{policy}
+	}
+	grant := func(operator string, strength *microsoft.AuthenticationStrengthPolicy, builtIn ...string) func(*microsoft.ConditionalAccessPolicy) {
+		return func(p *microsoft.ConditionalAccessPolicy) {
+			p.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: operator, BuiltInControls: builtIn, AuthenticationStrength: strength}
+		}
+	}
+	both := func(changes ...func(*microsoft.ConditionalAccessPolicy)) func(*microsoft.ConditionalAccessPolicy) {
+		return func(p *microsoft.ConditionalAccessPolicy) {
+			for _, change := range changes {
+				change(p)
+			}
+		}
+	}
+	roles := func(ids ...string) func(*microsoft.ConditionalAccessPolicy) {
+		return func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Users = &microsoft.ConditionalAccessUsers{IncludeRoles: ids}
+		}
+	}
+	legacyBlock := mfaAllUsersPolicy("block-legacy")
+	legacyBlock.Conditions.ClientAppTypes = []string{"exchangeActiveSync", "other"}
+	legacyBlock.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{"block"}}
+
+	cases := []struct {
+		name                                    string
+		policies                                []microsoft.ConditionalAccessPolicy
+		phishingResistant, device, deviceAdmins bool
+	}{
+		{"MFA for all users", only(func(*microsoft.ConditionalAccessPolicy) {}), false, false, false},
+		{"phishing-resistant strength for all users", only(grant("OR", phishingResistant)), true, false, false},
+		{"custom strength of security keys alone", only(grant("OR", strengthOf("fido2"))), true, false, false},
+		{"passwordless strength, which allows phone sign-in", only(grant("OR", strengthOf("windowsHelloForBusiness", "fido2", "x509CertificateMultiFactor", "deviceBasedPush"))), false, false, false},
+		{"phishing-resistant strength for every admin role", only(both(grant("OR", phishingResistant),
+			roles(globalAdministratorTemplateID, securityAdministratorTemplateID, applicationAdministratorTemplateID))), true, false, false},
+		{"phishing-resistant strength for two of the three admin roles", only(both(grant("OR", phishingResistant),
+			roles(globalAdministratorTemplateID, securityAdministratorTemplateID))), false, false, false},
+		{"compliant device for all users", only(grant("OR", nil, "compliantDevice")), false, true, true},
+		{"compliant device for all users but one", only(both(grant("OR", nil, "compliantDevice"), func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Users.ExcludeUsers = []string{"u1"}
+		})), false, true, true},
+		{"hybrid joined device for every admin role", only(both(grant("OR", nil, "domainJoinedDevice"),
+			roles(applicationAdministratorTemplateID, securityAdministratorTemplateID, globalAdministratorTemplateID))), false, false, true},
+		{"MFA and a compliant device", only(grant("AND", nil, "mfa", "compliantDevice")), false, true, true},
+		{"MFA or a compliant device", only(grant("OR", nil, "mfa", "compliantDevice")), false, false, false},
+		{"compliant or hybrid joined device", only(grant("OR", nil, "compliantDevice", "domainJoinedDevice")), false, true, true},
+		{"report-only compliant device", only(both(grant("OR", nil, "compliantDevice"), func(p *microsoft.ConditionalAccessPolicy) {
+			p.State = "enabledForReportingButNotEnforced"
+		})), false, false, false},
+		{"compliant device for one app", only(both(grant("OR", nil, "compliantDevice"), func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.Applications.IncludeApplications = []string{"Office365"}
+		})), false, false, false},
+		{"compliant device on risky sign-ins", only(both(grant("OR", nil, "compliantDevice"), func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.SignInRiskLevels = []string{"high"}
+		})), false, false, false},
+		// Derive's applies has no condition at all, so a policy for modern
+		// clients doesn't count even where legacy authentication is blocked.
+		{"compliant device for browsers and apps beside a legacy block", append(only(both(grant("OR", nil, "compliantDevice"), func(p *microsoft.ConditionalAccessPolicy) {
+			p.Conditions.ClientAppTypes = []string{"browser", "mobileAppsAndDesktopClients"}
+		})), legacyBlock), false, false, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.policies = tc.policies
+			cfg := testConfig()
+			cfg.GraphClient = graph
+
+			idp := collectTestArtifact(t, cfg).ToIDPPosture()
+			assertPtrBool(t, "phishing_resistant_required_for_privileged", idp.Policy.PhishingResistantRequiredForPrivileged, tc.phishingResistant)
+			assertPtrBool(t, "managed_device_required", idp.DeviceAccess.ManagedDeviceRequired, tc.device)
+			assertPtrBool(t, "managed_device_required_for_admins", idp.DeviceAccess.ManagedDeviceRequiredForAdmins, tc.deviceAdmins)
+		})
+	}
+}
+
+// Graph gives a policy's authentication strength with its allowed
+// combinations, as for the built-in Phishing-resistant MFA strength.
+func TestNormalizedIdpReadsTheBuiltInPhishingResistantStrength(t *testing.T) {
+	var policies []microsoft.ConditionalAccessPolicy
+	raw := `[{"id":"p1","state":"enabled",
+		"conditions":{"clientAppTypes":["all"],"applications":{"includeApplications":["All"]},"users":{"includeUsers":["All"]}},
+		"grantControls":{"operator":"OR","builtInControls":[],"customAuthenticationFactors":[],"termsOfUse":[],"authenticationStrength":{
+			"id":"00000000-0000-0000-0000-000000000004","displayName":"Phishing-resistant MFA","policyType":"builtIn","requirementsSatisfied":"mfa",
+			"allowedCombinations":["windowsHelloForBusiness","fido2","x509CertificateMultiFactor"]}}}]`
+	if err := json.Unmarshal([]byte(raw), &policies); err != nil {
+		t.Fatal(err)
+	}
+	graph := fakeGraphClient()
+	graph.policies = policies
+	cfg := testConfig()
+	cfg.GraphClient = graph
+
+	idp := collectTestArtifact(t, cfg).ToIDPPosture()
+	assertPtrBool(t, "phishing_resistant_required_for_privileged", idp.Policy.PhishingResistantRequiredForPrivileged, true)
+}
+
+var deviceAndPhishingResistantValues = []string{
+	"/policy/phishing_resistant_required_for_privileged", "/device_access/managed_device_required", "/device_access/managed_device_required_for_admins",
+}
+
+func TestNormalizedIdpDeviceValuesTakeTheConditionalAccessGap(t *testing.T) {
+	graph := fakeGraphClient()
+	graph.policiesErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/identity/conditionalAccess/policies"}
+	rec := &componentsdk.Recorder{}
+	cfg := testConfig()
+	cfg.GraphClient = graph
+	cfg.Recorder = rec
+
+	idp := collectTestArtifact(t, cfg).ToIDPPosture()
+	if idp.Policy != nil || idp.DeviceAccess != nil {
+		t.Fatalf("expected the policy values left out, got %#v and %#v", idp.Policy, idp.DeviceAccess)
+	}
+	for _, pointer := range deviceAndPhishingResistantValues {
+		assertGap(t, rec, idpPosturePath, pointer, componentsdk.CodePermissionDenied)
+	}
+}
+
+// Security defaults require no managed device and no phishing-resistant
+// MFA, and no policy can be enabled beside them, so the values are false
+// without a Conditional Access license.
+func TestNormalizedIdpDeviceValuesUnderSecurityDefaults(t *testing.T) {
+	graph := fakeGraphClient()
+	graph.securityDefaults = &microsoft.IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: true}
+	graph.policiesErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/identity/conditionalAccess/policies",
+		Code: "Authentication_RequestFromNonPremiumTenantOrB2CTenant", Message: "The tenant does not have a Premium license."}
+	cfg := testConfig()
+	cfg.GraphClient = graph
+
+	idp := collectTestArtifact(t, cfg).ToIDPPosture()
+	assertPtrBool(t, "phishing_resistant_required_for_privileged", idp.Policy.PhishingResistantRequiredForPrivileged, false)
+	assertPtrBool(t, "managed_device_required", idp.DeviceAccess.ManagedDeviceRequired, false)
+	assertPtrBool(t, "managed_device_required_for_admins", idp.DeviceAccess.ManagedDeviceRequiredForAdmins, false)
+}
+
+func TestNormalizedIdpAdminValuesNeedTheAdmins(t *testing.T) {
+	compliantDevice := mfaAllUsersPolicy("p1")
+	compliantDevice.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{"compliantDevice"}}
+	adminValues := []string{"/policy/phishing_resistant_required_for_privileged", "/device_access/managed_device_required_for_admins"}
+	cases := []struct {
+		name   string
+		change func(*fakeGraph)
+		code   componentsdk.Code
+	}{
+		{"a group holds a privileged role", func(g *fakeGraph) {
+			g.roleAssignments = append(g.roleAssignments, microsoft.UnifiedRoleAssignment{ID: "ra-group", PrincipalID: "g1", RoleDefinitionID: securityAdministratorTemplateID,
+				Principal: &microsoft.DirectoryPrincipal{ODataType: "#microsoft.graph.group", ID: "g1"}})
+		}, componentsdk.CodeNotRead},
+		{"role assignments can't be read", func(g *fakeGraph) {
+			g.roleAssignmentsErr = &microsoft.APIError{StatusCode: http.StatusForbidden, Route: "/roleManagement/directory/roleAssignments"}
+		}, componentsdk.CodePermissionDenied},
+		{"no one holds a privileged role", func(g *fakeGraph) { g.roleAssignments = nil }, ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			graph := fakeGraphClient()
+			graph.policies = []microsoft.ConditionalAccessPolicy{compliantDevice}
+			tc.change(graph)
+			rec := &componentsdk.Recorder{}
+			cfg := testConfig()
+			cfg.GraphClient = graph
+			cfg.Recorder = rec
+
+			idp := collectTestArtifact(t, cfg).ToIDPPosture()
+			assertPtrBool(t, "managed_device_required", idp.DeviceAccess.ManagedDeviceRequired, true)
+			if idp.Policy.PhishingResistantRequiredForPrivileged != nil || idp.DeviceAccess.ManagedDeviceRequiredForAdmins != nil {
+				t.Fatalf("expected the admin values left out, got %v and %v",
+					idp.Policy.PhishingResistantRequiredForPrivileged, idp.DeviceAccess.ManagedDeviceRequiredForAdmins)
+			}
+			for _, pointer := range adminValues {
+				if tc.code == "" {
+					assertNoGap(t, rec, idpPosturePath, pointer)
+				} else {
+					assertGap(t, rec, idpPosturePath, pointer, tc.code)
+				}
+			}
+		})
 	}
 }

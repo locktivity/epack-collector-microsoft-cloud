@@ -46,19 +46,6 @@ type simScenario struct {
 	differences map[string]simDifference
 }
 
-// verdictUnwritten is a value the roster determines that the collector
-// never writes, and leaves out with no gap.
-const verdictUnwritten simVerdict = "unwritten"
-
-// simStanding are differences that hold wherever the collector reads the
-// value. A scenario can still match one by chance, such as an inactive share
-// of 100 over either population, so they are not reported when they match.
-var simStanding = map[string]simDifference{
-	"/policy/phishing_resistant_required_for_privileged": {verdictUnwritten, "not computed"},
-	"/device_access/managed_device_required":             {verdictUnwritten, "device_access is not written"},
-	"/device_access/managed_device_required_for_admins":  {verdictUnwritten, "device_access is not written"},
-}
-
 // simInactiveMembers are access-posture's inactive values, which need the
 // sign-in activity list.
 var simInactiveMembers = []string{
@@ -95,7 +82,9 @@ var (
 			append(append(registrationValues, "/user_security/inactive_pct", "/user_security/inactive_user_count"), simInactiveMembers...)...),
 		gapsFor("not_licensed: PIM eligibility needs Entra ID P2", "/privileged_access/standing_privileged_users_count", "/privileged_access/standing_privileged_users_present"))
 	noLicenseGaps = with(noLicenseRegistrationGaps,
-		gapsFor("not_licensed, though without a Conditional Access license no policy applies, which is how the collector writes the coverage", "/policy/mfa_required", "/policy/legacy_auth_blocked"))
+		gapsFor("not_licensed, though without a Conditional Access license no policy applies, which is how the collector writes the coverage",
+			"/policy/mfa_required", "/policy/legacy_auth_blocked", "/policy/phishing_resistant_required_for_privileged",
+			"/device_access/managed_device_required", "/device_access/managed_device_required_for_admins"))
 )
 
 func simScenarios(t testing.TB) []simScenario {
@@ -125,7 +114,8 @@ func simScenarios(t testing.TB) []simScenario {
 			differences: gapsFor("not_read: the collector does not read the members of a group that holds a role",
 				"/privileged_access/privileged_users_count", "/privileged_access/privileged_mfa_coverage_pct",
 				"/privileged_access/privileged_mfa_user_count", "/privileged_access/privileged_phishing_resistant_pct",
-				"/privileged_access/privileged_phishing_resistant_user_count", "/privileged_access/standing_privileged_users_count"),
+				"/privileged_access/privileged_phishing_resistant_user_count", "/privileged_access/standing_privileged_users_count",
+				"/policy/phishing_resistant_required_for_privileged", "/device_access/managed_device_required_for_admins"),
 		},
 		simScenario{
 			name: "partly listed report", roster: partlyListedRoster(t, first),
@@ -480,10 +470,6 @@ func TestSimulatedTenants(t *testing.T) {
 			var table strings.Builder
 			for _, row := range rows {
 				diff, listed := sc.differences[row.pointer]
-				_, standing := simStanding[row.pointer]
-				if !listed {
-					diff, listed = simStanding[row.pointer]
-				}
 				mark := "ok"
 				switch {
 				case !row.matches() && !listed:
@@ -491,7 +477,7 @@ func TestSimulatedTenants(t *testing.T) {
 					t.Errorf("%s: derived %v, collector %s", row.pointer, fmt.Sprint(row.want), row.gotString())
 				case !row.matches():
 					mark = string(diff.verdict)
-				case listed && !standing:
+				case listed:
 					t.Errorf("%s: listed as %s (%s), but the collector now reports the derived %v", row.pointer, diff.verdict, diff.note, fmt.Sprint(row.want))
 				}
 				fmt.Fprintf(&table, "  %-62s %-10s %-34s %s\n", row.pointer, fmt.Sprint(row.want), row.gotString(), mark)
@@ -517,9 +503,7 @@ func TestSimulatedTenantsKit(t *testing.T) {
 		}
 		expect := map[string]any{}
 		for pointer, value := range derived[roster.IDPPosture] {
-			_, listed := sc.differences[pointer]
-			_, standing := simStanding[pointer]
-			if !listed && !standing {
+			if _, listed := sc.differences[pointer]; !listed {
 				expect[pointer] = value
 			}
 		}

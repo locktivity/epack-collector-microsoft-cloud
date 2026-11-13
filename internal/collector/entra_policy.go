@@ -25,7 +25,7 @@ type roleAssignmentList struct {
 	miss        *missing
 }
 
-func (c *Collector) collectPolicy(ctx context.Context, diagnostics *Diagnostics, enabledMemberIDs map[string]struct{}, usersMiss *missing, roles roleAssignmentList) (*Policy, *SecurityDefaults) {
+func (c *Collector) collectPolicy(ctx context.Context, diagnostics *Diagnostics, enabledMemberIDs map[string]struct{}, usersMiss *missing, roles roleAssignmentList, privileged *PrivilegedAccess) (*Policy, *SecurityDefaults) {
 	policies, caMiss := c.conditionalAccessPolicies(ctx, diagnostics)
 	securityDefaults, defaultsMiss := c.securityDefaults(ctx, diagnostics)
 
@@ -44,13 +44,13 @@ func (c *Collector) collectPolicy(ctx context.Context, diagnostics *Diagnostics,
 		enabledPolicies = enabledConditionalAccessPolicies(policies)
 		space = newSignInSpace(c.namedLocations(ctx, diagnostics, enabledPolicies))
 		var mfaUnknown, legacyUnknown *missing
-		policy, mfaUnknown, legacyUnknown = computePolicy(enabledPolicies, space)
+		policy, mfaUnknown, legacyUnknown = computePolicy(enabledPolicies, space, privileged)
 		c.gaps.leaveOut(entraPath, mfaUnknown, "/policy/mfa_required")
 		c.gaps.leaveOut(entraPath, legacyUnknown, "/policy/legacy_auth_blocked")
 	case defaultsOn:
 		// Entra allows no enabled Conditional Access policy while security
 		// defaults are on, so the policies that weren't read change nothing.
-		policy, _, _ = computePolicy(nil, newSignInSpace(nil))
+		policy, _, _ = computePolicy(nil, newSignInSpace(nil), privileged)
 	default:
 		policy = &Policy{}
 		c.gaps.leaveOut(entraPath, caMiss, conditionalAccessFields...)
@@ -143,8 +143,11 @@ func (c *Collector) securityDefaults(ctx context.Context, diagnostics *Diagnosti
 // include every user, between them, require MFA for or block every sign-in,
 // and legacy_auth_blocked when they block every legacy sign-in. When either
 // depends on something the collector can't evaluate, it is left out and the
-// reason returned. The other flags each need one policy.
-func computePolicy(enabledPolicies []microsoft.ConditionalAccessPolicy, space *signInSpace) (policy *Policy, mfaUnknown, legacyUnknown *missing) {
+// reason returned. The other flags each need one policy. The device and
+// phishing-resistant values need one that applies to every sign-in to every
+// app, as epack defines them, and the admin values are left out when
+// privileged has no admins or doesn't know who they are.
+func computePolicy(enabledPolicies []microsoft.ConditionalAccessPolicy, space *signInSpace, privileged *PrivilegedAccess) (policy *Policy, mfaUnknown, legacyUnknown *missing) {
 	everyone := policiesThat(enabledPolicies, targetsAllUsers)
 	legacyAuthBlocked, legacyUnknown := space.settle(everyone, legacyClientTypes, blocksAt)
 	mfaRequired, mfaUnknown := space.settle(everyone, clientAppTypes, protectsAt)
@@ -166,14 +169,64 @@ func computePolicy(enabledPolicies []microsoft.ConditionalAccessPolicy, space *s
 		}
 	}
 
-	return &Policy{
+	everywhere := policiesThat(enabledPolicies, appliesEverywhere)
+	managedDevice := policiesThat(everywhere, requiresCompliantDevice)
+	phishingResistant := policiesThat(everywhere, requiresPhishingResistantMFA)
+	out := &Policy{
 		MFARequired:             mfaRequired,
 		AdminPortalsMFARequired: boolPtr(adminPortalsMFARequired),
 		AllCloudAppsMFARequired: boolPtr(allCloudAppsMFARequired),
 		CompliantDeviceRequired: boolPtr(compliantDeviceRequired),
 		LegacyAuthBlocked:       legacyAuthBlocked,
 		PolicyCount:             intPtr(len(enabledPolicies)),
-	}, mfaUnknown, legacyUnknown
+		managedDeviceRequired:   boolPtr(slices.ContainsFunc(managedDevice, targetsAllUsers)),
+	}
+	if roles := privileged.adminRoles(); roles != nil {
+		includes := func(policy microsoft.ConditionalAccessPolicy) bool { return includesAdmins(policy, roles) }
+		out.managedDeviceRequiredForAdmins = boolPtr(slices.ContainsFunc(managedDevice, includes))
+		out.phishingResistantRequiredForPrivileged = boolPtr(slices.ContainsFunc(phishingResistant, includes))
+	}
+	return out, mfaUnknown, legacyUnknown
+}
+
+// appliesEverywhere reports whether an enabled policy applies to every
+// sign-in to every app: no condition limits it to some sign-ins, it covers
+// every kind of client, and it includes every app and excludes none. A
+// policy for browsers and mobile and desktop apps doesn't count, even beside
+// one that blocks legacy authentication.
+func appliesEverywhere(policy microsoft.ConditionalAccessPolicy) bool {
+	return appliesToEverySignIn(policy) && coversEveryClient(policy, false) && targetsEveryApp(policy)
+}
+
+// includesAdmins reports whether a policy includes every admin, by
+// including all users or each privileged role in roles, the roles the
+// tenant's admins hold. Exceptions it names don't change that, as for
+// mfa_required. Each role must be included, as epack defines it: Entra
+// applies a policy for some of an admin's roles to that admin, but not to
+// someone who holds only the others.
+func includesAdmins(policy microsoft.ConditionalAccessPolicy, roles map[string]struct{}) bool {
+	if targetsAllUsers(policy) {
+		return true
+	}
+	if policy.Conditions.Users == nil {
+		return false
+	}
+	for role := range roles {
+		if !containsFold(policy.Conditions.Users.IncludeRoles, role) {
+			return false
+		}
+	}
+	return true
+}
+
+// adminRoles returns the privileged roles the tenant's admins hold. It is
+// nil when the tenant has no admins, or when who they are wasn't read, as
+// when a group holds a privileged role.
+func (p *PrivilegedAccess) adminRoles() map[string]struct{} {
+	if p == nil || p.PrivilegedUsersCount == nil || *p.PrivilegedUsersCount == 0 {
+		return nil
+	}
+	return p.heldRoles
 }
 
 func policiesThat(policies []microsoft.ConditionalAccessPolicy, keep func(microsoft.ConditionalAccessPolicy) bool) []microsoft.ConditionalAccessPolicy {
@@ -375,10 +428,42 @@ func requiresMFA(policy microsoft.ConditionalAccessPolicy) bool {
 	return grantRequires(policy, isMFAControl)
 }
 
+// requiresCompliantDevice reports whether a policy requires a managed
+// device: one Intune marks compliant, or one that is Microsoft Entra hybrid
+// joined.
+// https://learn.microsoft.com/en-us/entra/identity/conditional-access/concept-conditional-access-grant
 func requiresCompliantDevice(policy microsoft.ConditionalAccessPolicy) bool {
 	return grantRequires(policy, func(control grantControl) bool {
 		return strings.EqualFold(control.builtIn, "compliantDevice") || strings.EqualFold(control.builtIn, "domainJoinedDevice")
 	})
+}
+
+func requiresPhishingResistantMFA(policy microsoft.ConditionalAccessPolicy) bool {
+	return grantRequires(policy, isPhishingResistantControl)
+}
+
+// phishingResistantCombinations are the authentication method modes of
+// Microsoft's built-in Phishing-resistant MFA strength: Windows Hello for
+// Business or platform credential, a FIDO2 security key, and multifactor
+// certificate-based authentication.
+// https://learn.microsoft.com/en-us/entra/identity/authentication/concept-authentication-strengths#built-in-authentication-strengths
+var phishingResistantCombinations = []string{"windowsHelloForBusiness", "fido2", "x509CertificateMultiFactor"}
+
+// isPhishingResistantControl reports whether a control requires
+// phishing-resistant MFA: an authentication strength whose every allowed
+// combination is phishing-resistant, as the built-in Phishing-resistant MFA
+// strength's are. A custom strength counts the same way.
+// https://learn.microsoft.com/en-us/graph/api/resources/authenticationstrengthpolicy
+func isPhishingResistantControl(control grantControl) bool {
+	if control.strength == nil || len(control.strength.AllowedCombinations) == 0 {
+		return false
+	}
+	for _, combination := range control.strength.AllowedCombinations {
+		if !containsFold(phishingResistantCombinations, combination) {
+			return false
+		}
+	}
+	return true
 }
 
 // requiresMFAOnEverySignIn reports whether a policy requires MFA on every

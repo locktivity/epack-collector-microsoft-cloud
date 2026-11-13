@@ -89,6 +89,15 @@ type Policy struct {
 	// counts the enabled members a policy that requires MFA covers, and is
 	// nil when the coverage or the user list was not read.
 	mfaRequiredUserCount *int
+	// Whether an enforced policy that applies to every sign-in to every app
+	// requires a managed device of all users, a managed device of the
+	// admins, or phishing-resistant MFA of the admins, for the normalized
+	// artifact. Each is nil when the policies were not read. The admin
+	// values are nil too when the tenant has no admins or who they are
+	// isn't known.
+	managedDeviceRequired                  *bool
+	managedDeviceRequiredForAdmins         *bool
+	phishingResistantRequiredForPrivileged *bool
 }
 
 type SecurityDefaults struct {
@@ -105,8 +114,10 @@ type PrivilegedAccess struct {
 	InactivePrivilegedUsersCount   *int `json:"inactive_privileged_users_count"`
 	PrivilegedGuestCount           *int `json:"privileged_guest_count"`
 
-	// userIDs are the enabled users who hold a privileged role directly.
-	userIDs map[string]struct{}
+	// userIDs are the enabled users who hold a privileged role directly, and
+	// heldRoles the privileged roles they hold.
+	userIDs   map[string]struct{}
+	heldRoles map[string]struct{}
 	// The counts behind the privileged MFA percentages, nil when they were
 	// not read.
 	mfaRegisteredCount     *int
