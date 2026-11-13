@@ -88,13 +88,17 @@ The sections hold totals across the configured subscriptions, and a principal wi
 
 ## Not Collected
 
-Microsoft offers the following through its APIs, and the collector does not read them.
+Microsoft offers the following through its API, and the collector does not read them.
 
-- **Devices.** Intune managed devices and their compliance state, and Defender for Endpoint machines with their sensor and antivirus health. The Intune API requires an Intune license. The collector writes no `endpoint-posture` file.
-- **Vulnerability findings.** Open vulnerabilities and their severity from Defender Vulnerability Management and Defender for Cloud. The collector writes no `vuln-scanning` file. The Azure artifact's `defender.unpatched_pct` comes from the healthy or unhealthy status of Defender for Cloud's update and vulnerability assessments.
-- **Access reviews.** Microsoft Entra ID Governance access reviews and their decisions.
-- **Defender plans.** Which Defender for Cloud plans, such as Defender for Servers, are on for each subscription. The `cloud-posture` file has no `threat_detection` value.
-- **Other databases.** Azure Database for PostgreSQL, Azure Database for MySQL and Azure Cosmos DB. The collector reads Azure SQL only.
+- **Devices.** Intune managed devices and their compliance state, Entra registered and joined devices, and Defender for Endpoint machines with their sensor and antivirus health. The Intune API requires an Intune license. The collector writes no endpoint-posture file.
+- **Vulnerability findings.** Open vulnerabilities and their severity from Defender Vulnerability Management and Defender for Cloud, which come from the Defender API and Azure, outside these descriptions. The collector writes no vuln-scanning file. The Azure artifact's defender.unpatched_pct comes from the healthy or unhealthy status of Defender for Cloud's update and vulnerability assessments.
+- **Identity governance and privileged access.** Access reviews, entitlement management, privileged access for groups, lifecycle workflows and terms of use, and the assignment and eligibility schedules in Privileged Identity Management. Most need Microsoft Entra ID Governance or P2 licensing.
+- **Tenant policies, groups and app permissions.** The authorization, authentication methods, cross-tenant access and consent policies, named locations and authentication strengths, groups and their members, the permissions granted to each application, administrative units, domains and federation. The collector reads the user, application and service principal lists, the conditional access policies, security defaults, role assignments and the authentication method registration report.
+- **Defender for Cloud, roles, policies and logs.** Which Defender for Cloud plans are on and its other settings, Defender XDR incidents and alerts, Identity Protection risk detections, role and policy definitions and assignments on scopes other than the subscription, policy compliance per resource, and the directory audit, provisioning and sign-in logs. The collector reads the secure scores, Defender for Cloud's assessments, and the subscription's role and policy assignments.
+- **Azure resource settings.** Each SQL server's auditing, firewall and threat protection settings, storage accounts' service and network settings, Key Vault access policies and contents, virtual networks, firewalls and private endpoints, virtual machine extensions and disks, and backup configuration. The collector lists these resources with the settings its cloud-posture and access-posture fields need.
+- **Other databases and Microsoft 365 settings.** Azure Database for PostgreSQL, MySQL and Cosmos DB, Exchange, SharePoint and Teams admin settings, Purview compliance, External ID user flows, and partner delegated admin relationships. The collector reads Azure SQL only among databases.
+
+The coverage reference lists what the collector reads of the Microsoft API, and everything else the API offers with why it is left out, checked against Microsoft's published API descriptions: https://github.com/locktivity/epack-collector-microsoft-cloud/blob/main/docs/coverage.md
 
 ## Microsoft APIs
 

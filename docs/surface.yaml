@@ -1,0 +1,382 @@
+# The vendor API surface the collector is checked against. `epack sdk
+# surface` matches the recordings to Microsoft's API descriptions and needs
+# a verdict here for every GET operation the recordings never call. The Not
+# Collected section of docs/overview.md shows the overview headlines; the
+# coverage reference holds every item.
+vendor: Microsoft
+specs:
+  - name: Microsoft Graph v1.0
+    source: https://github.com/microsoftgraph/msgraph-metadata
+    path: openapi/v1.0/openapi.yaml
+    revision: 6dc18c0d3328
+    sha256: eed44b45dd36f8489aabdffedd9de6e2f4e7613c1c7b2d884845e59652d489ff
+  - name: "Azure Resource Manager: subscriptions"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/resources/resource-manager/Microsoft.Resources/subscriptions/stable/2020-01-01
+    revision: 699308ca6aaa
+    sha256: b5f97138457054ef399300fc42d4d50f0e0d8e282983197cc37603093d18d88e
+  - name: "Azure Resource Manager: resources"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/resources/resource-manager/Microsoft.Resources/resources/stable/2021-04-01
+    revision: 699308ca6aaa
+    sha256: 505529a6e02c414b969e8e72d75cc335ea4071c2f88cc3638cdb927a1dc39a37
+  - name: "Azure Resource Manager: Microsoft.Authorization role assignments"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/authorization/resource-manager/Microsoft.Authorization/Authorization/stable/2022-04-01
+    revision: 699308ca6aaa
+    sha256: 4073107f9232f4dcfae20df1fe10926e8498e0d4ea60058a4f20c3a69cd29b3c
+  - name: "Azure Resource Manager: Microsoft.Authorization policy"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/resources/resource-manager/Microsoft.Authorization/policy/stable/2023-04-01
+    revision: 699308ca6aaa
+    sha256: 9e82f252f94cc413ab000d3a4e70d78208fe6d586069f363cae819e310f7297e
+  - name: "Azure Resource Manager: Microsoft.PolicyInsights"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/policyinsights/resource-manager/Microsoft.PolicyInsights/PolicyInsights/stable/2019-10-01
+    revision: 699308ca6aaa
+    sha256: 4ecc568c2e0aea556abff4a41c79a1456e04838c00c203106e6541b0af861feb
+  - name: "Azure Resource Manager: Microsoft.Security"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/security/resource-manager/Microsoft.Security/Security/stable/2020-01-01
+    revision: 699308ca6aaa
+    sha256: c5d20cc4a309d349469ec09c96cbee84a2098cdc719125f54a5003c35e434086
+  - name: "Azure Resource Manager: Microsoft.Security pricings"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/security/resource-manager/Microsoft.Security/Security/stable/2024-01-01
+    revision: 699308ca6aaa
+    sha256: db1d9d57e84e820cca6efb779f03b4ba98f160e268e531b85e8efdff7577cb61
+  - name: "Azure Resource Manager: Microsoft.Insights diagnostic settings"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/monitor/resource-manager/Microsoft.Insights/Insights/preview/2021-05-01-preview
+    revision: 699308ca6aaa
+    sha256: 31aca96e10e0a966aa9aae40a0be6f82eb357053534fdd1f5b74ec55266996bd
+  - name: "Azure Resource Manager: Microsoft.Storage"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/storage/resource-manager/Microsoft.Storage/Storage/stable/2024-01-01
+    revision: 699308ca6aaa
+    sha256: 0fe953ff5d19107aa7c28229b57f0e5b5e347d38da607df2a4d7ccb5f9706f8f
+  - name: "Azure Resource Manager: Microsoft.KeyVault"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/keyvault/resource-manager/Microsoft.KeyVault/KeyVault/stable/2024-11-01
+    revision: 699308ca6aaa
+    sha256: 186738ddc5f9a7c0a4a2980bf4f84e837aae6bbc4fccfd2db4345abbff099ab7
+  - name: "Azure Resource Manager: Microsoft.Sql"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/sql/resource-manager/Microsoft.Sql/SQL/stable/2023-08-01
+    revision: 699308ca6aaa
+    sha256: b0ef029879056820df7892be7258f95294dc556d3394d8589838ae979a38d478
+  - name: "Azure Resource Manager: Microsoft.Compute"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/compute/resource-manager/Microsoft.Compute/Compute/stable/2024-07-01
+    revision: 699308ca6aaa
+    sha256: e6c14af002a44a80787edc61871d9ca3e69b623680fa6a8d2659b3bb6f16a10b
+  - name: "Azure Resource Manager: Microsoft.Network"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/network/resource-manager/Microsoft.Network/Network/stable/2023-11-01
+    revision: 699308ca6aaa
+    sha256: 30185db77aba881cee721adb719be252f19de5019ec0657e8f7968c3702ef45c
+  - name: "Azure Resource Manager: Microsoft.RecoveryServices"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/recoveryservices/resource-manager/Microsoft.RecoveryServices/RecoveryServices/stable/2026-01-01
+    revision: 699308ca6aaa
+    sha256: 707bbd0199041e018a6a80c39eeed83bb662044b08b446c651dcbfd72397ee9f
+  - name: "Azure Resource Manager: Microsoft.RecoveryServices backup"
+    source: https://github.com/Azure/azure-rest-api-specs
+    path: specification/recoveryservicesbackup/resource-manager/Microsoft.RecoveryServices/RecoveryServicesBackup/stable/2026-01-01
+    revision: 699308ca6aaa
+    sha256: 1cd455433ab975460c6579a1cd320b0309b75fc93270ed26e3f36fb2f69dc7f9
+scope:
+  methods: [get]
+
+overview:
+  - title: Devices
+    says: >-
+      Intune managed devices and their compliance state, Entra registered and
+      joined devices, and Defender for Endpoint machines with their sensor and
+      antivirus health. The Intune API requires an Intune license. The
+      collector writes no endpoint-posture file.
+    items: [Devices]
+  - title: Vulnerability findings
+    items: [Vulnerability findings]
+  - title: Identity governance and privileged access
+    says: >-
+      Access reviews, entitlement management, privileged access for groups,
+      lifecycle workflows and terms of use, and the assignment and eligibility
+      schedules in Privileged Identity Management. Most need Microsoft Entra
+      ID Governance or P2 licensing.
+    items: [Identity governance, Privileged Identity Management schedules]
+  - title: Tenant policies, groups and app permissions
+    says: >-
+      The authorization, authentication methods, cross-tenant access and
+      consent policies, named locations and authentication strengths, groups
+      and their members, the permissions granted to each application,
+      administrative units, domains and federation. The collector reads the
+      user, application and service principal lists, the conditional access
+      policies, security defaults, role assignments and the authentication
+      method registration report.
+    items: [Tenant-wide policies, Conditional access detail, Groups, App permissions and ownership, Directory settings]
+  - title: Defender for Cloud, roles, policies and logs
+    says: >-
+      Which Defender for Cloud plans are on and its other settings, Defender
+      XDR incidents and alerts, Identity Protection risk detections, role and
+      policy definitions and assignments on scopes other than the
+      subscription, policy compliance per resource, and the directory audit,
+      provisioning and sign-in logs. The collector reads the secure scores,
+      Defender for Cloud's assessments, and the subscription's role and policy
+      assignments.
+    items: [Defender plans, Defender for Cloud settings, Defender XDR and attack simulation, Identity Protection and risk, Role definitions and assignments at other scopes, Policy definitions and assignments at other scopes, Policy compliance detail, Logs]
+  - title: Azure resource settings
+    says: >-
+      Each SQL server's auditing, firewall and threat protection settings,
+      storage accounts' service and network settings, Key Vault access
+      policies and contents, virtual networks, firewalls and private
+      endpoints, virtual machine extensions and disks, and backup
+      configuration. The collector lists these resources with the settings its
+      cloud-posture and access-posture fields need.
+    items: [Azure SQL settings, Storage account settings, Key Vault settings and contents, Network resources beyond security groups and public IPs, Virtual machine configuration, Backup configuration and history]
+  - title: Other databases and Microsoft 365 settings
+    says: >-
+      Azure Database for PostgreSQL, MySQL and Cosmos DB, Exchange, SharePoint
+      and Teams admin settings, Purview compliance, External ID user flows,
+      and partner delegated admin relationships. The collector reads Azure SQL
+      only among databases.
+    items: [Other databases, Microsoft 365 service settings, Purview compliance, External identities and authentication flows, Partner and multi-tenant relationships]
+
+not_collected:
+  - title: Devices
+    says: >-
+      Intune managed devices and their compliance state, device configuration
+      and compliance policies, enrollment configurations, app protection and
+      app configuration policies, Entra registered and joined devices,
+      BitLocker recovery keys, device local administrator credentials and the
+      Windows update deployment service. Defender for Endpoint machines with
+      their sensor and antivirus health come from the Defender API, outside
+      these descriptions. The Intune API requires an Intune license. The
+      collector writes no endpoint-posture file.
+    paths: ["/deviceManagement*", "/deviceAppManagement*", "/devices*", "/devices(*", "/informationProtection/bitlocker*", "/directory/deviceLocalCredentials*", "/admin/configurationManagement*", "/reports/managedDeviceEnrollment*", "/reports/getDeviceManagement*", "/users/{user-id}/managedDevices*", "/users/{user-id}/ownedDevices*", "/users/{user-id}/registeredDevices*", "/users/{user-id}/managedAppRegistrations*", "/users/{user-id}/deviceManagementTroubleshootingEvents*"]
+  - title: Vulnerability findings
+    says: >-
+      Open vulnerabilities and their severity from Defender Vulnerability
+      Management and Defender for Cloud, which come from the Defender API and
+      Azure, outside these descriptions. The collector writes no
+      vuln-scanning file. The Azure artifact's defender.unpatched_pct comes
+      from the healthy or unhealthy status of Defender for Cloud's update and
+      vulnerability assessments.
+  - title: Identity governance
+    says: >-
+      Microsoft Entra ID Governance: access reviews and their decisions,
+      entitlement management catalogs, access packages and assignment
+      policies, privileged access for groups, lifecycle workflows, terms of
+      use and their acceptances, and app consent requests. Most need
+      Microsoft Entra ID Governance or P2 licensing.
+    paths: ["/identityGovernance*", "/roleManagement/entitlementManagement*", "/agreements*", "/agreementAcceptances*", "/users/{user-id}/agreementAcceptances*"]
+  - title: Privileged Identity Management schedules
+    says: >-
+      Role assignment schedules, their instances and the requests behind
+      them, eligibility schedule instances and requests, and approvals, in
+      Privileged Identity Management. The collector reads the current role
+      assignments, the role definitions and the eligibility schedules.
+    paths: ["/roleManagement/directory/roleAssignmentSchedule*", "/roleManagement/directory/roleEligibilityScheduleInstances*", "/roleManagement/directory/roleEligibilityScheduleRequests*", "/roleManagement/directory/roleAssignmentApprovals*", "/roleManagement/directory/transitiveRoleAssignments*"]
+  - title: Tenant-wide policies
+    says: >-
+      The tenant's authorization policy, authentication methods policy and
+      configurations, authentication strengths, cross-tenant access settings,
+      app management and permission grant policies, the admin consent request
+      policy, token lifetime and issuance policies, claims mapping and home
+      realm discovery policies, the device registration policy, feature
+      rollout policies and the certificate-based authentication
+      configuration. The collector reads the security defaults policy and the
+      conditional access policies.
+    paths: ["/policies*", "/authenticationMethodsPolicy*", "/authenticationMethodConfigurations*", "/certificateBasedAuthConfiguration*", "/organization/{organization-id}/certificateBasedAuthConfiguration*", "/directory/publicKeyInfrastructure*"]
+  - title: Conditional access detail
+    says: >-
+      Named locations, authentication strengths, authentication context
+      classes and the policy templates for conditional access. The collector
+      reads the conditional access policies themselves.
+    paths: ["/identity/conditionalAccess*"]
+  - title: Groups
+    says: >-
+      Security and Microsoft 365 groups: their members and owners, transitive
+      membership, dynamic membership rules, settings and setting templates,
+      lifecycle policies, and the app roles and permissions granted to them.
+      The collector reads no groups.
+    paths: ["/groups", "/groups/{group-id}", "/groups/{group-id}/members*", "/groups/{group-id}/transitiveMembers*", "/groups/{group-id}/owners*", "/groups/{group-id}/memberOf*", "/groups/{group-id}/transitiveMemberOf*", "/groups/{group-id}/settings*", "/groups/{group-id}/appRoleAssignments*", "/groups/{group-id}/permissionGrants*", "/groups/{group-id}/membersWithLicenseErrors*", "/groups/{group-id}/getMemberGroups*", "/groups/{group-id}/getMemberObjects*", "/groups/{group-id}/checkMember*", "/groups/delta()", "/groups/$count", "/groups(*", "/groupSettings*", "/groupSettingTemplates*", "/groupLifecyclePolicies*", "/users/{user-id}/memberOf*", "/users/{user-id}/transitiveMemberOf*", "/users/{user-id}/joinedGroups*"]
+  - title: App permissions and ownership
+    says: >-
+      The permissions granted to each application and service principal, as
+      OAuth 2.0 consents and app role assignments, their owners, federated
+      identity credentials, synchronization jobs and the policies assigned to
+      them, and each user's app role assignments and consents. The collector
+      reads the application and service principal lists, with their
+      credentials.
+    paths: ["/oauth2PermissionGrants*", "/permissionGrants*", "/servicePrincipals/{servicePrincipal-id}/appRoleAssign*", "/servicePrincipals/{servicePrincipal-id}/oauth2PermissionGrants*", "/servicePrincipals/{servicePrincipal-id}/owners*", "/servicePrincipals/{servicePrincipal-id}/delegatedPermissionClassifications*", "/servicePrincipals/{servicePrincipal-id}/synchronization*", "/servicePrincipals/{servicePrincipal-id}/remoteDesktopSecurityConfiguration*", "/servicePrincipals/{servicePrincipal-id}/claimsMappingPolicies*", "/servicePrincipals/{servicePrincipal-id}/homeRealmDiscoveryPolicies*", "/servicePrincipals/{servicePrincipal-id}/tokenIssuancePolicies*", "/servicePrincipals/{servicePrincipal-id}/tokenLifetimePolicies*", "/servicePrincipals/{servicePrincipal-id}/memberOf*", "/servicePrincipals/{servicePrincipal-id}/transitiveMemberOf*", "/servicePrincipals/{servicePrincipal-id}/ownedObjects*", "/servicePrincipals/{servicePrincipal-id}/createdObjects*", "/applications/{application-id}/owners*", "/applications/{application-id}/federatedIdentityCredentials*", "/applications/{application-id}/tokenIssuancePolicies*", "/applications/{application-id}/tokenLifetimePolicies*", "/applications/{application-id}/synchronization*", "/applications/{application-id}/appManagementPolicies*", "/applications/{application-id}/extensionProperties*", "/applications/{application-id}/owners*", "/users/{user-id}/appRoleAssignments*", "/users/{user-id}/oauth2PermissionGrants*", "/users/{user-id}/permissionGrants*", "/users/{user-id}/ownedObjects*", "/users/{user-id}/createdObjects*"]
+  - title: Users' authentication methods and detail
+    says: >-
+      Each user's registered authentication methods and sign-in preferences,
+      licenses, manager and reports, sponsors and scoped role memberships,
+      read per user. The collector reads the user list with sign-in activity
+      and the authentication method registration report.
+    paths: ["/users/{user-id}/authentication*", "/users/{user-id}/licenseDetails*", "/users/{user-id}/manager*", "/users/{user-id}/directReports*", "/users/{user-id}/transitiveReports*", "/users/{user-id}/sponsors*", "/users/{user-id}/scopedRoleMemberOf*", "/users/{user-id}/getMemberGroups*", "/users/{user-id}/getMemberObjects*", "/users/{user-id}/checkMember*"]
+  - title: Directory settings
+    says: >-
+      Administrative units and their scoped role members, verified domains
+      with their authentication type and DNS records, federation
+      configurations, custom security attributes, on-premises synchronization
+      settings, deleted objects and the directory's recovery settings, the
+      tenant's subscribed licenses, and its subscriptions.
+    paths: ["/directory*", "/scopedRoleMemberships*", "/domains*", "/domainDnsRecords*", "/subscribedSkus*", "/directoryObjects*"]
+  - title: Partner and multi-tenant relationships
+    says: >-
+      Delegated admin relationships with partners and the access they grant,
+      delegated admin customers, partner contracts, and multi-tenant
+      organization membership.
+    paths: ["/tenantRelationships*", "/contracts*"]
+  - title: Logs
+    says: >-
+      Directory audit logs, provisioning logs and sign-in logs, and the
+      Defender XDR audit log queries. The collector reads each user's last
+      sign-in through the user list.
+    paths: ["/auditLogs*", "/security/auditLog*"]
+  - title: Defender XDR and attack simulation
+    says: >-
+      Defender XDR incidents and alerts, detection rules and alert
+      collaboration, Defender for Identity sensors and health issues, attack
+      simulation campaigns, training and their reports. The collector reads
+      the secure scores.
+    paths: ["/security*", "/reports/security*"]
+  - title: Identity Protection and risk
+    says: >-
+      Risky users, risky service principals, risk detections and the risk
+      prevention settings of Identity Protection.
+    paths: ["/identityProtection*", "/identity/riskPrevention*"]
+  - title: External identities and authentication flows
+    says: >-
+      External ID user flows and their attributes, identity providers, API
+      connectors, custom authentication extensions, authentication event
+      flows and listeners, and Verified ID.
+    paths: ["/identity/b2xUserFlows*", "/identity/userFlowAttributes*", "/identity/identityProviders*", "/identity/apiConnectors*", "/identity/authenticationEventsFlows*", "/identity/customAuthenticationExtensions*", "/identity/authenticationEventListeners*", "/identity/verifiedId*", "/invitations*"]
+  - title: Purview compliance
+    says: >-
+      Sensitivity labels, subject rights requests, data security and
+      governance settings, eDiscovery cases, information protection and
+      threat assessments, privacy requests and data policy operations.
+    paths: ["/security/labels*", "/security/subjectRightsRequests*", "/security/dataSecurityAndGovernance*", "/security/cases*", "/security/informationProtection*", "/informationProtection*", "/privacy*", "/compliance*", "/dataPolicyOperations*", "/users/{user-id}/dataSecurityAndGovernance*", "/users/{user-id}/informationProtection*", "/users/{user-id}/security*"]
+  - title: Microsoft 365 service settings
+    says: >-
+      Exchange Online, SharePoint and Teams admin settings, service
+      announcements and health, Edge policies, people settings and the
+      Microsoft 365 Apps settings.
+    paths: ["/admin*"]
+  - title: Defender plans
+    says: >-
+      Which Defender for Cloud plans, such as Defender for Servers, are on for
+      each subscription. The cloud-posture file has no threat_detection value.
+    path_contains: ["/providers/Microsoft.Security/pricings"]
+  - title: Defender for Cloud settings
+    says: >-
+      Auto-provisioning and workspace settings, security contacts, alerts and
+      their suppression rules, secure score controls and their definitions,
+      regulatory compliance standards and their assessment results,
+      assessment metadata and sub-assessments, adaptive network hardening,
+      just-in-time access policies and device security groups. The collector
+      reads the secure score and the assessments.
+    path_contains: ["/providers/Microsoft.Security/"]
+  - title: Azure SQL settings
+    says: >-
+      Each SQL server's Microsoft Entra administrator, auditing and extended
+      auditing settings, firewall and virtual network rules, private endpoint
+      connections, advanced threat protection, vulnerability assessments,
+      encryption protector and keys, DNS aliases and failover groups, each
+      database's auditing, threat protection, vulnerability assessment,
+      sensitivity labels, backup retention and ledger settings, and managed
+      instances with the same. The collector reads the servers, their
+      databases and each database's transparent data encryption.
+    path_contains: ["/providers/Microsoft.Sql/"]
+  - title: Storage account settings
+    says: >-
+      Each storage account's blob, file, queue and table service properties,
+      containers and shares with their immutability and legal hold settings,
+      encryption scopes, management and object replication policies, private
+      endpoint connections, network rules, local users and blob inventory
+      policies. The collector lists the accounts, reading their public network
+      access, TLS version, shared key and blob public access settings.
+    path_contains: ["/providers/Microsoft.Storage/"]
+  - title: Key Vault settings and contents
+    says: >-
+      Each vault's access policies, keys, secrets and certificates as
+      management-plane metadata, managed HSMs and their keys, private endpoint
+      connections and deleted vaults. The collector lists the vaults, reading
+      their RBAC, soft delete, purge protection and public network access
+      settings.
+    path_contains: ["/providers/Microsoft.KeyVault/"]
+  - title: Network resources beyond security groups and public IPs
+    says: >-
+      Virtual networks and subnets, network interfaces, firewalls and
+      firewall policies, application gateways and load balancers, private
+      endpoints and private link services, VPN and ExpressRoute gateways,
+      virtual WANs and hubs, route tables, DDoS protection plans, Network
+      Watcher and the network manager. The collector lists the network
+      security groups with their rules and the public IP addresses.
+    path_contains: ["/providers/Microsoft.Network/"]
+  - title: Virtual machine configuration
+    says: >-
+      Each virtual machine's extensions, disks, run commands and instance
+      view, scale sets and their instances, images and galleries, dedicated
+      hosts and SSH public keys. The collector lists the virtual machines.
+    path_contains: ["/providers/Microsoft.Compute/"]
+  - title: Backup configuration and history
+    says: >-
+      Each Recovery Services vault's settings and configuration, backup
+      engines, protection containers and intent, recovery points, resource
+      guard proxies and private endpoint connections. The collector lists the
+      vaults with their protected items, policies and recent jobs.
+    path_contains: ["/providers/Microsoft.RecoveryServices/"]
+  - title: Role definitions and assignments at other scopes
+    says: >-
+      Role definitions, deny assignments, role assignments on management
+      groups, resource groups and resources, classic administrators and the
+      permissions and operations each provider defines. The collector reads
+      the subscription's role assignments.
+    path_contains: ["/providers/Microsoft.Authorization/roleDefinitions", "/providers/Microsoft.Authorization/roleAssignments", "/providers/Microsoft.Authorization/denyAssignments", "/providers/Microsoft.Authorization/classicAdministrators", "/providers/Microsoft.Authorization/permissions", "/providers/Microsoft.Authorization/providerOperations", "/providers/Microsoft.Authorization/elevateAccess"]
+    paths: ["/{roleAssignmentId}", "/{denyAssignmentId}"]
+  - title: Policy definitions and assignments at other scopes
+    says: >-
+      Policy and initiative definitions, built-in and custom, policy
+      exemptions, and policy assignments on management groups, resource groups
+      and resources. The collector reads the subscription's policy
+      assignments and their compliance summary.
+    path_contains: ["/providers/Microsoft.Authorization/policyDefinitions", "/providers/Microsoft.Authorization/policySetDefinitions", "/providers/Microsoft.Authorization/policyExemptions", "/providers/Microsoft.Authorization/policyAssignments", "/providers/Microsoft.Management/"]
+    paths: ["/{policyAssignmentId}"]
+  - title: Policy compliance detail
+    says: >-
+      Policy compliance per resource and per policy, policy events,
+      remediations, attestations and the policy metadata. The collector
+      reads the subscription-level compliance summary.
+    path_contains: ["/providers/Microsoft.PolicyInsights/"]
+  - title: Other databases
+    says: >-
+      Azure Database for PostgreSQL, Azure Database for MySQL and Azure Cosmos
+      DB. The collector reads Azure SQL only.
+
+irrelevant:
+  - reason: Mail, files, calendars, Teams, education and other productivity content, and the user's and group's own content
+    paths: ["/drives*", "/me*", "/sites*", "/shares*", "/storage*", "/teams*", "/teamwork*", "/teamsTemplates*", "/chats*", "/communications*", "/planner*", "/print*", "/places*", "/education*", "/solutions*", "/employeeExperience*", "/copilot*", "/external*", "/connections*", "/search*", "/contacts*", "/appCatalogs*", "/applicationTemplates*", "/functions*", "/filterOperators*", "/schemaExtensions*", "/users/{user-id}/*", "/groups/{group-id}/*", "/users(*", "/directoryRoles(*", "/reports/*"]
+  - reason: Detail of, or another view on, what the collector already reads
+    paths: ["/users/{user-id}", "/users/delta()", "/users/$count", "/applications/{application-id}", "/applications/{application-id}/*", "/applications/delta()", "/applications/$count", "/applications(*", "/servicePrincipals/{servicePrincipal-id}", "/servicePrincipals/{servicePrincipal-id}/*", "/servicePrincipals/delta()", "/servicePrincipals/$count", "/servicePrincipals(*", "/organization/{organization-id}*", "/organization/delta()", "/organization/$count", "/roleManagement", "/roleManagement/directory", "/roleManagement/directory/*", "/directoryRoles*", "/directoryRoleTemplates*", "/identity", "/identity/conditionalAccess/policies*", "/policies/conditionalAccessPolicies*", "/security/secureScores*", "/security/secureScoreControlProfiles*", "/reports", "/reports/authenticationMethods*"]
+  - reason: Threat intelligence content and retention triggers
+    paths: ["/security/threatIntelligence*", "/security/triggers*", "/security/triggerTypes*"]
+  - reason: Graph change notification subscriptions, which are the caller's own
+    paths: ["/subscriptions*"]
+    in: [Microsoft Graph v1.0]
+  - reason: Capacity, usage, SKU, metrics, operations and location metadata, resource groups, providers, tags and tenants, and query, schema, replication and advisor detail, across the Azure resource providers
+    priority: 1
+    in: ["Azure Resource Manager: subscriptions", "Azure Resource Manager: resources", "Azure Resource Manager: Microsoft.Authorization role assignments", "Azure Resource Manager: Microsoft.Authorization policy", "Azure Resource Manager: Microsoft.PolicyInsights", "Azure Resource Manager: Microsoft.Security", "Azure Resource Manager: Microsoft.Security pricings", "Azure Resource Manager: Microsoft.Insights diagnostic settings", "Azure Resource Manager: Microsoft.Storage", "Azure Resource Manager: Microsoft.KeyVault", "Azure Resource Manager: Microsoft.Sql", "Azure Resource Manager: Microsoft.Compute", "Azure Resource Manager: Microsoft.Network", "Azure Resource Manager: Microsoft.RecoveryServices", "Azure Resource Manager: Microsoft.RecoveryServices backup"]
+    path_contains: ["/locations/", "/usages", "/operations", "/skus", "/metrics", "/topQueries", "/queries/", "/replicationLinks", "/syncGroups", "/syncAgents", "/jobAgents", "/elasticPools", "/importExport", "/advisors", "/recommendedActions", "/maintenanceWindow", "/databaseSchemas", "/schemas/", "/columns", "/tables", "/restorableDropped", "/recoverable", "/cloudServices", "/capacityReservationGroups", "/availabilitySets", "/restorePointCollections", "/hostGroups", "/autoscalesettings", "/diagnosticSettingsCategories", "/exportTemplate", "/deletedAccounts", "/serviceTags", "/available", "/CheckDnsNameAvailability", "/bgpServiceCommunities", "/networkInterfaces/{networkInterfaceName}/ipConfigurations", "/virtualMachineScaleSets/{virtualMachineScaleSetName}/virtualMachines/{virtualmachineIndex}/networkInterfaces", "/virtualMachineScaleSets/{virtualMachineScaleSetName}/networkInterfaces", "/supportedSecurityProviders", "/ExpressRoutePortsLocations", "/webCategories", "/tagNames", "/tags/default", "/resourceTypes", "/providerPermissions", "/Microsoft.Insights/diagnosticSettings/{name}", "/Microsoft.Compute/locations", "/resourcegroups"]
+    paths: ["/subscriptions", "/tenants", "/providers", "/providers/{resourceProviderNamespace}", "/{resourceId}", "/subscriptions/{subscriptionId}/providers", "/subscriptions/{subscriptionId}/providers/{resourceProviderNamespace}", "/subscriptions/{subscriptionId}/locations", "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/resources", "/subscriptions/{subscriptionId}/resources"]
+    operations: [Resources_Get, Subscriptions_List]
+
+unmatched:
+  - operation: login.token.create
+    reason: The Microsoft identity platform token endpoint, which the descriptions do not cover.
+  - operation: github.id_token.get
+    reason: The test kit's stand-in for the GitHub Actions OIDC token endpoint.
