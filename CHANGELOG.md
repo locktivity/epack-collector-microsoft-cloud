@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.2.10
+
 - `entra`'s `secure_score.identity_pct` is read from the first page of Graph's secure scores, which holds the newest score. Through v0.2.9 the collector read every page, one for each day of scores Graph keeps, and a failure on any of them left the value out with a `vendor_error` gap.
 
 ## v0.2.9
