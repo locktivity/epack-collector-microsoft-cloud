@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- `entra`'s `secure_score.identity_pct` is read from the first page of Graph's secure scores, which holds the newest score. Through v0.2.9 the collector read every page, one for each day of scores Graph keeps, and a failure on any of them left the value out with a `vendor_error` gap.
+
 ## v0.2.9
 
 - A Microsoft Graph list is left out with an `invalid_response` gap that names the call when an item lacks a field Graph always sends. These are a user's `id` and `accountEnabled`, the `principalId` and `roleDefinitionId` of a directory role assignment or PIM eligibility, a role definition's allowed actions, a Conditional Access policy's `state`, its included apps and users and the built-in controls of its grant, an app's or service principal's credential lists, a certificate's dates, a client secret's `startDateTime`, the registration report's MFA and SSPR flags and methods, a sign-in's user, app, status, client, risk levels and applied policy results, and an audit event's category, service, operation type and result. So is the service principal list when it is empty, since the collector signs in as one of them. Through v0.2.8 a missing field read as false, zero or empty, which could lower a count or a share, and an empty service principal list counted as no apps.

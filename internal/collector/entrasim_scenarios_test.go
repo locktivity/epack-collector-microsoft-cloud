@@ -537,5 +537,9 @@ func TestSimulatedTenantsKit(t *testing.T) {
 		// dependencies it lacks.
 		SkipChecks:  []string{"coverage", "tracemap"},
 		Insensitive: []string{"login.token.create"},
+		// The first page of secure scores holds the newest, and identity_pct
+		// is that score alone, so the pages after it are older days whose
+		// absence leaves nothing out and needs no partial gap.
+		Capped: []string{"graph.secure_scores.list"},
 	})
 }
