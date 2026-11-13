@@ -27,7 +27,6 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 	httpsOnly := 0
 	minTLS12 := 0
 	cmk := 0
-	encryptedAtRest := 0
 	infrastructureEncryption := 0
 	publicAccessBlocked := 0
 	networkRestricted := 0
@@ -41,12 +40,6 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 		}
 		if storageUsesCMK(props.Encryption) {
 			cmk++
-		}
-		// Azure encrypts every storage account at rest, with its own key
-		// unless the account names a customer-managed one. The key source
-		// shows which.
-		if strings.TrimSpace(props.Encryption.KeySource) != "" {
-			encryptedAtRest++
 		}
 		if props.Encryption.RequireInfrastructureEncryption != nil && *props.Encryption.RequireInfrastructureEncryption {
 			infrastructureEncryption++
@@ -66,7 +59,11 @@ func storagePosture(accounts []microsoft.StorageAccount) *AzureStorage {
 	out.InfrastructureEncryptionPct = PercentInt(infrastructureEncryption, len(accounts))
 	out.PublicAccessBlockedPct = PercentInt(publicAccessBlocked, len(accounts))
 	out.NetworkRestrictedPct = PercentInt(networkRestricted, len(accounts))
-	out.encryptedAtRestCount = encryptedAtRest
+	// Azure encrypts every storage account at rest, with its own key unless
+	// the account names a customer-managed one. An account with no key
+	// source uses Azure's, which is the default.
+	// https://learn.microsoft.com/en-us/azure/storage/common/storage-service-encryption
+	out.encryptedAtRestCount = len(accounts)
 	out.publicAccessBlockedCount = publicAccessBlocked
 	out.networkRestrictedCount = networkRestricted
 	return out

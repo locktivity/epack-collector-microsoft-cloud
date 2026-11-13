@@ -91,6 +91,23 @@ type ConditionalAccessPolicy struct {
 	GrantControls *ConditionalAccessGrantControls `json:"grantControls"`
 }
 
+// problem says how a policy breaks Graph's rules for one: its conditions
+// name users, or the service principals of a policy for workload identities,
+// and grant controls list their built-in controls, even when there are none.
+// https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessconditionset
+func (p ConditionalAccessPolicy) problem() string {
+	if p.Conditions.Users == nil && p.Conditions.ClientApplications == nil {
+		return "has neither users nor clientApplications in its conditions"
+	}
+	if p.Conditions.Users != nil && p.Conditions.Users.IncludeUsers == nil {
+		return "has no includeUsers in its conditions"
+	}
+	if p.GrantControls != nil && p.GrantControls.BuiltInControls == nil {
+		return "has grantControls with no builtInControls"
+	}
+	return ""
+}
+
 // ConditionalAccessConditionSet holds the conditions that govern when a
 // policy applies. A risk level, location, platform, device or authentication
 // flow condition limits a policy to the sign-ins that meet it.

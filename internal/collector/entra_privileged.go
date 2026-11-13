@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"time"
 
@@ -207,8 +208,12 @@ func (r privilegedRoles) classify(id string) (privileged, classified bool) {
 
 // onlyReads reports whether every directory action a role allows reads: its
 // last segment ends in read, as in standard/read or restrictedRead, or starts
-// with get.
+// with get. A role that lists no action at all doesn't show that it only
+// reads, so Microsoft's classification stands.
 func onlyReads(definition microsoft.UnifiedRoleDefinition) bool {
+	if !slices.ContainsFunc(definition.RolePermissions, func(p microsoft.UnifiedRolePermission) bool { return len(p.AllowedResourceActions) > 0 }) {
+		return false
+	}
 	for _, permission := range definition.RolePermissions {
 		for _, action := range permission.AllowedResourceActions {
 			if !strings.HasPrefix(action, "microsoft.directory/") {

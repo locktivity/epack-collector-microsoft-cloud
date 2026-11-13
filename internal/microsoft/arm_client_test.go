@@ -43,7 +43,7 @@ func TestARM(t *testing.T) {
 			}
 			if r.URL.Query().Get("page") == "2" {
 				return jsonResponse(http.StatusOK, map[string]any{
-					"value": []map[string]any{{"id": "ra2"}},
+					"value": []map[string]any{roleAssignmentItem("ra2")},
 				}), nil
 			}
 			if r.URL.Query().Has("$filter") {
@@ -51,7 +51,7 @@ func TestARM(t *testing.T) {
 			}
 			roleCalls++
 			return jsonResponse(http.StatusOK, map[string]any{
-				"value":    []map[string]any{{"id": "ra1"}},
+				"value":    []map[string]any{roleAssignmentItem("ra1")},
 				"nextLink": "https://management.test/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&page=2",
 			}), nil
 		default:
@@ -102,7 +102,7 @@ func TestARMClientStopsAtANextLinkToAPageAlreadyRead(t *testing.T) {
 			t.Fatalf("unexpected request to %s", r.URL.String())
 		}
 		return jsonResponse(http.StatusOK, map[string]any{
-			"value":    []map[string]any{{"id": "ra1"}},
+			"value":    []map[string]any{roleAssignmentItem("ra1")},
 			"nextLink": "https://management.test/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments?page=2",
 		}), nil
 	})}
@@ -122,7 +122,7 @@ func TestARMClientRejectsCrossOriginNextLink(t *testing.T) {
 			t.Fatalf("unexpected request to %s", r.URL.String())
 		}
 		return jsonResponse(http.StatusOK, map[string]any{
-			"value":    []map[string]any{{"id": "ra1"}},
+			"value":    []map[string]any{roleAssignmentItem("ra1")},
 			"nextLink": "https://evil.test/subscriptions/sub-1/providers/Microsoft.Authorization/roleAssignments?page=2",
 		}), nil
 	})}
@@ -138,6 +138,32 @@ func TestARMClientRejectsCrossOriginNextLink(t *testing.T) {
 	if !strings.Contains(err.Error(), "cross-origin") {
 		t.Fatalf("unexpected error: %s", err)
 	}
+}
+
+// roleAssignmentItem is a role assignment as Resource Manager lists one.
+func roleAssignmentItem(id string) map[string]any {
+	return map[string]any{"id": id, "properties": map[string]any{
+		"roleDefinitionId": "/subscriptions/sub-1/providers/Microsoft.Authorization/roleDefinitions/acdd72a7-3385-48ef-bd42-f606fba81ae7",
+		"principalId":      "sp-1",
+		"principalType":    "ServicePrincipal",
+		"scope":            "/subscriptions/sub-1",
+	}}
+}
+
+// virtualMachineItem is a virtual machine with a managed OS disk and one
+// network interface, as Resource Manager lists one.
+func virtualMachineItem() map[string]any {
+	return map[string]any{"id": "vm-a", "properties": map[string]any{
+		"storageProfile": map[string]any{"osDisk": map[string]any{"managedDisk": map[string]any{"id": "disk-a"}}, "dataDisks": []any{}},
+		"networkProfile": map[string]any{"networkInterfaces": []any{map[string]any{"id": "nic-a"}}},
+	}}
+}
+
+// backupJobItem is a backup job that has completed.
+func backupJobItem() map[string]any {
+	return map[string]any{"id": "job-a", "properties": map[string]any{
+		"operation": "Backup", "status": "Completed", "startTime": "2026-05-25T14:00:00Z", "endTime": "2026-05-25T14:12:09Z",
+	}}
 }
 
 func TestARMError(t *testing.T) {
@@ -211,7 +237,7 @@ func TestARMDataProtectionRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2024-01-01" {
 				t.Fatalf("unexpected storage api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "storage-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "storage-a", "properties": map[string]any{"supportsHttpsTrafficOnly": true}}}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.KeyVault/vaults":
 			if got := r.URL.Query().Get("api-version"); got != "2024-11-01" {
 				t.Fatalf("unexpected key vault api-version: %s", got)
@@ -221,19 +247,19 @@ func TestARMDataProtectionRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2023-08-01" {
 				t.Fatalf("unexpected sql server api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": serverID}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": serverID, "properties": map[string]any{"publicNetworkAccess": "Disabled"}}}}), nil
 		case "/subscriptions/sub-1/resourceGroups/data/providers/Microsoft.Sql/servers/sql-a/databases":
 			if got := r.URL.Query().Get("api-version"); got != "2023-08-01" {
 				t.Fatalf("unexpected sql database api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": databaseID}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": databaseID, "name": "appdb"}, {"id": serverID + "/databases/master", "name": "master"}}}), nil
 		case "/subscriptions/sub-1/resourceGroups/data/providers/Microsoft.Sql/servers/sql-a/databases/appdb/transparentDataEncryption/current":
 			return jsonResponse(http.StatusOK, map[string]any{"properties": map[string]any{"state": "Enabled"}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.Compute/virtualMachines":
 			if got := r.URL.Query().Get("api-version"); got != "2024-07-01" {
 				t.Fatalf("unexpected compute api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "vm-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{virtualMachineItem()}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.Network/publicIPAddresses":
 			if got := r.URL.Query().Get("api-version"); got != "2023-11-01" {
 				t.Fatalf("unexpected public IP api-version: %s", got)
@@ -248,14 +274,16 @@ func TestARMDataProtectionRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2026-01-01" {
 				t.Fatalf("unexpected protected item api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "item-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "item-a", "properties": map[string]any{
+				"backupManagementType": "AzureIaasVM", "sourceResourceId": "vm-a", "protectionState": "Protected", "policyId": "policy-a",
+			}}}}), nil
 		case "/subscriptions/sub-1/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a/backupPolicies":
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "policy-a"}}}), nil
 		case "/subscriptions/sub-1/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a/backupJobs":
 			if got := r.URL.Query().Get("$filter"); got != "operation eq 'Backup'" {
 				t.Fatalf("unexpected backup jobs filter: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "job-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{backupJobItem()}}), nil
 		default:
 			t.Fatalf("unexpected path: %s raw=%s", r.URL.Path, r.URL.String())
 		}
@@ -311,7 +339,7 @@ func TestARMGovernanceRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2020-01-01" {
 				t.Fatalf("unexpected assessments api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "assessment-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "assessment-a", "properties": map[string]any{"status": map[string]any{"code": "Healthy"}}}}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.Authorization/policyAssignments":
 			if r.Method != http.MethodGet {
 				t.Fatalf("unexpected policy assignments method: %s", r.Method)
@@ -337,6 +365,7 @@ func TestARMGovernanceRoutes(t *testing.T) {
 				"value": []map[string]any{
 					{
 						"results": map[string]any{
+							"nonCompliantResources": 1,
 							"resourceDetails": []map[string]any{
 								{"complianceState": "compliant", "count": 3},
 								{"complianceState": "noncompliant", "count": 1},
@@ -386,7 +415,7 @@ func TestARMMonitoringNetworkRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2023-11-01" {
 				t.Fatalf("unexpected NSG api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "nsg-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "nsg-a", "properties": map[string]any{"securityRules": []any{}}}}}), nil
 		case "/subscriptions/sub-1/providers/Microsoft.Insights/diagnosticSettings":
 			if r.Method != http.MethodGet {
 				t.Fatalf("unexpected subscription diagnostics method: %s", r.Method)
@@ -408,7 +437,7 @@ func TestARMMonitoringNetworkRoutes(t *testing.T) {
 			if got := r.URL.Query().Get("api-version"); got != "2021-05-01-preview" {
 				t.Fatalf("unexpected resource diagnostics api-version: %s", got)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "diag-a"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "diag-a", "properties": map[string]any{"logs": []any{}}}}}), nil
 		default:
 			t.Fatalf("unexpected path: %s raw=%s", r.URL.Path, r.URL.String())
 		}
