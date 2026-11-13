@@ -194,8 +194,13 @@ func (c *GraphClient) Applications(ctx context.Context) ([]Application, error) {
 		append([]string{"appId"}, credentialFields...)...)
 }
 
+// SecureScores reads the tenant's newest identity secure score. Graph keeps
+// one score a day, newest first, so the first page of one holds it, and its
+// next links lead only to older days.
+// https://learn.microsoft.com/en-us/graph/api/security-list-securescores
 func (c *GraphClient) SecureScores(ctx context.Context) ([]SecureScore, error) {
-	return getPaged[SecureScore](ctx, c, "graph.secure_scores.list", "/security/secureScores?$top=1", "currentScore")
+	items, _, _, err := readPage[SecureScore](ctx, c, graphOperation("graph.secure_scores.list"), "/security/secureScores?$top=1", nil, []string{"currentScore"})
+	return items, err
 }
 
 func (c *GraphClient) SignIns(ctx context.Context, since time.Time) ([]SignIn, error) {
@@ -272,32 +277,45 @@ func getPages[T any](ctx context.Context, c *GraphClient, operation, route strin
 	next := route
 	var resp *http.Response
 	for next != "" {
-		var page struct {
-			Value    *[]json.RawMessage `json:"value"`
-			NextLink string             `json:"@odata.nextLink"`
-		}
-		var err error
-		if resp, err = c.getJSON(ctx, op, next, header, &page); err != nil {
+		items, link, pageResp, err := readPage[T](ctx, c, op, next, header, required)
+		if err != nil {
 			return nil, nil, err
 		}
-		if page.Value == nil {
-			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, "has no value array"))
-		}
-		items, problem, err := decodeItems[T](*page.Value, required)
-		switch {
-		case err != nil:
-			return nil, nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(next), err))
-		case problem != "":
-			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, problem))
-		}
+		resp = pageResp
 		out = append(out, items...)
 		read[next] = struct{}{}
-		if _, ok := read[page.NextLink]; ok {
+		if _, ok := read[link]; ok {
 			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, "links to a page already read"))
 		}
-		next = page.NextLink
+		next = link
 	}
 	return out, resp, nil
+}
+
+// readPage reads one page of a list, with header added to the request, and
+// returns its items, its next link, and the response it came in. A page with
+// no value array, or an item that lacks a required field or breaks its
+// type's own rule, fails it.
+func readPage[T any](ctx context.Context, c *GraphClient, op componentsdk.Operation, route string, header http.Header, required []string) ([]T, string, *http.Response, error) {
+	var page struct {
+		Value    *[]json.RawMessage `json:"value"`
+		NextLink string             `json:"@odata.nextLink"`
+	}
+	resp, err := c.getJSON(ctx, op, route, header, &page)
+	if err != nil {
+		return nil, "", nil, err
+	}
+	if page.Value == nil {
+		return nil, "", nil, componentsdk.ResponseError(resp, invalidResponse("graph", route, "has no value array"))
+	}
+	items, problem, err := decodeItems[T](*page.Value, required)
+	switch {
+	case err != nil:
+		return nil, "", nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(route), err))
+	case problem != "":
+		return nil, "", nil, componentsdk.ResponseError(resp, invalidResponse("graph", route, problem))
+	}
+	return items, page.NextLink, resp, nil
 }
 
 func (c *GraphClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, header http.Header, out any) (*http.Response, error) {
