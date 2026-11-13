@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- The Not Collected section of `docs/overview.md` is rendered from `docs/surface.yaml`, which gives a verdict to every read operation of Microsoft Graph's description and of the Azure resource provider descriptions the collector's calls use, so the list comes from Microsoft's descriptions rather than from memory. A new `docs/coverage.md` lists what the collector reads, by area, and every operation it leaves out with the reason.
+
 ## v0.2.10
 
 - `entra`'s `secure_score.identity_pct` is read from the first page of Graph's secure scores, which holds the newest score. Through v0.2.9 the collector read every page, one for each day of scores Graph keeps, and a failure on any of them left the value out with a `vendor_error` gap.
