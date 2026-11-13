@@ -67,7 +67,8 @@ func TestStorageCountsAnonymousAccessApartFromNetworkAccess(t *testing.T) {
 
 // Azure encrypts every storage account at rest with its own key unless the
 // account names a customer-managed one, so the normalized encryption counts
-// any key source and the azure artifact's encryption_cmk_pct counts the
+// every account, one with no key source too, since Azure's key is the
+// default. The azure artifact's encryption_cmk_pct counts the
 // customer-managed ones.
 func TestStorageEncryptionAtRestCountsAnyKeySource(t *testing.T) {
 	account := func(name, keySource string) microsoft.StorageAccount {
@@ -96,8 +97,8 @@ func TestStorageEncryptionAtRestCountsAnyKeySource(t *testing.T) {
 
 	assertPtrInt(t, "customer-managed keys", result.Azure.Accounts[0].Storage.EncryptionCMKPct, 33)
 	normalized := result.AzureCloudPosture.Accounts[0].Storage
-	assertPtrInt(t, "normalized encrypted count", normalized.EncryptedStorageResourceCount, 2)
-	assertPtrInt(t, "normalized encryption", normalized.EncryptionPct.Value, 66)
+	assertPtrInt(t, "normalized encrypted count", normalized.EncryptedStorageResourceCount, 3)
+	assertPtrInt(t, "normalized encryption", normalized.EncryptionPct.Value, 100)
 }
 
 func TestStorageTrustZeroDenominator(t *testing.T) {
@@ -362,6 +363,68 @@ func TestBackupRetentionCountsOnlyPoliciesInUse(t *testing.T) {
 			}
 			assertPtrInt(t, "retention_days_min", got, *tc.want)
 			assertPtrInt(t, "normalized retention_days_min", normalized.Value, *tc.want)
+		})
+	}
+}
+
+// TestBackupRetentionLeftOutWhenTheAnswersDisagree checks that an item under
+// protection always names a policy the vault lists, with a retention
+// period, and that a retention duration holds its count and durationType.
+// An answer that breaks one leaves the retention out rather than reading as
+// a longer one, or none.
+func TestBackupRetentionLeftOutWhenTheAnswersDisagree(t *testing.T) {
+	const vaultID = "/subscriptions/" + kitSubscriptionID + "/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a"
+	policy := func(duration map[string]any) microsoft.BackupPolicy {
+		return microsoft.BackupPolicy{ID: vaultID + "/backupPolicies/prod", Properties: map[string]any{
+			"retentionPolicy": map[string]any{
+				"dailySchedule":  map[string]any{"retentionDuration": duration},
+				"weeklySchedule": map[string]any{"retentionDuration": map[string]any{"count": float64(13), "durationType": "Weeks"}},
+			},
+		}}
+	}
+	days := map[string]any{"count": float64(30), "durationType": "Days"}
+	item := func(policyID string) microsoft.BackupProtectedItem {
+		return microsoft.BackupProtectedItem{ID: "item", Properties: microsoft.BackupProtectedItemProperties{
+			SourceResourceID: "/subscriptions/" + kitSubscriptionID + "/resourceGroups/compute/providers/Microsoft.Compute/virtualMachines/vm-a",
+			PolicyID:         policyID,
+			ProtectionState:  "Protected",
+		}}
+	}
+	for name, tc := range map[string]struct {
+		policies []microsoft.BackupPolicy
+		items    []microsoft.BackupProtectedItem
+	}{
+		"an item with no policy":          {[]microsoft.BackupPolicy{policy(days)}, []microsoft.BackupProtectedItem{item("")}},
+		"a policy the vault doesn't list": {nil, []microsoft.BackupProtectedItem{item(vaultID + "/backupPolicies/prod")}},
+		"a policy with no retention": {[]microsoft.BackupPolicy{{ID: vaultID + "/backupPolicies/prod", Properties: map[string]any{}}},
+			[]microsoft.BackupProtectedItem{item(vaultID + "/backupPolicies/prod")}},
+		"a duration with no count": {[]microsoft.BackupPolicy{policy(map[string]any{"durationType": "Days"})},
+			[]microsoft.BackupProtectedItem{item(vaultID + "/backupPolicies/prod")}},
+		"a duration with no durationType": {[]microsoft.BackupPolicy{policy(map[string]any{"count": float64(30)})},
+			[]microsoft.BackupProtectedItem{item(vaultID + "/backupPolicies/prod")}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			arm := fakeARMClient()
+			arm.recoveryVaults[kitSubscriptionID] = []microsoft.RecoveryServicesVault{{ID: vaultID, Name: "vault-a"}}
+			arm.backupPolicies = map[string][]microsoft.BackupPolicy{vaultID: tc.policies}
+			arm.backupProtectedItems = map[string][]microsoft.BackupProtectedItem{vaultID: tc.items}
+			rec := &componentsdk.Recorder{}
+			cfg := testConfig()
+			cfg.ARMClient = arm
+			cfg.Recorder = rec
+			c, err := New(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result, err := c.Collect(context.Background(), componentsdk.LevelTrust)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := result.Azure.Accounts[0].Backup.RetentionDaysMin; got != nil {
+				t.Fatalf("retention_days_min = %d, want it left out", *got)
+			}
+			assertGap(t, rec, azurePath, "/accounts/0/backup/retention_days_min", componentsdk.CodeInvalidResponse)
+			assertGap(t, rec, cloudPosturePath, "/accounts/0/backup/retention_days_min", componentsdk.CodeInvalidResponse)
 		})
 	}
 }

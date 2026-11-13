@@ -3,11 +3,13 @@ package collector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"math"
 	"strings"
 	"time"
 
 	"github.com/locktivity/epack-collector-microsoft-cloud/internal/microsoft"
+	"github.com/locktivity/epack/componentsdk"
 )
 
 type backupPopulation struct {
@@ -100,7 +102,12 @@ func (c *Collector) collectBackup(ctx context.Context, scope subscriptionScope, 
 	case items.count > 0:
 		c.gaps.partial(azurePath, items.count, failed(items.err), scope.pointer("backup/retention_days_min"))
 	default:
-		out.RetentionDaysMin = retentionDaysMin(policies, protectedItems)
+		days, err := retentionDaysMin(policies, protectedItems)
+		if err != nil {
+			c.gaps.leaveOut(azurePath, failed(err), scope.pointer("backup/retention_days_min"))
+			break
+		}
+		out.RetentionDaysMin = days
 		out.retentionRead = true
 	}
 	if jobReads.count > 0 {
@@ -199,57 +206,96 @@ func backupProtectionActive(state string) bool {
 
 // retentionDaysMin is the shortest retention in the backup policies that a
 // protected item uses. A vault lists its built-in policies whether or not an
-// item uses them. It is nil when no policy in use sets a retention period.
+// item uses them. It is nil when no item uses a policy. An item under
+// protection always names its policy, the vault lists it, and the policy sets
+// a retention period, so an answer that breaks one of these is an error, as is
+// a retention duration with no count or durationType.
 // https://learn.microsoft.com/en-us/rest/api/backup/protected-items/get
-func retentionDaysMin(policies []microsoft.BackupPolicy, items []microsoft.BackupProtectedItem) *int {
+func retentionDaysMin(policies []microsoft.BackupPolicy, items []microsoft.BackupProtectedItem) (*int, error) {
 	inUse := map[string]struct{}{}
 	for _, item := range items {
-		if id := strings.ToLower(item.Properties.PolicyID); id != "" {
+		id := strings.ToLower(item.Properties.PolicyID)
+		if id == "" && backupProtectionActive(item.Properties.ProtectionState) {
+			return nil, invalidBackup("arm.backup.protected_items.list lists an item under protection with no policyId")
+		}
+		if id != "" {
 			inUse[id] = struct{}{}
 		}
 	}
 	minDays := 0
 	for _, policy := range policies {
-		if _, ok := inUse[strings.ToLower(policy.ID)]; !ok {
+		id := strings.ToLower(policy.ID)
+		if _, ok := inUse[id]; !ok {
 			continue
 		}
-		for _, days := range retentionDays(policy.Properties, false) {
-			if days <= 0 {
-				continue
-			}
-			if minDays == 0 || days < minDays {
-				minDays = days
+		delete(inUse, id)
+		days, ok := retentionDays(policy.Properties, false)
+		if !ok {
+			return nil, invalidBackup("arm.backup.policies.list lists a retention duration with no count or durationType")
+		}
+		if len(days) == 0 {
+			return nil, invalidBackup("arm.backup.policies.list lists a policy in use that sets no retention period")
+		}
+		for _, d := range days {
+			if minDays == 0 || d < minDays {
+				minDays = d
 			}
 		}
 	}
-	if minDays == 0 {
-		return nil
+	if len(inUse) > 0 {
+		return nil, invalidBackup("arm.backup.policies.list does not list a policy a protected item uses")
 	}
-	return intPtr(minDays)
+	if minDays == 0 {
+		return nil, nil
+	}
+	return intPtr(minDays), nil
 }
 
-func retentionDays(value any, inRetention bool) []int {
+// invalidBackup is the error for backup answers that can't be read
+// together.
+func invalidBackup(problem string) error {
+	return componentsdk.CodeError(componentsdk.CodeInvalidResponse, errors.New(problem))
+}
+
+// retentionDays lists the retention periods, in days, set in value. ok is
+// false when a retention duration lacks its count or its durationType, which
+// Azure Backup always sends together.
+// https://learn.microsoft.com/en-us/rest/api/backup/backup-policies/list
+func retentionDays(value any, inRetention bool) (days []int, ok bool) {
 	switch typed := value.(type) {
 	case map[string]any:
 		var out []int
 		if inRetention {
-			if days := retentionDurationDays(typed); days > 0 {
-				out = append(out, days)
+			count, counted := numericMapValue(typed, "count")
+			durationType, typedDuration := stringMapValue(typed, "durationType")
+			if (counted || typedDuration) && (count <= 0 || durationType == "") {
+				return nil, false
+			}
+			if d := retentionDurationDays(typed); d > 0 {
+				out = append(out, d)
 			}
 		}
 		for key, child := range typed {
 			childInRetention := inRetention || strings.Contains(strings.ToLower(key), "retention")
-			out = append(out, retentionDays(child, childInRetention)...)
+			childDays, ok := retentionDays(child, childInRetention)
+			if !ok {
+				return nil, false
+			}
+			out = append(out, childDays...)
 		}
-		return out
+		return out, true
 	case []any:
 		var out []int
 		for _, child := range typed {
-			out = append(out, retentionDays(child, inRetention)...)
+			childDays, ok := retentionDays(child, inRetention)
+			if !ok {
+				return nil, false
+			}
+			out = append(out, childDays...)
 		}
-		return out
+		return out, true
 	default:
-		return nil
+		return nil, true
 	}
 }
 
@@ -263,7 +309,7 @@ func retentionDurationDays(value map[string]any) int {
 	}
 	durationType, _ := stringMapValue(value, "durationType")
 	switch strings.ToLower(durationType) {
-	case "", "days", "day":
+	case "days", "day":
 		return count
 	case "weeks", "week":
 		return count * 7

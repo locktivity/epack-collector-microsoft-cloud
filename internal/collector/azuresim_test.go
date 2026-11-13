@@ -71,7 +71,8 @@ func armList(items []any) string {
 
 // cloudRoleAssignments lists the assignments that apply to the
 // subscription, as the list does without a filter: those on it, above it,
-// and on its resource groups.
+// and on its resource groups. The collector app's Reader role is one of
+// them, since the collector reads the subscription with it.
 // https://learn.microsoft.com/en-us/rest/api/authorization/role-assignments/list-for-subscription
 func (s *entraSim) cloudRoleAssignments() []any {
 	var roleIDs map[string]string
@@ -119,6 +120,7 @@ func (s *entraSim) cloudRoleAssignments() []any {
 	for _, g := range s.r.Groups {
 		assign(simID("group", g.Key), "Group", g.CloudRoles, g.Extra, false)
 	}
+	assign(simID("sp", "collector"), "ServicePrincipal", []string{"Reader"}, nil, false)
 	return items
 }
 

@@ -62,7 +62,7 @@ func TestGraphClientStopsAtANextLinkToAPageAlreadyRead(t *testing.T) {
 			t.Fatalf("unexpected request to %s", r.URL.String())
 		}
 		return jsonResponse(http.StatusOK, map[string]any{
-			"value":           []map[string]any{{"id": "u1"}},
+			"value":           []map[string]any{{"id": "u1", "accountEnabled": true}},
 			"@odata.nextLink": "https://graph.test/v1.0/users?page=2",
 		}), nil
 	})}
@@ -82,7 +82,7 @@ func TestGraphClientRejectsCrossOriginNextLink(t *testing.T) {
 			t.Fatalf("unexpected request to %s", r.URL.String())
 		}
 		return jsonResponse(http.StatusOK, map[string]any{
-			"value":           []map[string]any{{"id": "u1"}},
+			"value":           []map[string]any{{"id": "u1", "accountEnabled": true}},
 			"@odata.nextLink": "https://evil.test/v1.0/users?page=2",
 		}), nil
 	})}
@@ -111,6 +111,10 @@ func TestGraphClientPolicyRoutes(t *testing.T) {
 					{
 						"id":    "policy-1",
 						"state": "enabled",
+						"conditions": map[string]any{
+							"applications": map[string]any{"includeApplications": []string{"All"}},
+							"users":        map[string]any{"includeUsers": []string{"All"}},
+						},
 						"grantControls": map[string]any{
 							"builtInControls": []string{"mfa"},
 						},
@@ -154,7 +158,7 @@ func TestGraphClientB2Routes(t *testing.T) {
 			if !strings.Contains(r.URL.RawQuery, "signInActivity") {
 				t.Fatalf("expected signInActivity select, got %s", r.URL.RawQuery)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "u1"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "u1", "accountEnabled": true}}}), nil
 		case "/v1.0/roleManagement/directory/roleAssignments":
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "ra1", "principalId": "u1", "roleDefinitionId": "role-1"}}}), nil
 		case "/v1.0/roleManagement/directory/roleEligibilitySchedules":
@@ -163,12 +167,15 @@ func TestGraphClientB2Routes(t *testing.T) {
 			if !strings.Contains(r.URL.Query().Get("$select"), "appId") {
 				t.Fatalf("expected appId in the service principal select, got %s", r.URL.RawQuery)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "sp1", "servicePrincipalType": "Application"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{
+				"id": "sp1", "appId": "app-1", "accountEnabled": true, "appRoleAssignmentRequired": false, "servicePrincipalType": "Application",
+				"passwordCredentials": []any{}, "keyCredentials": []any{},
+			}}}), nil
 		case "/v1.0/applications":
 			if !strings.Contains(r.URL.Query().Get("$select"), "appId") {
 				t.Fatalf("expected appId in the application select, got %s", r.URL.RawQuery)
 			}
-			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "app1"}}}), nil
+			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": "app1", "appId": "app-1", "passwordCredentials": []any{}, "keyCredentials": []any{}}}}), nil
 		case "/v1.0/security/secureScores":
 			return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"currentScore": 1, "maxScore": 2}}}), nil
 		default:
@@ -231,6 +238,7 @@ func TestGraphClientDirectoryAuditRoute(t *testing.T) {
 					{
 						"id":              "audit-a",
 						"category":        "UserManagement",
+						"loggedByService": "Core Directory",
 						"operationType":   "Add",
 						"result":          "success",
 						"targetResources": []map[string]any{{"type": "User"}},
@@ -276,6 +284,9 @@ func TestGraphClientSignInRoute(t *testing.T) {
 						"userId":                  "u1",
 						"appId":                   "app1",
 						"conditionalAccessStatus": "success",
+						"clientAppUsed":           "Browser",
+						"riskLevelAggregated":     "none",
+						"riskLevelDuringSignIn":   "none",
 						"status":                  map[string]any{"errorCode": 0},
 						"appliedConditionalAccessPolicies": []map[string]any{
 							{"id": "policy-a", "result": "success"},
@@ -312,7 +323,8 @@ func TestGraphClientSignInsAskForUnknownEnumMembers(t *testing.T) {
 			result = "reportOnlyFailure"
 		}
 		page := map[string]any{"value": []map[string]any{{
-			"id":                               "signin-" + r.URL.Query().Get("page"),
+			"id": "signin-" + r.URL.Query().Get("page"), "userId": "u1", "appId": "app1", "status": map[string]any{"errorCode": 0},
+			"conditionalAccessStatus": "success", "clientAppUsed": "Browser", "riskLevelAggregated": "none", "riskLevelDuringSignIn": "none",
 			"appliedConditionalAccessPolicies": []map[string]any{{"id": "policy-a", "result": result}},
 		}}}
 		if r.URL.Query().Get("page") == "" {
@@ -356,7 +368,7 @@ func TestGraphClientClassifiesRolesByFilter(t *testing.T) {
 		filter := r.URL.Query().Get("$filter")
 		filters = append(filters, filter)
 		id := map[string]string{"isPrivileged eq true": "admin", "isPrivileged eq false": "reader"}[filter]
-		return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": id, "templateId": id, "isPrivileged": nil}}}), nil
+		return jsonResponse(http.StatusOK, map[string]any{"value": []map[string]any{{"id": id, "templateId": id, "isPrivileged": nil, "rolePermissions": []any{}}}}), nil
 	})}
 
 	client := NewGraphClient(StaticTokenSource("token"), WithGraphBaseURL("https://graph.test/v1.0"), WithGraphHTTPClient(httpClient))

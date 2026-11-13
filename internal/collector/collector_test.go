@@ -135,12 +135,17 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID: "sp1", AppID: kitClientAppID1, AccountEnabled: &enabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application",
 				PasswordCredentials: []microsoft.PasswordCredential{{KeyID: "sp-p1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-06-01T00:00:00Z"}},
+				KeyCredentials:      []microsoft.KeyCredential{},
 			},
 			{
 				ID: "sp2", AppID: kitClientAppID2, AccountEnabled: &enabled, AppRoleAssignmentRequired: &disabled, PreferredSingleSignOnMode: "oidc", ServicePrincipalType: "Application",
-				KeyCredentials: []microsoft.KeyCredential{{KeyID: "sp-k1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-05-01T00:00:00Z"}},
+				PasswordCredentials: []microsoft.PasswordCredential{},
+				KeyCredentials:      []microsoft.KeyCredential{{KeyID: "sp-k1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-05-01T00:00:00Z"}},
 			},
-			{ID: "sp3", AccountEnabled: &disabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application"},
+			{
+				ID: "sp3", AppID: kitClientAppID3, AccountEnabled: &disabled, AppRoleAssignmentRequired: &enabled, PreferredSingleSignOnMode: "saml", ServicePrincipalType: "Application",
+				PasswordCredentials: []microsoft.PasswordCredential{}, KeyCredentials: []microsoft.KeyCredential{},
+			},
 		},
 		applications: []microsoft.Application{
 			{
@@ -150,9 +155,10 @@ func fakeGraphClient() *fakeGraph {
 				KeyCredentials:      []microsoft.KeyCredential{{KeyID: "app-k1", StartDateTime: "2025-05-01T00:00:00Z", EndDateTime: "2026-05-01T00:00:00Z"}},
 			},
 			{
-				ID:             "app2",
-				AppID:          kitClientAppID2,
-				KeyCredentials: []microsoft.KeyCredential{{KeyID: "app-k2", StartDateTime: "2026-01-01T00:00:00Z", EndDateTime: "2027-06-01T00:00:00Z"}},
+				ID:                  "app2",
+				AppID:               kitClientAppID2,
+				PasswordCredentials: []microsoft.PasswordCredential{},
+				KeyCredentials:      []microsoft.KeyCredential{{KeyID: "app-k2", StartDateTime: "2026-01-01T00:00:00Z", EndDateTime: "2027-06-01T00:00:00Z"}},
 			},
 		},
 		secureScores: []microsoft.SecureScore{{CurrentScore: 74, MaxScore: 100}},
@@ -164,6 +170,7 @@ func fakeGraphClient() *fakeGraph {
 				ConditionalAccessStatus: "success",
 				ClientAppUsed:           "Browser",
 				RiskLevelAggregated:     "none",
+				RiskLevelDuringSignIn:   "none",
 				AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{
 					{ID: "policy-1", Result: "success"},
 					{ID: "policy-2", Result: "reportOnlyFailure"},
@@ -177,6 +184,7 @@ func fakeGraphClient() *fakeGraph {
 				ConditionalAccessStatus: "failure",
 				ClientAppUsed:           "Browser",
 				RiskLevelAggregated:     "high",
+				RiskLevelDuringSignIn:   "none",
 				AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{
 					{ID: "policy-1", Result: "failure"},
 				},
@@ -188,6 +196,7 @@ func fakeGraphClient() *fakeGraph {
 				Status:                           microsoft.SignInStatus{ErrorCode: 50053, Reason: "Account is locked"},
 				ConditionalAccessStatus:          "notApplied",
 				ClientAppUsed:                    "IMAP",
+				RiskLevelAggregated:              "none",
 				RiskLevelDuringSignIn:            "medium",
 				AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{},
 			},
@@ -198,6 +207,7 @@ func fakeGraphClient() *fakeGraph {
 				ConditionalAccessStatus: "success",
 				ClientAppUsed:           "Mobile Apps and Desktop clients",
 				RiskLevelAggregated:     "none",
+				RiskLevelDuringSignIn:   "none",
 				AppliedConditionalAccessPolicies: []microsoft.AppliedConditionalAccessPolicy{
 					{ID: "policy-3", Result: "notApplied"},
 				},
@@ -207,6 +217,7 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID:              "audit-user-add",
 				Category:        "UserManagement",
+				LoggedByService: "Core Directory",
 				OperationType:   "Add",
 				Result:          "success",
 				TargetResources: []microsoft.AuditTargetResource{{Type: "User"}},
@@ -214,6 +225,7 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID:              "audit-app-update",
 				Category:        "ApplicationManagement",
+				LoggedByService: "Core Directory",
 				OperationType:   "Update",
 				Result:          "failure",
 				TargetResources: []microsoft.AuditTargetResource{{Type: "App"}},
@@ -221,6 +233,7 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID:              "audit-role-assign",
 				Category:        "RoleManagement",
+				LoggedByService: "Core Directory",
 				OperationType:   "Assign",
 				Result:          "success",
 				TargetResources: []microsoft.AuditTargetResource{{Type: "Role"}},
@@ -228,6 +241,7 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID:              "audit-policy-delete",
 				Category:        "Policy",
+				LoggedByService: "Core Directory",
 				OperationType:   "Delete",
 				Result:          "timeout",
 				TargetResources: []microsoft.AuditTargetResource{{Type: "Policy"}},
@@ -235,6 +249,7 @@ func fakeGraphClient() *fakeGraph {
 			{
 				ID:              "audit-group-update",
 				Category:        "GroupManagement",
+				LoggedByService: "Core Directory",
 				OperationType:   "Update",
 				Result:          "success",
 				TargetResources: []microsoft.AuditTargetResource{{Type: "Group"}},
@@ -258,6 +273,7 @@ func fakeARMClient() *fakeARM {
 	vmProtectedID := "/subscriptions/" + subscriptionID + "/resourceGroups/compute/providers/Microsoft.Compute/virtualMachines/vm-a"
 	vmUnprotectedID := "/subscriptions/" + subscriptionID + "/resourceGroups/compute/providers/Microsoft.Compute/virtualMachines/vm-b"
 	nicID := "/subscriptions/" + subscriptionID + "/resourceGroups/network/providers/Microsoft.Network/networkInterfaces/nic-a"
+	nicBID := "/subscriptions/" + subscriptionID + "/resourceGroups/network/providers/Microsoft.Network/networkInterfaces/nic-b"
 	vaultEnabledID := "/subscriptions/" + subscriptionID + "/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-a"
 	vaultDisabledID := "/subscriptions/" + subscriptionID + "/resourceGroups/backup/providers/Microsoft.RecoveryServices/vaults/vault-b"
 	trueValue := true
@@ -455,7 +471,10 @@ func fakeARMClient() *fakeARM {
 					Name: "vm-b",
 					Properties: microsoft.VirtualMachineProperties{
 						StorageProfile: microsoft.VirtualMachineStorageProfile{
-							OSDisk: microsoft.VirtualMachineDisk{},
+							OSDisk: microsoft.VirtualMachineDisk{VHD: &microsoft.VirtualHardDisk{URI: "https://storageb.blob.core.windows.net/vhds/vm-b-os.vhd"}},
+						},
+						NetworkProfile: microsoft.VirtualMachineNetworkProfile{
+							NetworkInterfaces: []microsoft.NetworkInterfaceReference{{ID: nicBID}},
 						},
 					},
 				},
@@ -545,8 +564,8 @@ func fakeARMClient() *fakeARM {
 		recoveryVaultErrs: map[string]error{},
 		backupProtectedItems: map[string][]microsoft.BackupProtectedItem{
 			vaultEnabledID: {
-				{ID: "protected-vm", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: vmProtectedID, PolicyID: "policy-30d", ProtectionState: "Protected"}},
-				{ID: "protected-db", Properties: microsoft.BackupProtectedItemProperties{SourceResourceID: dbProtectedID, PolicyID: "policy-90d", ProtectionState: "Protected"}},
+				{ID: "protected-vm", Properties: microsoft.BackupProtectedItemProperties{BackupManagementType: "AzureIaasVM", SourceResourceID: vmProtectedID, PolicyID: "policy-30d", ProtectionState: "Protected"}},
+				{ID: "protected-db", Properties: microsoft.BackupProtectedItemProperties{BackupManagementType: "AzureWorkload", SourceResourceID: dbProtectedID, PolicyID: "policy-90d", ProtectionState: "Protected"}},
 			},
 			vaultDisabledID: nil,
 		},
@@ -579,9 +598,9 @@ func fakeARMClient() *fakeARM {
 		backupPolicyErrs: map[string]error{},
 		backupJobs: map[string][]microsoft.BackupJob{
 			vaultEnabledID: {
-				{ID: "job-success-recent", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Completed", EndTime: "2026-05-25T14:12:09Z"}},
-				{ID: "job-success-old", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Completed", EndTime: "2026-05-20T14:12:09Z"}},
-				{ID: "job-failed", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Failed", StartTime: "2026-05-24T14:12:09Z"}},
+				{ID: "job-success-recent", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Completed", StartTime: "2026-05-25T14:00:00Z", EndTime: "2026-05-25T14:12:09Z"}},
+				{ID: "job-success-old", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Completed", StartTime: "2026-05-20T14:00:00Z", EndTime: "2026-05-20T14:12:09Z"}},
+				{ID: "job-failed", Properties: microsoft.BackupJobProperties{Operation: "Backup", Status: "Failed", StartTime: "2026-05-24T14:12:09Z", EndTime: "2026-05-24T14:30:00Z"}},
 			},
 			vaultDisabledID: nil,
 		},
@@ -1101,10 +1120,12 @@ func TestConfigErrorTypeIsPreserved(t *testing.T) {
 	}
 }
 
-// The appIds that join sp1 to app1 and sp2 to app2.
+// The appIds that join sp1 to app1 and sp2 to app2. sp3's app is registered
+// in another tenant.
 const (
 	kitClientAppID1 = "aaaaaaaa-0000-4000-8000-000000000001"
 	kitClientAppID2 = "aaaaaaaa-0000-4000-8000-000000000002"
+	kitClientAppID3 = "aaaaaaaa-0000-4000-8000-000000000003"
 )
 
 const azureReaderRoleDefinitionID = "acdd72a7-3385-48ef-bd42-f606fba81ae7"
@@ -1118,6 +1139,7 @@ func fakeRoleAssignment(id, subscriptionID, roleID, principalType, principalID s
 			RoleDefinitionID: "/subscriptions/" + subscriptionID + "/providers/Microsoft.Authorization/roleDefinitions/" + roleID,
 			PrincipalType:    principalType,
 			PrincipalID:      principalID,
+			Scope:            "/subscriptions/" + subscriptionID,
 		},
 	}
 }
