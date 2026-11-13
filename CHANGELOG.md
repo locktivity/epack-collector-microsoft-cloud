@@ -2,7 +2,10 @@
 
 ## Unreleased
 
+## v0.2.11
+
 - The Not Collected section of `docs/overview.md` is rendered from `docs/surface.yaml`, which gives a verdict to every read operation of Microsoft Graph's description and of the Azure resource provider descriptions the collector's calls use, so the list comes from Microsoft's descriptions rather than from memory. A new `docs/coverage.md` lists what the collector reads, by area, and every operation it leaves out with the reason.
+- The collector is built on epack v0.12.2.
 
 ## v0.2.10
 
