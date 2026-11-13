@@ -296,11 +296,11 @@ func (s *entraSim) users() []collectortest.Response {
 func (s *entraSim) usersWithSignInActivity() []collectortest.Response {
 	items := make([]any, 0, len(s.r.Accounts))
 	for _, a := range s.r.Accounts {
-		var activity any
+		item := map[string]any{"id": simID("user", a.Key), "accountEnabled": a.Enabled, "userType": s.userType(a)}
 		if a.SignedInDaysAgo != nil {
 			at := s.now.AddDate(0, 0, -*a.SignedInDaysAgo).UTC().Format(time.RFC3339)
 			requestID := simID("signin", a.Key)
-			activity = map[string]any{
+			item["signInActivity"] = map[string]any{
 				"lastSignInDateTime":                at,
 				"lastSignInRequestId":               requestID,
 				"lastNonInteractiveSignInDateTime":  "0001-01-01T00:00:00Z",
@@ -309,7 +309,7 @@ func (s *entraSim) usersWithSignInActivity() []collectortest.Response {
 				"lastSuccessfulSignInRequestId":     requestID,
 			}
 		}
-		items = append(items, map[string]any{"id": simID("user", a.Key), "accountEnabled": a.Enabled, "userType": s.userType(a), "signInActivity": activity})
+		items = append(items, item)
 	}
 	return s.list(kitGraphBase+"/users?$select=id,accountEnabled,userType,signInActivity&$top=999", "users(id,accountEnabled,userType,signInActivity)",
 		access(simDirectoryDenied, &simNonPremium, simUserRead, []string{"AuditLog.Read.All"}), items, simSignInPage)
@@ -444,8 +444,6 @@ func (s *entraSim) policy(p roster.Policy) map[string]any {
 		"clientAppTypes":             clientApps,
 		"platforms":                  nil,
 		"locations":                  nil,
-		"times":                      nil,
-		"deviceStates":               nil,
 		"devices":                    nil,
 		"clientApplications":         nil,
 		"insiderRiskLevels":          nil,
@@ -513,7 +511,7 @@ func (s *entraSim) policy(p roster.Policy) map[string]any {
 		name = p.Key
 	}
 	return map[string]any{
-		"id": simID("policy", p.Key), "templateId": nil, "displayName": name,
+		"id": simID("policy", p.Key), "templateId": nil, "displayName": name, "deletedDateTime": nil,
 		"createdDateTime": "2026-03-01T00:00:00Z", "modifiedDateTime": nil, "state": p.State,
 		"sessionControls": nil, "conditions": conditions, "grantControls": grant,
 	}
@@ -554,7 +552,8 @@ func (s *entraSim) grant(p roster.Policy) map[string]any {
 	if len(p.Requires) > 1 && !p.RequireAny {
 		operator = "AND"
 	}
-	return map[string]any{"operator": operator, "builtInControls": builtIn, "customAuthenticationFactors": []string{}, "termsOfUse": termsOfUse, "authenticationStrength": strength}
+	return map[string]any{"operator": operator, "builtInControls": builtIn, "customAuthenticationFactors": []string{}, "termsOfUse": termsOfUse, "authenticationStrength": strength,
+		"authenticationStrength@odata.context": kitGraphBase + "/$metadata#identity/conditionalAccess/policies('" + simID("policy", p.Key) + "')/grantControls/authenticationStrength/$entity"}
 }
 
 func (s *entraSim) securityDefaults() []collectortest.Response {
@@ -569,6 +568,10 @@ func (s *entraSim) securityDefaults() []collectortest.Response {
 		"displayName":    "Security Defaults",
 		"description":    "Security defaults is a set of basic identity security mechanisms recommended by Microsoft.",
 		"isEnabled":      s.defaults,
+		"controlTypes":   []string{},
+		"securityDefaultsUpsell": map[string]any{
+			"action": "none", "dueDateTime": s.now.UTC().Format(time.RFC3339),
+		},
 	})}}
 }
 
@@ -578,20 +581,27 @@ func (s *entraSim) roleAssignments() []collectortest.Response {
 	var items []any
 	assign := func(principalID, role string, principal map[string]any) {
 		items = append(items, map[string]any{
-			"id":               simID("assignment", principalID+role),
-			"principalId":      principalID,
-			"directoryScopeId": "/",
-			"roleDefinitionId": s.roleIDs[role],
-			"principal":        principal,
+			"id":                      simID("assignment", principalID+role),
+			"principalId":             principalID,
+			"principalOrganizationId": kitTenantID,
+			"directoryScopeId":        "/",
+			"roleDefinitionId":        s.roleIDs[role],
+			"principal":               principal,
 		})
 	}
 	for _, a := range s.r.Accounts {
 		id := simID("user", a.Key)
 		for _, role := range a.Roles {
-			assign(id, role, map[string]any{
-				"@odata.type": "#microsoft.graph.user", "id": id, "accountEnabled": a.Enabled,
-				"displayName": a.Key, "userPrincipalName": s.upn(a), "userType": s.userType(a),
-			})
+			principal := map[string]any{
+				"@odata.type": "#microsoft.graph.user", "id": id, "deletedDateTime": nil, "displayName": a.Key,
+				"userPrincipalName": s.upn(a), "businessPhones": []string{}, "givenName": nil, "surname": nil,
+				"jobTitle": nil, "mail": nil, "mobilePhone": nil, "officeLocation": nil, "preferredLanguage": nil,
+			}
+			if a.Kind == "creator" {
+				principal["givenName"], principal["surname"], principal["preferredLanguage"] = "Sandbox", "Creator", "en"
+				principal["businessPhones"] = []string{"555-0100"}
+			}
+			assign(id, role, principal)
 		}
 	}
 	for _, g := range s.r.Groups {
@@ -609,7 +619,7 @@ func (s *entraSim) roleAssignments() []collectortest.Response {
 
 // roleDefinitions lists the directory roles the roster names, as Graph v1.0
 // lists built-in roles: a read filtered on isPrivileged returns the roles
-// Microsoft labels that way, with isPrivileged itself null, and each role
+// Microsoft labels that way, without isPrivileged itself, and each role
 // allows one directory action, a write unless the role only reads. A role
 // directory_role_labels doesn't list is labeled privileged and changes
 // something when the terms map it to an admin class, and neither otherwise.
@@ -634,9 +644,15 @@ func (s *entraSim) roleDefinitions() []collectortest.Response {
 			action = "microsoft.directory/users/standard/read"
 		}
 		id := s.roleIDs[role]
+		inherits := []any{}
+		if label.Privileged {
+			inherits = append(inherits, map[string]any{"id": simDirectoryReadersID})
+		}
 		items[label.Privileged] = append(items[label.Privileged], map[string]any{
-			"id": id, "templateId": id, "isPrivileged": nil,
-			"rolePermissions": []any{map[string]any{"allowedResourceActions": []string{action}, "condition": nil, "excludedResourceActions": []string{}}},
+			"id": id, "templateId": id,
+			"rolePermissions":                       []any{map[string]any{"allowedResourceActions": []string{action}, "condition": nil}},
+			"inheritsPermissionsFrom":               inherits,
+			"inheritsPermissionsFrom@odata.context": kitGraphBase + "/$metadata#roleManagement/directory/roleDefinitions('" + id + "')/inheritsPermissionsFrom",
 		})
 	}
 	var out []collectortest.Response
@@ -647,6 +663,10 @@ func (s *entraSim) roleDefinitions() []collectortest.Response {
 	}
 	return out
 }
+
+// simDirectoryReadersID is the Directory Readers role's template ID, which
+// Graph lists as the role privileged roles inherit permissions from.
+const simDirectoryReadersID = "88d8e3e3-8f55-4a1e-953a-9b9898b8876b"
 
 var simP2License = simAccess{p1: true, p2: true, licenseStatus: http.StatusBadRequest,
 	licenseCode: "AadPremiumLicenseRequired", licenseMessage: "The tenant needs an AAD Premium 2 license."}
@@ -659,11 +679,11 @@ func (s *entraSim) eligibilitySchedules() []collectortest.Response {
 			items = append(items, map[string]any{
 				"id": simID("eligibility", a.Key+role), "principalId": simID("user", a.Key), "roleDefinitionId": id,
 				"directoryScopeId": "/", "appScopeId": nil, "createdUsing": simID("eligibility", a.Key+role),
-				"createdDateTime": "2026-03-01T00:00:00Z", "modifiedDateTime": nil, "status": "Provisioned", "memberType": "Direct",
+				"createdDateTime": "2026-03-01T00:00:00Z", "modifiedDateTime": "2026-03-01T00:00:00Z", "status": "Provisioned", "memberType": "Direct",
 				"scheduleInfo": map[string]any{"startDateTime": "2026-03-01T00:00:00Z", "recurrence": nil,
 					"expiration": map[string]any{"type": "noExpiration", "endDateTime": nil, "duration": nil}},
 				"roleDefinition": map[string]any{"id": id, "description": role, "displayName": role, "isBuiltIn": true,
-					"isEnabled": true, "resourceScopes": []string{"/"}, "templateId": id, "version": "1", "rolePermissions": []any{}},
+					"isEnabled": true, "resourceScopes": []string{}, "templateId": id, "version": nil, "rolePermissions": []any{}},
 			})
 		}
 	}
@@ -706,7 +726,7 @@ func (s *entraSim) applications() []collectortest.Response {
 					"hint": "abc", "keyId": keyID, "secretText": nil, "startDateTime": c.Start})
 			case "certificate":
 				keys = append(keys, map[string]any{"customKeyIdentifier": "QUJDREVG", "displayName": "CN=" + c.Key, "endDateTime": c.End,
-					"key": nil, "keyId": keyID, "startDateTime": c.Start, "type": "AsymmetricX509Cert", "usage": "Verify"})
+					"key": "TUlJQw==", "keyId": keyID, "startDateTime": c.Start, "type": "AsymmetricX509Cert", "usage": "Verify"})
 			}
 		}
 		items = append(items, map[string]any{"id": simID("application", a.Key), "appId": simID("app", a.Key), "passwordCredentials": passwords, "keyCredentials": keys})
@@ -729,7 +749,17 @@ func (s *entraSim) logs() []collectortest.Response {
 	audits.Set("$select", "id,activityDateTime,activityDisplayName,category,loggedByService,operationType,result,targetResources")
 	audits.Set("$top", "999")
 	score := map[string]any{"id": kitTenantID + "_2026-05-26", "azureTenantId": kitTenantID, "createdDateTime": s.now.Add(-12 * time.Hour).UTC().Format(time.RFC3339),
-		"currentScore": 31.5, "maxScore": 100.0, "activeUserCount": 0, "licensedUserCount": 0, "enabledServices": []string{}, "averageComparativeScores": []any{}, "controlScores": []any{}}
+		"currentScore": 31.5, "maxScore": 100.0, "activeUserCount": 0, "licensedUserCount": 0, "enabledServices": []string{"HasAADP1"},
+		"averageComparativeScores": []any{map[string]any{"basis": "AllTenants", "averageScore": 50.0, "appsScore": 40.0, "appsScoreMax": 100.0,
+			"dataScore": 1.0, "dataScoreMax": 5.0, "deviceScore": 15.0, "deviceScoreMax": 25.0, "identityScore": 40.0, "identityScoreMax": 60.0,
+			"infrastructureScore": 0.0, "infrastructureScoreMax": 0.0},
+			map[string]any{"basis": "TotalSeats", "SeatSizeRangeLowerValue": "1", "SeatSizeRangeUpperValue": "100", "averageScore": 45.0,
+				"appsScore": 35.0, "appsScoreMax": 100.0, "dataScore": 1.0, "dataScoreMax": 5.0, "deviceScore": 12.0, "deviceScoreMax": 25.0,
+				"identityScore": 38.0, "identityScoreMax": 60.0, "infrastructureScore": 0.0, "infrastructureScoreMax": 0.0}},
+		"controlScores": []any{map[string]any{"controlCategory": "Identity", "controlName": "MFARegistrationV2", "description": "Require MFA registration.",
+			"implementationStatus": "", "lastSynced": s.now.UTC().Format(time.RFC3339), "on": "false", "score": 0.0, "scoreInPercentage": 0.0,
+			"count": "0", "total": "0"}},
+		"vendorInformation": map[string]any{"provider": "SecureScore", "providerVersion": nil, "subProvider": nil, "vendor": "Microsoft"}}
 	auditLog := []string{"AuditLog.Read.All"}
 	out := s.list(kitGraphBase+"/security/secureScores?$top=1", "security/secureScores", access(simDirectoryDenied, nil, []string{"SecurityEvents.Read.All"}), []any{score}, 1)
 	out = append(out, s.list(kitGraphBase+"/auditLogs/signIns?"+signIns.Encode(), "auditLogs/signIns", access(simReportDenied, &simNonPremium, auditLog), nil, simUsersPage)...)
