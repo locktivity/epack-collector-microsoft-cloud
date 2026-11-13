@@ -9,81 +9,112 @@ specs:
     source: https://github.com/microsoftgraph/msgraph-metadata
     path: openapi/v1.0/openapi.yaml
     revision: 6dc18c0d3328
+    url: https://raw.githubusercontent.com/microsoftgraph/msgraph-metadata/6dc18c0d33280344c36fd6ac53b8e693d214751e/openapi/v1.0/openapi.yaml
     sha256: eed44b45dd36f8489aabdffedd9de6e2f4e7613c1c7b2d884845e59652d489ff
   - name: "Azure Resource Manager: subscriptions"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/resources/resource-manager/Microsoft.Resources/subscriptions/stable/2020-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/resources/resource-manager/Microsoft.Resources/subscriptions/stable/2020-01-01/
+    files: [subscriptions.json]
     sha256: b5f97138457054ef399300fc42d4d50f0e0d8e282983197cc37603093d18d88e
   - name: "Azure Resource Manager: resources"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/resources/resource-manager/Microsoft.Resources/resources/stable/2021-04-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/resources/resource-manager/Microsoft.Resources/resources/stable/2021-04-01/
+    files: [resources.json]
     sha256: 505529a6e02c414b969e8e72d75cc335ea4071c2f88cc3638cdb927a1dc39a37
   - name: "Azure Resource Manager: Microsoft.Authorization role assignments"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/authorization/resource-manager/Microsoft.Authorization/Authorization/stable/2022-04-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/authorization/resource-manager/Microsoft.Authorization/Authorization/stable/2022-04-01/
+    files: [authorization-DenyAssignmentCalls.json, authorization-ProviderOperationsCalls.json, authorization-RoleAssignmentsCalls.json, authorization-RoleDefinitionsCalls.json, common-types.json]
     sha256: 4073107f9232f4dcfae20df1fe10926e8498e0d4ea60058a4f20c3a69cd29b3c
   - name: "Azure Resource Manager: Microsoft.Authorization policy"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/resources/resource-manager/Microsoft.Authorization/policy/stable/2023-04-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/resources/resource-manager/Microsoft.Authorization/policy/stable/2023-04-01/
+    files: [policyAssignments.json, policyDefinitionVersions.json, policyDefinitions.json, policySetDefinitionVersions.json, policySetDefinitions.json, types.json]
     sha256: 9e82f252f94cc413ab000d3a4e70d78208fe6d586069f363cae819e310f7297e
   - name: "Azure Resource Manager: Microsoft.PolicyInsights"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/policyinsights/resource-manager/Microsoft.PolicyInsights/PolicyInsights/stable/2019-10-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/policyinsights/resource-manager/Microsoft.PolicyInsights/PolicyInsights/stable/2019-10-01/
+    files: [operations.json, policyEvents.json, policyMetadata.json, policyStates.json]
     sha256: 4ecc568c2e0aea556abff4a41c79a1456e04838c00c203106e6541b0af861feb
   - name: "Azure Resource Manager: Microsoft.Security"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/security/resource-manager/Microsoft.Security/Security/stable/2020-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/security/resource-manager/Microsoft.Security/Security/stable/2020-01-01/
+    files: [alerts.json, assessmentMetadata.json, assessments.json, secureScore.json, security-SecuritySolutions.json]
     sha256: c5d20cc4a309d349469ec09c96cbee84a2098cdc719125f54a5003c35e434086
   - name: "Azure Resource Manager: Microsoft.Security pricings"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/security/resource-manager/Microsoft.Security/Security/stable/2024-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/security/resource-manager/Microsoft.Security/Security/stable/2024-01-01/
+    files: [pricings.json]
     sha256: db1d9d57e84e820cca6efb779f03b4ba98f160e268e531b85e8efdff7577cb61
   - name: "Azure Resource Manager: Microsoft.Insights diagnostic settings"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/monitor/resource-manager/Microsoft.Insights/Insights/preview/2021-05-01-preview
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/monitor/resource-manager/Microsoft.Insights/Insights/preview/2021-05-01-preview/
+    files: [autoscale_API.json, diagnosticsSettings_API.json, managementGroupDiagnosticSettings_API.json, openapi.json, subscriptionDiagnosticsSettings_API.json]
     sha256: 31aca96e10e0a966aa9aae40a0be6f82eb357053534fdd1f5b74ec55266996bd
   - name: "Azure Resource Manager: Microsoft.Storage"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/storage/resource-manager/Microsoft.Storage/Storage/stable/2024-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/storage/resource-manager/Microsoft.Storage/Storage/stable/2024-01-01/
+    files: [blob.json, common.json, file.json, networkSecurityPerimeter.json, privatelinks.json, queue.json, storage.json, storageTaskAssignments.json, table.json]
     sha256: 0fe953ff5d19107aa7c28229b57f0e5b5e347d38da607df2a4d7ccb5f9706f8f
   - name: "Azure Resource Manager: Microsoft.KeyVault"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/keyvault/resource-manager/Microsoft.KeyVault/KeyVault/stable/2024-11-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/keyvault/resource-manager/Microsoft.KeyVault/KeyVault/stable/2024-11-01/
+    files: [common.json, keys.json, keysManagedHsm.json, keyvault.json, managedHsm.json, providers.json, secrets.json]
     sha256: 186738ddc5f9a7c0a4a2980bf4f84e837aae6bbc4fccfd2db4345abbff099ab7
   - name: "Azure Resource Manager: Microsoft.Sql"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/sql/resource-manager/Microsoft.Sql/SQL/stable/2023-08-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/sql/resource-manager/Microsoft.Sql/SQL/stable/2023-08-01/
+    files: [BackupShortTermRetentionPolicies.json, BlobAuditing.json, DataMaskingPolicies.json, DataMaskingRules.json, DataWarehouseUserActivities.json, DatabaseAdvancedThreatProtectionSettings.json, DatabaseAdvisors.json, DatabaseAutomaticTuning.json, DatabaseColumns.json, DatabaseEncryptionProtectorRevalidate.json, DatabaseEncryptionProtectorRevert.json, DatabaseExtensions.json, DatabaseOperations.json, DatabaseRecommendedActions.json, DatabaseSchemas.json, DatabaseSecurityAlertPolicies.json, DatabaseSqlVulnerabilityAssessmentBaselines.json, DatabaseSqlVulnerabilityAssessmentExecuteScan.json, DatabaseSqlVulnerabilityAssessmentRuleBaselines.json, DatabaseSqlVulnerabilityAssessmentScanResult.json, DatabaseSqlVulnerabilityAssessmentScans.json, DatabaseSqlVulnerabilityAssessmentsSettings.json, DatabaseTables.json, DatabaseUsages.json, DatabaseVulnerabilityAssessmentRuleBaselines.json, DatabaseVulnerabilityAssessmentScans.json, DatabaseVulnerabilityAssessments.json, Databases.json, DeletedServers.json, DistributedAvailabilityGroups.json, ElasticPoolOperations.json, ElasticPools.json, EncryptionProtectors.json, EndpointCertificates.json, FailoverGroups.json, FirewallRules.json, GeoBackupPolicies.json, IPv6FirewallRules.json, InstanceFailoverGroups.json, InstancePools.json, JobAgents.json, JobCredentials.json, JobExecutions.json, JobPrivateEndpoints.json, JobStepExecutions.json, JobSteps.json, JobTargetExecutions.json, JobTargetGroups.json, JobVersions.json, Jobs.json, LedgerDigestUploads.json, LocationCapabilities.json, LongTermRetentionBackups.json, LongTermRetentionManagedInstanceBackups.json, LongTermRetentionPolicies.json, MaintenanceWindowOptions.json, MaintenanceWindows.json, ManagedBackupShortTermRetentionPolicies.json, ManagedDatabaseAdvancedThreatProtectionSettings.json, ManagedDatabaseColumns.json, ManagedDatabaseMoveOperations.json, ManagedDatabaseQueries.json, ManagedDatabaseRestoreDetails.json, ManagedDatabaseSchemas.json, ManagedDatabaseSecurityAlertPolicies.json, ManagedDatabaseSecurityEvents.json, ManagedDatabaseSensitivityLabels.json, ManagedDatabaseTables.json, ManagedDatabaseTransparentDataEncryption.json, ManagedDatabaseVulnerabilityAssessmentRuleBaselines.json, ManagedDatabaseVulnerabilityAssessmentScans.json, ManagedDatabaseVulnerabilityAssessments.json, ManagedDatabases.json, ManagedInstanceAdministrators.json, ManagedInstanceAdvancedThreatProtectionSettings.json, ManagedInstanceAzureADOnlyAuthentications.json, ManagedInstanceDtcs.json, ManagedInstanceEncryptionProtectors.json, ManagedInstanceKeys.json, ManagedInstanceLongTermRetentionPolicies.json, ManagedInstanceOperations.json, ManagedInstancePrivateEndpointConnections.json, ManagedInstancePrivateLinkResources.json, ManagedInstanceTdeCertificates.json, ManagedInstanceVulnerabilityAssessments.json, ManagedInstances.json, ManagedLedgerDigestUploads.json, ManagedRestorableDroppedDatabaseBackupShortTermRetentionPolicies.json, ManagedServerDnsAliases.json, ManagedServerSecurityAlertPolicies.json, NetworkSecurityPerimeterConfigurations.json, Operations.json, OutboundFirewallRules.json, PrivateEndpointConnections.json, PrivateLinkResources.json, RecoverableDatabases.json, RecoverableManagedDatabases.json, ReplicationLinks.json, RestorableDroppedDatabases.json, RestorableDroppedManagedDatabases.json, RestorePoints.json, SensitivityLabels.json, ServerAdvancedThreatProtectionSettings.json, ServerAdvisors.json, ServerAutomaticTuning.json, ServerAzureADAdministrators.json, ServerAzureADOnlyAuthentications.json, ServerConfigurationOptions.json, ServerConnectionPolicies.json, ServerDevOpsAudit.json, ServerDnsAliases.json, ServerKeys.json, ServerOperations.json, ServerSecurityAlertPolicies.json, ServerTrustCertificates.json, ServerTrustGroups.json, ServerUsages.json, ServerVulnerabilityAssessments.json, Servers.json, SqlAgent.json, SqlVulnerabilityAssessmentBaseline.json, SqlVulnerabilityAssessmentExecuteScan.json, SqlVulnerabilityAssessmentRuleBaseline.json, SqlVulnerabilityAssessmentScanResult.json, SqlVulnerabilityAssessmentScans.json, SqlVulnerabilityAssessmentsSettings.json, StartStopManagedInstanceSchedules.json, SubscriptionUsages.json, SynapseLinkWorkspaces.json, SyncAgents.json, SyncGroups.json, SyncMembers.json, TdeCertificates.json, TimeZones.json, TransparentDataEncryptions.json, Usages.json, VirtualClusters.json, VirtualNetworkRules.json, WorkloadClassifiers.json, WorkloadGroups.json]
     sha256: b0ef029879056820df7892be7258f95294dc556d3394d8589838ae979a38d478
   - name: "Azure Resource Manager: Microsoft.Compute"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/compute/resource-manager/Microsoft.Compute/Compute/stable/2024-07-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/compute/resource-manager/Microsoft.Compute/Compute/stable/2024-07-01/
+    files: [availabilitySet.json, capacityReservation.json, computeRPCommon.json, dedicatedHost.json, image.json, logAnalytic.json, proximityPlacementGroup.json, restorePoint.json, runCommand.json, sshPublicKey.json, virtualMachine.json, virtualMachineExtensionImage.json, virtualMachineImage.json, virtualMachineScaleSet.json]
     sha256: e6c14af002a44a80787edc61871d9ca3e69b623680fa6a8d2659b3bb6f16a10b
   - name: "Azure Resource Manager: Microsoft.Network"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/network/resource-manager/Microsoft.Network/Network/stable/2023-11-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/network/resource-manager/Microsoft.Network/Network/stable/2023-11-01/
+    files: [applicationGateway.json, applicationGatewayWafDynamicManifests.json, applicationSecurityGroup.json, availableDelegations.json, availableServiceAliases.json, azureFirewall.json, azureFirewallFqdnTag.json, azureWebCategory.json, bastionHost.json, checkDnsAvailability.json, cloudServiceNetworkInterface.json, cloudServicePublicIpAddress.json, cloudServiceSwap.json, customIpPrefix.json, ddosCustomPolicy.json, ddosProtectionPlan.json, dscpConfiguration.json, endpointService.json, expressRouteCircuit.json, expressRouteCrossConnection.json, expressRoutePort.json, expressRouteProviderPort.json, firewallPolicy.json, ipAllocation.json, ipGroups.json, loadBalancer.json, natGateway.json, network.json, networkInterface.json, networkManager.json, networkManagerActiveConfiguration.json, networkManagerConnection.json, networkManagerConnectivityConfiguration.json, networkManagerEffectiveConfiguration.json, networkManagerGroup.json, networkManagerScopeConnection.json, networkManagerSecurityAdminConfiguration.json, networkProfile.json, networkSecurityGroup.json, networkVirtualAppliance.json, networkWatcher.json, operation.json, privateEndpoint.json, privateLinkService.json, publicIpAddress.json, publicIpPrefix.json, routeFilter.json, routeTable.json, securityPartnerProvider.json, serviceCommunity.json, serviceEndpointPolicy.json, serviceTags.json, usage.json, virtualNetwork.json, virtualNetworkGateway.json, virtualNetworkTap.json, virtualRouter.json, virtualWan.json, vmssNetworkInterface.json, vmssPublicIpAddress.json, webapplicationfirewall.json]
     sha256: 30185db77aba881cee721adb719be252f19de5019ec0657e8f7968c3702ef45c
   - name: "Azure Resource Manager: Microsoft.RecoveryServices"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/recoveryservices/resource-manager/Microsoft.RecoveryServices/RecoveryServices/stable/2026-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/recoveryservices/resource-manager/Microsoft.RecoveryServices/RecoveryServices/stable/2026-01-01/
+    files: [openapi.json]
     sha256: 707bbd0199041e018a6a80c39eeed83bb662044b08b446c651dcbfd72397ee9f
   - name: "Azure Resource Manager: Microsoft.RecoveryServices backup"
     source: https://github.com/Azure/azure-rest-api-specs
     path: specification/recoveryservicesbackup/resource-manager/Microsoft.RecoveryServices/RecoveryServicesBackup/stable/2026-01-01
     revision: 699308ca6aaa
+    url: https://raw.githubusercontent.com/Azure/azure-rest-api-specs/699308ca6aaa9ec553fef140120432b7c3df04b2/specification/recoveryservicesbackup/resource-manager/Microsoft.RecoveryServices/RecoveryServicesBackup/stable/2026-01-01/
+    files: [bms.json]
     sha256: 1cd455433ab975460c6579a1cd320b0309b75fc93270ed26e3f36fb2f69dc7f9
 scope:
   methods: [get]
