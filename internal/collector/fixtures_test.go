@@ -136,12 +136,12 @@ func groupRoleResponses() []collectortest.Response {
 func strongAdminPoliciesResponses() []collectortest.Response {
 	graph := fakeGraphClient()
 	phishingResistant := mfaAllUsersPolicy("phishing-resistant-all-users")
-	phishingResistant.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", AuthenticationStrength: &microsoft.AuthenticationStrengthPolicy{
+	phishingResistant.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{}, AuthenticationStrength: &microsoft.AuthenticationStrengthPolicy{
 		ID: "00000000-0000-0000-0000-000000000004", DisplayName: "Phishing-resistant MFA", PolicyType: "builtIn", RequirementsSatisfied: "mfa",
 		AllowedCombinations: []string{"windowsHelloForBusiness", "fido2", "x509CertificateMultiFactor"},
 	}}
 	device := mfaAllUsersPolicy("compliant-device-admins")
-	device.Conditions.Users = &microsoft.ConditionalAccessUsers{IncludeRoles: []string{globalAdministratorTemplateID, securityAdministratorTemplateID, applicationAdministratorTemplateID}}
+	device.Conditions.Users = &microsoft.ConditionalAccessUsers{IncludeUsers: []string{}, IncludeRoles: []string{globalAdministratorTemplateID, securityAdministratorTemplateID, applicationAdministratorTemplateID}}
 	device.GrantControls = &microsoft.ConditionalAccessGrantControls{Operator: "OR", BuiltInControls: []string{"compliantDevice"}}
 	graph.policies = []microsoft.ConditionalAccessPolicy{phishingResistant, device}
 	return kitResponsesFor(graph, fakeARMClient())
