@@ -56,6 +56,75 @@ var kitOperations = []string{
 	"arm.resources.list",
 }
 
+// kitPopulations are the lists in Microsoft's answers where an empty list
+// means there are none.
+var kitPopulations = []collectortest.Population{
+	{Operation: "arm.backup.vaults.list", List: "/value", Reason: "A subscription with no Recovery Services vault lists none, and nothing in it is backed up with Azure Backup."},
+	{Operation: "arm.backup.protected_items.list", List: "/value", Reason: "A vault that protects nothing lists no items; the sandbox recording lists none."},
+	{Operation: "arm.backup.jobs.list", List: "/value", Reason: "A vault that has run no backup lists no jobs; the sandbox recording lists none."},
+	{Operation: "arm.compute.virtual_machines.list", List: "/value", Reason: "A subscription with no virtual machines lists none; the sandbox recording lists none."},
+	{Operation: "arm.defender.assessments.list", List: "/value", Reason: "Defender for Cloud lists the assessments of the subscription's resources, and none when it has assessed none."},
+	{Operation: "arm.keyvault.vaults.list", List: "/value", Reason: "A subscription with no key vaults lists none."},
+	{Operation: "arm.monitor.diagnostic_settings.list", List: "/value", Reason: "A resource with no diagnostic setting lists none; the sandbox recording lists none for most of its resources."},
+	{Operation: "arm.monitor.diagnostic_settings.list", List: "/value/*/properties/logs", Reason: "A setting can send metrics alone, and a storage account's own setting has no logs to send: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/supported-logs/logs-index"},
+	{Operation: "arm.monitor.subscription_diagnostic_settings.list", List: "/value", Reason: "A subscription that exports no activity log has no diagnostic setting, and lists none."},
+	{Operation: "arm.monitor.subscription_diagnostic_settings.list", List: "/value/*/properties/logs", Reason: "A setting's logs are the activity log categories it exports, so a setting that lists none exports none."},
+	{Operation: "arm.network.public_ip_addresses.list", List: "/value", Reason: "A subscription with no public IP addresses lists none; the sandbox recording lists none."},
+	{Operation: "arm.network.security_groups.list", List: "/value", Reason: "A subscription with no network security groups lists none."},
+	{Operation: "arm.network.security_groups.list", List: "/value/*/properties/securityRules", Reason: "A group with only Azure's default rules lists no securityRules, since those are in defaultSecurityRules: https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview#default-security-rules"},
+	{Operation: "arm.policy.assignments.list", List: "/value", Reason: "A subscription with no policy assigned to it, or above it, lists none."},
+	{Operation: "arm.resources.list", List: "/value", Reason: "A subscription with no resources lists none."},
+	{Operation: "arm.sql.servers.list", List: "/value", Reason: "A subscription with no SQL servers lists none."},
+	{Operation: "arm.storage.accounts.list", List: "/value", Reason: "A subscription with no storage accounts lists none."},
+	{Operation: "graph.users.list", List: "/value", Reason: "A tenant with no users lists none. Graph refuses an app without User.Read.All with a 403, rather than listing none."},
+	{Operation: "graph.users.sign_in_activity.list", List: "/value", Reason: "A tenant with no users lists none. Graph refuses an app without AuditLog.Read.All with a 403, rather than listing none."},
+	{Operation: "graph.user_registration_details.list", List: "/value/*/methodsRegistered", Reason: "A user who has registered no authentication method lists none: https://learn.microsoft.com/en-us/graph/api/resources/userregistrationdetails"},
+	{Operation: "graph.conditional_access.policies.list", List: "/value", Reason: "A tenant with no Conditional Access policy lists none."},
+	{Operation: "graph.conditional_access.policies.list", List: "/value/*/conditions/applications/includeApplications", Reason: "A policy for a user action or an authentication context includes no applications: https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessapplications"},
+	{Operation: "graph.conditional_access.policies.list", List: "/value/*/conditions/users/includeUsers", Reason: "A policy that includes only groups, roles or guests lists no users; the sandbox recording holds three such policies."},
+	{Operation: "graph.conditional_access.policies.list", List: "/value/*/grantControls/builtInControls", Reason: "A policy that grants with an authentication strength, terms of use or a custom control alone lists no built-in control: https://learn.microsoft.com/en-us/graph/api/resources/conditionalaccessgrantcontrols"},
+	{Operation: "graph.role_assignments.list", List: "/value", Reason: "roleAssignments lists active assignments only, so a tenant whose directory roles are all held through PIM eligibility lists none."},
+	{Operation: "graph.role_eligibility_schedules.list", List: "/value", Reason: "A tenant that has made no one eligible for a directory role lists no schedules."},
+	{Operation: "graph.service_principals.list", List: "/value/*/passwordCredentials", Reason: "A service principal with no client secret of its own lists none; every one in the sandbox recording does."},
+	{Operation: "graph.service_principals.list", List: "/value/*/keyCredentials", Reason: "A service principal with no certificate of its own lists none; every one in the sandbox recording does."},
+	{Operation: "graph.applications.list", List: "/value", Reason: "Graph lists the apps registered in the tenant, and a tenant can have none, as when the collector's own app is registered in another tenant."},
+	{Operation: "graph.applications.list", List: "/value/*/passwordCredentials", Reason: "An app with no client secret lists none; the sandbox recording lists three."},
+	{Operation: "graph.applications.list", List: "/value/*/keyCredentials", Reason: "An app with no certificate lists none; the sandbox recording lists three."},
+	{Operation: "graph.directory_audits.list", List: "/value", Reason: "A tenant with no directory change in the lookback lists no audit events."},
+	{Operation: "graph.sign_ins.list", List: "/value", Reason: "A tenant with no user sign-in in the lookback lists none."},
+	{Operation: "graph.sign_ins.list", List: "/value/*/appliedConditionalAccessPolicies", Reason: "A sign-in no Conditional Access policy applied to lists none. Graph leaves the list out, rather than empty, for an app that can't read Conditional Access."},
+}
+
+// kitDestinationUnused says why a diagnostic setting with no workspaceId
+// sends nothing to a workspace.
+const kitDestinationUnused = "A setting can send to a storage account, an event hub or a partner instead, and Azure Monitor sends null for each destination a setting doesn't use; the sandbox recording shows a null storageAccountId and eventHubAuthorizationRuleId."
+
+// kitSecretEnd says why a client secret with no endDateTime doesn't expire.
+const kitSecretEnd = "\"Optional\": a client secret's endDateTime, and a secret with none doesn't expire. passwordCredential in https://learn.microsoft.com/en-us/graph/api/resources/passwordcredential"
+
+// kitOmissions are the fields Microsoft leaves out, or sends as null, to
+// mean a value.
+var kitOmissions = []collectortest.Omission{
+	{Operation: "arm.backup.vaults.get", Field: "/properties/securitySettings/immutabilitySettings/state", Reason: "A vault whose immutability was never set has none, which is Disabled. The azurerm provider reads it so, as Azure returns the setting only once it is set."},
+	{Operation: "arm.keyvault.vaults.list", Field: "/value/*/properties/enablePurgeProtection", Reason: "\"the property does not accept false as its value\", so a vault without purge protection leaves it out, as one in the sandbox recording does: VaultProperties in https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list-by-subscription"},
+	{Operation: "arm.keyvault.vaults.list", Field: "/value/*/properties/enableRbacAuthorization", Reason: "\"If null or not specified, the vault is created with the default value of false\": VaultProperties in https://learn.microsoft.com/en-us/rest/api/keyvault/keyvault/vaults/list-by-subscription"},
+	{Operation: "arm.monitor.diagnostic_settings.list", Field: "/value/*/properties/workspaceId", Reason: kitDestinationUnused},
+	{Operation: "arm.monitor.subscription_diagnostic_settings.list", Field: "/value/*/properties/workspaceId", Reason: kitDestinationUnused},
+	{Operation: "arm.network.public_ip_addresses.list", Field: "/value/*/properties/ipConfiguration", Reason: "ipConfiguration is the configuration an address is attached to, so an address attached to nothing has none: https://learn.microsoft.com/en-us/rest/api/virtualnetwork/public-ip-addresses/list-all"},
+	{Operation: "arm.resources.list", Field: "/value/*/tags", Reason: "A resource with no tags has no tags field; the sandbox recording lists three."},
+	{Operation: "arm.resources.list", Field: "/value/*/tags/*", Reason: "A resource's tags hold only the tags set on it."},
+	{Operation: "arm.sql.servers.list", Field: "/value/*/properties/minimalTlsVersion", Reason: "A server with no minimal TLS version set accepts any version, and the Servers - List sample answer lists such servers: https://learn.microsoft.com/en-us/rest/api/sql/servers/list"},
+	{Operation: "arm.storage.accounts.list", Field: "/value/*/properties/allowBlobPublicAccess", Reason: "Microsoft's remediation script and audit policy count an account whose allowBlobPublicAccess is null as allowing anonymous access: https://learn.microsoft.com/en-us/azure/storage/blobs/anonymous-read-access-prevent"},
+	{Operation: "arm.storage.accounts.list", Field: "/value/*/properties/minimumTlsVersion", Reason: "\"The default interpretation is TLS 1.0 for this property\": StorageAccountProperties in https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/list"},
+	{Operation: "arm.storage.accounts.list", Field: "/value/*/properties/publicNetworkAccess", Reason: "An account without the setting accepts traffic from any network its firewall allows, and the Storage Accounts - List sample answer lists such accounts: https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/list"},
+	{Operation: "arm.storage.accounts.list", Field: "/value/*/properties/encryption/keySource", Reason: "keySource defaults to Microsoft.Storage, Azure's own key: Encryption in https://learn.microsoft.com/en-us/rest/api/storagerp/storage-accounts/list"},
+	{Operation: "arm.storage.accounts.list", Field: "/value/*/properties/encryption/requireInfrastructureEncryption", Reason: "An account created without infrastructure encryption leaves the field out; the sandbox recording lists two."},
+	{Operation: "graph.service_principals.list", Field: "/value/*/preferredSingleSignOnMode", Reason: "Graph sends null for a service principal with no single sign-on mode set; the sandbox recording lists 182."},
+	{Operation: "graph.service_principals.list", Field: "/value/*/passwordCredentials/*/endDateTime", Reason: kitSecretEnd},
+	{Operation: "graph.applications.list", Field: "/value/*/passwordCredentials/*/endDateTime", Reason: kitSecretEnd},
+	{Operation: "graph.users.sign_in_activity.list", Field: "/value/*/signInActivity/lastSuccessfulSignInDateTime", Reason: "\"The data isn't backfilled for this property\", so a user with no successful sign-in since December 1, 2023 has none: https://learn.microsoft.com/en-us/graph/api/resources/signinactivity"},
+}
+
 // kitResultPath is where the kit's runs write their collector result.
 var kitResultPath = componentsdk.ArtifactPath(collectorName, "evidencepack/collector-result@v1")
 
@@ -88,11 +157,14 @@ func defenderAssessmentsFailResponses() []collectortest.Response {
 
 func TestCollectorKit(t *testing.T) {
 	collectortest.Run(t, collectortest.Suite{
-		Spec:    Spec("test", "collectortest"),
-		Run:     Run,
-		Config:  kitConfig(),
-		Secrets: kitSecrets(),
-		Clock:   goldenTime,
+		Spec:        Spec("test", "collectortest"),
+		Run:         Run,
+		Config:      kitConfig(),
+		Secrets:     kitSecrets(),
+		Clock:       goldenTime,
+		FieldFaults: true,
+		Populations: kitPopulations,
+		Omissions:   kitOmissions,
 		Scenarios: []collectortest.Scenario{
 			{
 				Name:      "clean",
@@ -884,4 +956,24 @@ func TestDeniedReadsNameWhatToGrant(t *testing.T) {
 			t.Fatalf("no gap at %s; gaps: %#v", tc.pointer, res.Result.Gaps)
 		})
 	}
+}
+
+// An empty role assignment list leaves the role holders out with a
+// permission_denied gap that names the call, since the identity can't see
+// even the role it reads the subscription with.
+func TestHiddenRoleAssignmentsLeaveRoleHoldersOut(t *testing.T) {
+	res := runInProcess(t, kitConfig(), kitSecrets(), roleAssignmentsHiddenResponses())
+	if res.ExitCode != 0 || res.Result == nil {
+		t.Fatalf("run failed with exit %d: %s", res.ExitCode, res.Stderr)
+	}
+	for _, gap := range res.Result.Gaps {
+		if gap.Path != accessPosturePath || gap.Pointer != "/members/members_present" {
+			continue
+		}
+		if gap.Code != componentsdk.CodePermissionDenied || gap.Operation != "arm.role_assignments.list" || !strings.Contains(gap.Detail, "Azure Lighthouse") {
+			t.Fatalf("gap = %s from %q (%s), want permission_denied from arm.role_assignments.list", gap.Code, gap.Operation, gap.Detail)
+		}
+		return
+	}
+	t.Fatalf("no gap at /members/members_present; gaps: %#v", res.Result.Gaps)
 }

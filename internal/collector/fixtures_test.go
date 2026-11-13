@@ -60,15 +60,25 @@ func kitResponsesFor(graph *fakeGraph, arm *fakeARM) []collectortest.Response {
 }
 
 // emptyTenantResponses answer a tenant with no users, apps, roles, or
-// policies, and a subscription with no resources.
+// policies, and a subscription with no resources. The collector's own
+// service principal, and the Reader role it holds on the subscription, are
+// there all the same.
 func emptyTenantResponses() []collectortest.Response {
+	enabled, disabled := true, false
 	graph := &fakeGraph{
 		org:              fakeGraphClient().org,
 		securityDefaults: &microsoft.IdentitySecurityDefaultsEnforcementPolicy{IsEnabled: true},
+		servicePrincipals: []microsoft.ServicePrincipal{{
+			ID: "collector-sp", AppID: kitClientID, AccountEnabled: &enabled, AppRoleAssignmentRequired: &disabled, ServicePrincipalType: "Application",
+			PasswordCredentials: []microsoft.PasswordCredential{}, KeyCredentials: []microsoft.KeyCredential{},
+		}},
 	}
 	arm := &fakeARM{
 		subscriptions: map[string]*microsoft.Subscription{kitSubscriptionID: {SubscriptionID: kitSubscriptionID, State: "Enabled"}},
 		secureScores:  map[string]*microsoft.ARMSecureScore{kitSubscriptionID: {Name: "ascScore"}},
+		roleAssignments: map[string][]microsoft.ARMRoleAssignment{kitSubscriptionID: {
+			fakeRoleAssignment("collector-reader", kitSubscriptionID, azureReaderRoleDefinitionID, "ServicePrincipal", "collector-sp"),
+		}},
 	}
 	return kitResponsesFor(graph, arm)
 }
@@ -219,6 +229,15 @@ func roleAssignmentsDeniedResponses() []collectortest.Response {
 		Status: http.StatusForbidden,
 		Body:   kitJSON(map[string]any{"error": map[string]any{"code": "AuthorizationFailed", "message": "The client does not have authorization to perform action 'Microsoft.Authorization/roleAssignments/read'."}}),
 	})
+}
+
+// roleAssignmentsHiddenResponses answer an app that sees no role assignment
+// on the subscription, as one whose access comes through Azure Lighthouse
+// does.
+func roleAssignmentsHiddenResponses() []collectortest.Response {
+	arm := fakeARMClient()
+	arm.roleAssignments[kitSubscriptionID] = nil
+	return kitResponsesFor(fakeGraphClient(), arm)
 }
 
 // graphError is a Microsoft Graph error answer with status, code and message.

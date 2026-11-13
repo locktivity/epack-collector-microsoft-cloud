@@ -17,6 +17,7 @@ func TestClassifyRoles(t *testing.T) {
 	roles := classifyRoles(append(testRoleDefinitions(),
 		roleDefinition("custom-writer", boolPtr(true), "microsoft.directory/users/password/update"),
 		roleDefinition("custom-reader", boolPtr(true), "microsoft.directory/users/standard/read", "microsoft.directory/serviceAction/getAvailableExtentionProperties"),
+		roleDefinition("no-actions", boolPtr(true)),
 		roleDefinition("unclassified", nil, "microsoft.directory/users/password/update")))
 	for _, tc := range []struct {
 		id                   string
@@ -28,6 +29,7 @@ func TestClassifyRoles(t *testing.T) {
 		{"29232cdf-9323-42fd-ade2-1d097af3e4de", false, true},
 		{"custom-writer", true, true},
 		{"custom-reader", false, true},
+		{"no-actions", true, true},
 		{"unclassified", false, false},
 		{"not-listed", false, false},
 	} {

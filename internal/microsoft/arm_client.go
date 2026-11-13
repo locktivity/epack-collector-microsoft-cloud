@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -55,7 +56,7 @@ func NewARMClient(tokenSource AccessTokenSource, opts ...ARMOption) *ARMClient {
 func (c *ARMClient) Subscription(ctx context.Context, subscriptionID string) (*Subscription, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "?api-version=2020-01-01"
 	var subscription Subscription
-	if err := c.getJSON(ctx, armOperation("arm.subscriptions.get"), route, &subscription); err != nil {
+	if _, err := c.getJSON(ctx, armOperation("arm.subscriptions.get"), route, &subscription); err != nil {
 		return nil, err
 	}
 	if subscription.SubscriptionID == "" {
@@ -66,7 +67,7 @@ func (c *ARMClient) Subscription(ctx context.Context, subscriptionID string) (*S
 
 func (c *ARMClient) Resources(ctx context.Context, subscriptionID string) ([]ARMResource, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/resources?api-version=2021-04-01"
-	return getARMPaged[ARMResource](ctx, c, "arm.resources.list", route)
+	return getARMPaged[ARMResource](ctx, c, "arm.resources.list", route, "id", "type", "location")
 }
 
 func (c *ARMClient) DefenderSecureScore(ctx context.Context, subscriptionID string) (*ARMSecureScore, error) {
@@ -78,7 +79,7 @@ func (c *ARMClient) DefenderSecureScore(ctx context.Context, subscriptionID stri
 			Score *ARMScore `json:"score"`
 		} `json:"properties"`
 	}
-	if err := c.getJSON(ctx, armOperation("arm.defender.secure_score.get"), route, &score); err != nil {
+	if _, err := c.getJSON(ctx, armOperation("arm.defender.secure_score.get"), route, &score); err != nil {
 		return nil, err
 	}
 	if score.Properties.Score == nil {
@@ -89,15 +90,29 @@ func (c *ARMClient) DefenderSecureScore(ctx context.Context, subscriptionID stri
 
 func (c *ARMClient) DefenderAssessments(ctx context.Context, subscriptionID string) ([]SecurityAssessment, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Security/assessments?api-version=2020-01-01"
-	return getARMPaged[SecurityAssessment](ctx, c, "arm.defender.assessments.list", route)
+	return getARMPaged[SecurityAssessment](ctx, c, "arm.defender.assessments.list", route, "properties/status/code")
 }
 
 // RoleAssignments lists the role assignments that apply to a subscription:
 // those at the subscription, above it, and on its resource groups and
-// resources. Each one's scope says where it is.
+// resources. Each one's scope says where it is. An empty list means the
+// identity can see no role assignment, even the one that lets it read the
+// subscription. An identity whose access comes through Azure Lighthouse sees
+// that: the list leaves out Lighthouse's role assignments, and shows an
+// identity in the managing tenant none of the customer's.
+// https://learn.microsoft.com/en-us/azure/lighthouse/how-to/view-manage-service-providers#view-delegations
 func (c *ARMClient) RoleAssignments(ctx context.Context, subscriptionID string) ([]ARMRoleAssignment, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01"
-	return getARMPaged[ARMRoleAssignment](ctx, c, "arm.role_assignments.list", route)
+	assignments, resp, err := getARMPages[ARMRoleAssignment](ctx, c, "arm.role_assignments.list", route,
+		[]string{"properties/roleDefinitionId", "properties/principalId", "properties/principalType", "properties/scope"})
+	if err != nil {
+		return nil, err
+	}
+	if len(assignments) == 0 {
+		return nil, componentsdk.ResponseError(resp, componentsdk.CodeError(componentsdk.CodePermissionDenied,
+			fmt.Errorf("arm response for %s lists no role assignment, so the identity can see none, as when its access comes through Azure Lighthouse", SanitizeRoute(route))))
+	}
+	return assignments, nil
 }
 
 func (c *ARMClient) PolicyAssignments(ctx context.Context, subscriptionID string) ([]PolicyAssignment, error) {
@@ -111,30 +126,43 @@ func (c *ARMClient) PolicyAssignments(ctx context.Context, subscriptionID string
 func (c *ARMClient) PolicyStateSummary(ctx context.Context, subscriptionID string) (*PolicyStateSummaryResult, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.PolicyInsights/policyStates/latest/summarize?api-version=2019-10-01"
 	var summary struct {
-		Value *[]PolicyStateSummary `json:"value"`
+		Value *[]json.RawMessage `json:"value"`
 	}
-	if err := c.postJSON(ctx, componentsdk.Operation{Name: "arm.policy.states.summarize", Safe: true, Permission: armReaderRole}, route, nil, &summary); err != nil {
+	resp, err := c.postJSON(ctx, componentsdk.Operation{Name: "arm.policy.states.summarize", Safe: true, Permission: armReaderRole}, route, nil, &summary)
+	if err != nil {
 		return nil, err
 	}
-	if summary.Value == nil {
-		return nil, invalidResponse("arm", route, "has no value array")
+	// The answer holds one summary, which @odata.count says is always so.
+	// https://learn.microsoft.com/en-us/rest/api/policyinsights/policy-states/summarize-for-subscription
+	if summary.Value == nil || len(*summary.Value) != 1 {
+		return nil, componentsdk.ResponseError(resp, invalidResponse("arm", route, "does not hold one summary"))
 	}
-	return &PolicyStateSummaryResult{Value: *summary.Value}, nil
+	summaries, problem, err := decodeItems[PolicyStateSummary](*summary.Value, []string{
+		"results/nonCompliantResources", "results/resourceDetails",
+		"results/resourceDetails/*/complianceState", "results/resourceDetails/*/count",
+	})
+	switch {
+	case err != nil:
+		return nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding arm response for %s: %w", SanitizeRoute(route), err))
+	case problem != "":
+		return nil, componentsdk.ResponseError(resp, invalidResponse("arm", route, problem))
+	}
+	return &PolicyStateSummaryResult{Value: summaries}, nil
 }
 
 func (c *ARMClient) StorageAccounts(ctx context.Context, subscriptionID string) ([]StorageAccount, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Storage/storageAccounts?api-version=2024-01-01"
-	return getARMPaged[StorageAccount](ctx, c, "arm.storage.accounts.list", route)
+	return getARMPaged[StorageAccount](ctx, c, "arm.storage.accounts.list", route, "id", "properties/supportsHttpsTrafficOnly")
 }
 
 func (c *ARMClient) KeyVaults(ctx context.Context, subscriptionID string) ([]KeyVault, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.KeyVault/vaults?api-version=2024-11-01"
-	return getARMPaged[KeyVault](ctx, c, "arm.keyvault.vaults.list", route)
+	return getARMPaged[KeyVault](ctx, c, "arm.keyvault.vaults.list", route, "id")
 }
 
 func (c *ARMClient) SQLServers(ctx context.Context, subscriptionID string) ([]SQLServer, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Sql/servers?api-version=2023-08-01"
-	return getARMPaged[SQLServer](ctx, c, "arm.sql.servers.list", route)
+	return getARMPaged[SQLServer](ctx, c, "arm.sql.servers.list", route, "id", "properties/publicNetworkAccess")
 }
 
 func (c *ARMClient) SQLDatabases(ctx context.Context, serverID string) ([]SQLDatabase, error) {
@@ -146,13 +174,21 @@ func (c *ARMClient) SQLDatabases(ctx context.Context, serverID string) ([]SQLDat
 		"/resourceGroups/" + url.PathEscape(resourceGroup) +
 		"/providers/Microsoft.Sql/servers/" + url.PathEscape(serverName) +
 		"/databases?api-version=2023-08-01"
-	return getARMPaged[SQLDatabase](ctx, c, "arm.sql.databases.list", route)
+	databases, resp, err := getARMPages[SQLDatabase](ctx, c, "arm.sql.databases.list", route, []string{"id", "name"})
+	if err != nil {
+		return nil, err
+	}
+	// Every server has a master database, and the list holds it.
+	if !slices.ContainsFunc(databases, func(d SQLDatabase) bool { return strings.EqualFold(d.Name, "master") }) {
+		return nil, componentsdk.ResponseError(resp, invalidResponse("arm", route, "lists no master database, and every server has one"))
+	}
+	return databases, nil
 }
 
 func (c *ARMClient) SQLTransparentDataEncryption(ctx context.Context, databaseID string) (*SQLTransparentDataEncryption, error) {
 	route := strings.TrimRight(databaseID, "/") + "/transparentDataEncryption/current?api-version=2023-08-01"
 	var tde SQLTransparentDataEncryption
-	if err := c.getJSON(ctx, armOperation("arm.sql.transparent_data_encryption.get"), route, &tde); err != nil {
+	if _, err := c.getJSON(ctx, armOperation("arm.sql.transparent_data_encryption.get"), route, &tde); err != nil {
 		return nil, err
 	}
 	if tde.Properties.State == "" {
@@ -163,7 +199,8 @@ func (c *ARMClient) SQLTransparentDataEncryption(ctx context.Context, databaseID
 
 func (c *ARMClient) VirtualMachines(ctx context.Context, subscriptionID string) ([]VirtualMachine, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Compute/virtualMachines?api-version=2024-07-01"
-	return getARMPaged[VirtualMachine](ctx, c, "arm.compute.virtual_machines.list", route)
+	return getARMPaged[VirtualMachine](ctx, c, "arm.compute.virtual_machines.list", route,
+		"id", "properties/networkProfile/networkInterfaces", "properties/networkProfile/networkInterfaces/*/id")
 }
 
 func (c *ARMClient) PublicIPAddresses(ctx context.Context, subscriptionID string) ([]PublicIPAddress, error) {
@@ -173,22 +210,28 @@ func (c *ARMClient) PublicIPAddresses(ctx context.Context, subscriptionID string
 
 func (c *ARMClient) NetworkSecurityGroups(ctx context.Context, subscriptionID string) ([]NetworkSecurityGroup, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Network/networkSecurityGroups?api-version=2023-11-01"
-	return getARMPaged[NetworkSecurityGroup](ctx, c, "arm.network.security_groups.list", route)
+	return getARMPaged[NetworkSecurityGroup](ctx, c, "arm.network.security_groups.list", route, "properties/securityRules",
+		"properties/securityRules/*/properties/priority", "properties/securityRules/*/properties/access",
+		"properties/securityRules/*/properties/direction", "properties/securityRules/*/properties/protocol")
 }
 
 func (c *ARMClient) DiagnosticSettings(ctx context.Context, resourceID string) ([]DiagnosticSetting, error) {
 	route := strings.TrimRight(resourceID, "/") + "/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview"
-	return getARMPaged[DiagnosticSetting](ctx, c, "arm.monitor.diagnostic_settings.list", route)
+	return getARMPaged[DiagnosticSetting](ctx, c, "arm.monitor.diagnostic_settings.list", route, diagnosticSettingFields...)
 }
 
 func (c *ARMClient) SubscriptionDiagnosticSettings(ctx context.Context, subscriptionID string) ([]DiagnosticSetting, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.Insights/diagnosticSettings?api-version=2021-05-01-preview"
-	return getARMPaged[DiagnosticSetting](ctx, c, "arm.monitor.subscription_diagnostic_settings.list", route)
+	return getARMPaged[DiagnosticSetting](ctx, c, "arm.monitor.subscription_diagnostic_settings.list", route, diagnosticSettingFields...)
 }
+
+// diagnosticSettingFields are the fields of a diagnostic setting that Azure
+// Monitor always sends. A setting on a subscription has no metrics.
+var diagnosticSettingFields = []string{"properties/logs", "properties/logs/*/enabled", "properties/metrics/*/enabled"}
 
 func (c *ARMClient) RecoveryServicesVaults(ctx context.Context, subscriptionID string) ([]RecoveryServicesVault, error) {
 	route := "/subscriptions/" + url.PathEscape(subscriptionID) + "/providers/Microsoft.RecoveryServices/vaults?api-version=2026-01-01"
-	return getARMPaged[RecoveryServicesVault](ctx, c, "arm.backup.vaults.list", route)
+	return getARMPaged[RecoveryServicesVault](ctx, c, "arm.backup.vaults.list", route, "id")
 }
 
 // RecoveryServicesVault reads one vault. The vault list leaves out its
@@ -199,7 +242,7 @@ func (c *ARMClient) RecoveryServicesVault(ctx context.Context, vaultID string) (
 		return RecoveryServicesVault{}, err
 	}
 	var vault RecoveryServicesVault
-	if err := c.getJSON(ctx, armOperation("arm.backup.vaults.get"), route, &vault); err != nil {
+	if _, err := c.getJSON(ctx, armOperation("arm.backup.vaults.get"), route, &vault); err != nil {
 		return RecoveryServicesVault{}, err
 	}
 	if vault.Properties.SecuritySettings.SoftDeleteSettings.SoftDeleteState == "" && vault.Properties.SoftDeleteFeatureState == "" {
@@ -213,7 +256,7 @@ func (c *ARMClient) BackupProtectedItems(ctx context.Context, vaultID string) ([
 	if err != nil {
 		return nil, err
 	}
-	return getARMPaged[BackupProtectedItem](ctx, c, "arm.backup.protected_items.list", route)
+	return getARMPaged[BackupProtectedItem](ctx, c, "arm.backup.protected_items.list", route, "properties/backupManagementType", "properties/protectionState")
 }
 
 func (c *ARMClient) BackupPolicies(ctx context.Context, vaultID string) ([]BackupPolicy, error) {
@@ -221,7 +264,7 @@ func (c *ARMClient) BackupPolicies(ctx context.Context, vaultID string) ([]Backu
 	if err != nil {
 		return nil, err
 	}
-	return getARMPaged[BackupPolicy](ctx, c, "arm.backup.policies.list", route)
+	return getARMPaged[BackupPolicy](ctx, c, "arm.backup.policies.list", route, "id")
 }
 
 func (c *ARMClient) BackupJobs(ctx context.Context, vaultID, filter string) ([]BackupJob, error) {
@@ -233,7 +276,7 @@ func (c *ARMClient) BackupJobs(ctx context.Context, vaultID, filter string) ([]B
 	if err != nil {
 		return nil, err
 	}
-	return getARMPaged[BackupJob](ctx, c, "arm.backup.jobs.list", route)
+	return getARMPaged[BackupJob](ctx, c, "arm.backup.jobs.list", route, "properties/status", "properties/startTime")
 }
 
 // armReaderRole is the Azure role each Resource Manager call needs on the
@@ -249,89 +292,107 @@ func armOperation(name string) componentsdk.Operation {
 
 // getARMPaged fails the whole list when any page fails, so a partial list
 // never reads as a complete one. A next link to a page already read fails it
-// too, since following it would never end.
-func getARMPaged[T any](ctx context.Context, c *ARMClient, operation, route string) ([]T, error) {
+// too, since following it would never end. So does an item that lacks one of
+// the required fields, which Resource Manager sends for every item, or that
+// breaks its type's own rule.
+func getARMPaged[T any](ctx context.Context, c *ARMClient, operation, route string, required ...string) ([]T, error) {
+	items, _, err := getARMPages[T](ctx, c, operation, route, required)
+	return items, err
+}
+
+// getARMPages is getARMPaged that also returns the last page's response.
+func getARMPages[T any](ctx context.Context, c *ARMClient, operation, route string, required []string) ([]T, *http.Response, error) {
 	op := armOperation(operation)
 	out := []T{}
 	read := map[string]struct{}{}
 	next := route
+	var resp *http.Response
 	for next != "" {
 		var page struct {
-			Value    *[]T   `json:"value"`
-			NextLink string `json:"nextLink"`
+			Value    *[]json.RawMessage `json:"value"`
+			NextLink string             `json:"nextLink"`
 		}
-		if err := c.getJSON(ctx, op, next, &page); err != nil {
-			return nil, err
+		var err error
+		if resp, err = c.getJSON(ctx, op, next, &page); err != nil {
+			return nil, nil, err
 		}
 		if page.Value == nil {
-			return nil, invalidResponse("arm", next, "has no value array")
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("arm", next, "has no value array"))
 		}
-		out = append(out, *page.Value...)
+		items, problem, err := decodeItems[T](*page.Value, required)
+		switch {
+		case err != nil:
+			return nil, nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding arm response for %s: %w", SanitizeRoute(next), err))
+		case problem != "":
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("arm", next, problem))
+		}
+		out = append(out, items...)
 		read[next] = struct{}{}
 		if _, ok := read[page.NextLink]; ok {
-			return nil, invalidResponse("arm", next, "links to a page already read")
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("arm", next, "links to a page already read"))
 		}
 		next = page.NextLink
 	}
-	return out, nil
+	return out, resp, nil
 }
 
-func (c *ARMClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, out any) error {
-	body, err := c.do(ctx, op, http.MethodGet, route, nil)
+func (c *ARMClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, out any) (*http.Response, error) {
+	body, resp, err := c.do(ctx, op, http.MethodGet, route, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return decodeARM(route, body, out)
+	return resp, decodeARM(resp, route, body, out)
 }
 
-func (c *ARMClient) postJSON(ctx context.Context, op componentsdk.Operation, route string, body any, out any) error {
+func (c *ARMClient) postJSON(ctx context.Context, op componentsdk.Operation, route string, body any, out any) (*http.Response, error) {
 	var payload []byte
 	if body != nil {
 		var err error
 		payload, err = json.Marshal(body)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	resp, err := c.do(ctx, op, http.MethodPost, route, payload)
+	respBody, resp, err := c.do(ctx, op, http.MethodPost, route, payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return decodeARM(route, resp, out)
+	return resp, decodeARM(resp, route, respBody, out)
 }
 
-func decodeARM(route string, body []byte, out any) error {
+func decodeARM(resp *http.Response, route string, body []byte, out any) error {
 	if err := json.Unmarshal(body, out); err != nil {
-		return fmt.Errorf("decoding arm response for %s: %w", SanitizeRoute(route), err)
+		return componentsdk.ResponseError(resp, fmt.Errorf("decoding arm response for %s: %w", SanitizeRoute(route), err))
 	}
 	return nil
 }
 
-// do sends one named call. The SDK's transport retries it when that is safe.
-func (c *ARMClient) do(ctx context.Context, op componentsdk.Operation, method, route string, body []byte) ([]byte, error) {
+// do sends one named call, and returns the body and the response it came in.
+// The SDK's transport retries it when that is safe.
+func (c *ARMClient) do(ctx context.Context, op componentsdk.Operation, method, route string, body []byte) ([]byte, *http.Response, error) {
 	ctx = componentsdk.WithOperation(ctx, op)
 	req, err := c.newRequest(ctx, method, route, bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, &RequestError{Service: "arm", Route: route, Err: err}
+		return nil, nil, &RequestError{Service: "arm", Route: route, Err: err}
 	}
 	defer func() { _ = resp.Body.Close() }()
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
-		return nil, &RequestError{Service: "arm", Route: route, Err: err}
+		return nil, nil, &RequestError{Service: "arm", Route: route, Err: err}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// ResponseError ties the error to its call, so a gap from it names
 		// the call and the role it needs.
-		return nil, componentsdk.ResponseError(resp, armAPIError(resp.StatusCode, route, resp.Header, respBody))
+		return nil, nil, componentsdk.ResponseError(resp, armAPIError(resp.StatusCode, route, resp.Header, respBody))
 	}
 	if len(respBody) > maxResponseBytes {
-		return nil, tooLarge("arm", route)
+		return nil, nil, tooLarge("arm", route)
 	}
-	return respBody, nil
+	return respBody, resp, nil
 }
 
 func (c *ARMClient) newRequest(ctx context.Context, method, route string, body io.Reader) (*http.Request, error) {

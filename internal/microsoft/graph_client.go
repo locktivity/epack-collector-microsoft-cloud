@@ -99,19 +99,21 @@ func (c *GraphClient) Organization(ctx context.Context) (*Organization, error) {
 }
 
 func (c *GraphClient) Users(ctx context.Context) ([]User, error) {
-	return getPaged[User](ctx, c, "graph.users.list", "/users?$select=id,accountEnabled,userType,userPrincipalName&$top=999")
+	return getPaged[User](ctx, c, "graph.users.list", "/users?$select=id,accountEnabled,userType,userPrincipalName&$top=999", "id", "accountEnabled")
 }
 
 func (c *GraphClient) UsersWithSignInActivity(ctx context.Context) ([]User, error) {
-	return getPaged[User](ctx, c, "graph.users.sign_in_activity.list", "/users?$select=id,accountEnabled,userType,signInActivity&$top=999")
+	return getPaged[User](ctx, c, "graph.users.sign_in_activity.list", "/users?$select=id,accountEnabled,userType,signInActivity&$top=999", "id", "accountEnabled")
 }
 
 func (c *GraphClient) UserRegistrationDetails(ctx context.Context) ([]UserRegistrationDetail, error) {
-	return getPaged[UserRegistrationDetail](ctx, c, "graph.user_registration_details.list", "/reports/authenticationMethods/userRegistrationDetails")
+	return getPaged[UserRegistrationDetail](ctx, c, "graph.user_registration_details.list", "/reports/authenticationMethods/userRegistrationDetails",
+		"isMfaRegistered", "isSsprRegistered", "methodsRegistered")
 }
 
 func (c *GraphClient) ConditionalAccessPolicies(ctx context.Context) ([]ConditionalAccessPolicy, error) {
-	return getPaged[ConditionalAccessPolicy](ctx, c, "graph.conditional_access.policies.list", "/identity/conditionalAccess/policies")
+	return getPaged[ConditionalAccessPolicy](ctx, c, "graph.conditional_access.policies.list", "/identity/conditionalAccess/policies",
+		"state", "conditions", "conditions/applications", "conditions/applications/includeApplications")
 }
 
 func (c *GraphClient) SecurityDefaults(ctx context.Context) (*IdentitySecurityDefaultsEnforcementPolicy, error) {
@@ -119,7 +121,7 @@ func (c *GraphClient) SecurityDefaults(ctx context.Context) (*IdentitySecurityDe
 	var policy struct {
 		IsEnabled *bool `json:"isEnabled"`
 	}
-	if err := c.getJSON(ctx, graphOperation("graph.security_defaults.get"), route, nil, &policy); err != nil {
+	if _, err := c.getJSON(ctx, graphOperation("graph.security_defaults.get"), route, nil, &policy); err != nil {
 		return nil, err
 	}
 	if policy.IsEnabled == nil {
@@ -129,7 +131,8 @@ func (c *GraphClient) SecurityDefaults(ctx context.Context) (*IdentitySecurityDe
 }
 
 func (c *GraphClient) RoleAssignments(ctx context.Context) ([]UnifiedRoleAssignment, error) {
-	return getPaged[UnifiedRoleAssignment](ctx, c, "graph.role_assignments.list", "/roleManagement/directory/roleAssignments?$expand=principal&$top=999")
+	return getPaged[UnifiedRoleAssignment](ctx, c, "graph.role_assignments.list", "/roleManagement/directory/roleAssignments?$expand=principal&$top=999",
+		"principalId", "roleDefinitionId")
 }
 
 func (c *GraphClient) NamedLocations(ctx context.Context) ([]NamedLocation, error) {
@@ -144,7 +147,7 @@ func (c *GraphClient) RoleDefinitions(ctx context.Context) ([]UnifiedRoleDefinit
 	var out []UnifiedRoleDefinition
 	for _, privileged := range []bool{true, false} {
 		route := "/roleManagement/directory/roleDefinitions?$filter=isPrivileged%20eq%20" + strconv.FormatBool(privileged) + "&$select=id,templateId,isPrivileged,rolePermissions"
-		definitions, err := getPaged[UnifiedRoleDefinition](ctx, c, "graph.role_definitions.list", route)
+		definitions, err := getPaged[UnifiedRoleDefinition](ctx, c, "graph.role_definitions.list", route, "rolePermissions", "rolePermissions/*/allowedResourceActions")
 		if err != nil {
 			return nil, err
 		}
@@ -157,19 +160,42 @@ func (c *GraphClient) RoleDefinitions(ctx context.Context) ([]UnifiedRoleDefinit
 }
 
 func (c *GraphClient) RoleEligibilitySchedules(ctx context.Context) ([]UnifiedRoleEligibilitySchedule, error) {
-	return getPaged[UnifiedRoleEligibilitySchedule](ctx, c, "graph.role_eligibility_schedules.list", "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999")
+	return getPaged[UnifiedRoleEligibilitySchedule](ctx, c, "graph.role_eligibility_schedules.list", "/roleManagement/directory/roleEligibilitySchedules?$expand=roleDefinition&$top=999",
+		"principalId", "roleDefinitionId")
 }
 
+// credentialFields are the fields of an app's or a service principal's
+// client secrets and certificates that Graph always sends. Graph sets a
+// secret's startDateTime when it is added, and a certificate's dates are its
+// own. A secret can have no endDateTime.
+// https://learn.microsoft.com/en-us/graph/api/application-addpassword
+var credentialFields = []string{
+	"passwordCredentials", "passwordCredentials/*/startDateTime",
+	"keyCredentials", "keyCredentials/*/startDateTime", "keyCredentials/*/endDateTime",
+}
+
+// ServicePrincipals lists the tenant's Application service principals. An
+// empty list is not an answer, since the collector signs in as one of them.
 func (c *GraphClient) ServicePrincipals(ctx context.Context) ([]ServicePrincipal, error) {
-	return getPaged[ServicePrincipal](ctx, c, "graph.service_principals.list", "/servicePrincipals?$filter=servicePrincipalType%20eq%20'Application'&$select=id,appId,accountEnabled,appRoleAssignmentRequired,preferredSingleSignOnMode,servicePrincipalType,passwordCredentials,keyCredentials&$top=999")
+	route := "/servicePrincipals?$filter=servicePrincipalType%20eq%20'Application'&$select=id,appId,accountEnabled,appRoleAssignmentRequired,preferredSingleSignOnMode,servicePrincipalType,passwordCredentials,keyCredentials&$top=999"
+	required := append([]string{"id", "appId", "accountEnabled", "appRoleAssignmentRequired"}, credentialFields...)
+	servicePrincipals, resp, err := getPages[ServicePrincipal](ctx, c, "graph.service_principals.list", route, nil, required)
+	if err != nil {
+		return nil, err
+	}
+	if len(servicePrincipals) == 0 {
+		return nil, componentsdk.ResponseError(resp, invalidResponse("graph", route, "lists no service principal, and the one the collector signs in as is always listed"))
+	}
+	return servicePrincipals, nil
 }
 
 func (c *GraphClient) Applications(ctx context.Context) ([]Application, error) {
-	return getPaged[Application](ctx, c, "graph.applications.list", "/applications?$select=id,appId,passwordCredentials,keyCredentials&$top=999")
+	return getPaged[Application](ctx, c, "graph.applications.list", "/applications?$select=id,appId,passwordCredentials,keyCredentials&$top=999",
+		append([]string{"appId"}, credentialFields...)...)
 }
 
 func (c *GraphClient) SecureScores(ctx context.Context) ([]SecureScore, error) {
-	return getPaged[SecureScore](ctx, c, "graph.secure_scores.list", "/security/secureScores?$top=1")
+	return getPaged[SecureScore](ctx, c, "graph.secure_scores.list", "/security/secureScores?$top=1", "currentScore")
 }
 
 func (c *GraphClient) SignIns(ctx context.Context, since time.Time) ([]SignIn, error) {
@@ -178,7 +204,11 @@ func (c *GraphClient) SignIns(ctx context.Context, since time.Time) ([]SignIn, e
 	query.Set("$orderby", "createdDateTime desc")
 	query.Set("$select", "id,createdDateTime,userId,appId,status,conditionalAccessStatus,appliedConditionalAccessPolicies,clientAppUsed,riskLevelAggregated,riskLevelDuringSignIn")
 	query.Set("$top", "999")
-	return getPagedWithHeader[SignIn](ctx, c, "graph.sign_ins.list", "/auditLogs/signIns?"+query.Encode(), preferUnknownEnumMembers)
+	signIns, _, err := getPages[SignIn](ctx, c, "graph.sign_ins.list", "/auditLogs/signIns?"+query.Encode(), preferUnknownEnumMembers, []string{
+		"userId", "appId", "status/errorCode", "conditionalAccessStatus", "clientAppUsed", "riskLevelAggregated", "riskLevelDuringSignIn",
+		"appliedConditionalAccessPolicies/*/id", "appliedConditionalAccessPolicies/*/result",
+	})
+	return signIns, err
 }
 
 // preferUnknownEnumMembers is the Prefer header for the members of an
@@ -193,7 +223,8 @@ func (c *GraphClient) DirectoryAudits(ctx context.Context, since time.Time) ([]D
 	query.Set("$orderby", "activityDateTime desc")
 	query.Set("$select", "id,activityDateTime,activityDisplayName,category,loggedByService,operationType,result,targetResources")
 	query.Set("$top", "999")
-	return getPaged[DirectoryAudit](ctx, c, "graph.directory_audits.list", "/auditLogs/directoryAudits?"+query.Encode())
+	return getPaged[DirectoryAudit](ctx, c, "graph.directory_audits.list", "/auditLogs/directoryAudits?"+query.Encode(),
+		"category", "loggedByService", "operationType", "result")
 }
 
 // graphPermissions names the Microsoft Graph application permission each call
@@ -224,57 +255,69 @@ func graphOperation(name string) componentsdk.Operation {
 
 // getPaged fails the whole list when any page fails, so a partial list never
 // reads as a complete one. A next link to a page already read fails it too,
-// since following it would never end.
-func getPaged[T any](ctx context.Context, c *GraphClient, operation, route string) ([]T, error) {
-	return getPagedWithHeader[T](ctx, c, operation, route, nil)
+// since following it would never end. So does an item that lacks one of the
+// required fields, which Graph sends for every item, or that breaks its
+// type's own rule.
+func getPaged[T any](ctx context.Context, c *GraphClient, operation, route string, required ...string) ([]T, error) {
+	items, _, err := getPages[T](ctx, c, operation, route, nil, required)
+	return items, err
 }
 
-// getPagedWithHeader is getPaged with header added to the request for every
-// page.
-func getPagedWithHeader[T any](ctx context.Context, c *GraphClient, operation, route string, header http.Header) ([]T, error) {
+// getPages is getPaged with header added to the request for every page. It
+// also returns the last page's response.
+func getPages[T any](ctx context.Context, c *GraphClient, operation, route string, header http.Header, required []string) ([]T, *http.Response, error) {
 	op := graphOperation(operation)
 	out := []T{}
 	read := map[string]struct{}{}
 	next := route
+	var resp *http.Response
 	for next != "" {
 		var page struct {
-			Value    *[]T   `json:"value"`
-			NextLink string `json:"@odata.nextLink"`
+			Value    *[]json.RawMessage `json:"value"`
+			NextLink string             `json:"@odata.nextLink"`
 		}
-		if err := c.getJSON(ctx, op, next, header, &page); err != nil {
-			return nil, err
+		var err error
+		if resp, err = c.getJSON(ctx, op, next, header, &page); err != nil {
+			return nil, nil, err
 		}
 		if page.Value == nil {
-			return nil, invalidResponse("graph", next, "has no value array")
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, "has no value array"))
 		}
-		out = append(out, *page.Value...)
+		items, problem, err := decodeItems[T](*page.Value, required)
+		switch {
+		case err != nil:
+			return nil, nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(next), err))
+		case problem != "":
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, problem))
+		}
+		out = append(out, items...)
 		read[next] = struct{}{}
 		if _, ok := read[page.NextLink]; ok {
-			return nil, invalidResponse("graph", next, "links to a page already read")
+			return nil, nil, componentsdk.ResponseError(resp, invalidResponse("graph", next, "links to a page already read"))
 		}
 		next = page.NextLink
 	}
-	return out, nil
+	return out, resp, nil
 }
 
-func (c *GraphClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, header http.Header, out any) error {
-	body, err := c.do(ctx, op, http.MethodGet, route, header, nil)
+func (c *GraphClient) getJSON(ctx context.Context, op componentsdk.Operation, route string, header http.Header, out any) (*http.Response, error) {
+	body, resp, err := c.do(ctx, op, http.MethodGet, route, header, nil)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := json.Unmarshal(body, out); err != nil {
-		return fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(route), err)
+		return nil, componentsdk.ResponseError(resp, fmt.Errorf("decoding graph response for %s: %w", SanitizeRoute(route), err))
 	}
-	return nil
+	return resp, nil
 }
 
-// do sends one named call with header added. The SDK's transport retries it
-// when that is safe.
-func (c *GraphClient) do(ctx context.Context, op componentsdk.Operation, method, route string, header http.Header, body []byte) ([]byte, error) {
+// do sends one named call with header added, and returns the body and the
+// response it came in. The SDK's transport retries it when that is safe.
+func (c *GraphClient) do(ctx context.Context, op componentsdk.Operation, method, route string, header http.Header, body []byte) ([]byte, *http.Response, error) {
 	ctx = componentsdk.WithOperation(ctx, op)
 	req, err := c.newRequest(ctx, method, route, bytes.NewReader(body))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	for name, values := range header {
 		for _, value := range values {
@@ -283,22 +326,22 @@ func (c *GraphClient) do(ctx context.Context, op componentsdk.Operation, method,
 	}
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return nil, &RequestError{Service: "graph", Route: route, Err: err}
+		return nil, nil, &RequestError{Service: "graph", Route: route, Err: err}
 	}
 	defer func() { _ = resp.Body.Close() }()
 	respBody, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes+1))
 	if err != nil {
-		return nil, &RequestError{Service: "graph", Route: route, Err: err}
+		return nil, nil, &RequestError{Service: "graph", Route: route, Err: err}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		// ResponseError ties the error to its call, so a gap from it names
 		// the call and the permission it needs.
-		return nil, componentsdk.ResponseError(resp, graphAPIError(resp.StatusCode, route, resp.Header, respBody))
+		return nil, nil, componentsdk.ResponseError(resp, graphAPIError(resp.StatusCode, route, resp.Header, respBody))
 	}
 	if len(respBody) > maxResponseBytes {
-		return nil, tooLarge("graph", route)
+		return nil, nil, tooLarge("graph", route)
 	}
-	return respBody, nil
+	return respBody, resp, nil
 }
 
 func (c *GraphClient) newRequest(ctx context.Context, method, route string, body io.Reader) (*http.Request, error) {
